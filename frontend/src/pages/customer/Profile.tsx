@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../api";
 import { getCustomerUser, setCustomerAuth, clearCustomerAuth, getCustomerToken } from "../../hooks/useAuth";
+import BulkLocationUpload, { type LocationRow } from "../../components/BulkLocationUpload";
 import type { DeliveryLocation } from "../../hooks/useAuth";
 
 interface LocationForm { label: string; address: string; city: string; state: string; }
@@ -23,6 +24,7 @@ export default function Profile() {
 
   // Additional locations state
   const [addingLoc,  setAddingLoc]  = useState(false);
+  const [showBulk,   setShowBulk]   = useState(false);
   const [newLoc,     setNewLoc]     = useState<LocationForm>(emptyForm());
   const [editingId,  setEditingId]  = useState<number | null>(null);
   const [editLoc,    setEditLoc]    = useState<LocationForm>(emptyForm());
@@ -169,13 +171,16 @@ export default function Profile() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
           <div style={{ fontWeight: 700, fontSize: 14, color: "var(--ink-2)" }}>Additional Delivery Locations</div>
           {!addingLoc && (
-            <button
-              className="btn btn-secondary"
-              style={{ fontSize: 13, padding: "6px 12px" }}
-              onClick={() => { setAddingLoc(true); setLocError(""); }}
-            >
-              + Add
-            </button>
+            <div style={{ display: "flex", gap: 6 }}>
+              <button className="btn btn-secondary" style={{ fontSize: 12, padding: "5px 10px" }}
+                onClick={() => setShowBulk(true)}>
+                📂 Bulk
+              </button>
+              <button className="btn btn-secondary" style={{ fontSize: 12, padding: "5px 10px" }}
+                onClick={() => { setAddingLoc(true); setLocError(""); }}>
+                + Add
+              </button>
+            </div>
           )}
         </div>
 
@@ -305,6 +310,21 @@ export default function Profile() {
         </button>
       </div>
 
+      {showBulk && (
+        <BulkLocationUpload
+          onClose={() => setShowBulk(false)}
+          onLocations={async (rows: LocationRow[]) => {
+            for (const row of rows) {
+              await api.post("/auth/me/locations", {
+                label: row.label, address: row.address || null,
+                city: row.city || null, state: row.state || null,
+              }).catch(() => {});
+            }
+            qc.invalidateQueries({ queryKey: ["my-locations"] });
+            setShowBulk(false);
+          }}
+        />
+      )}
     </>
   );
 }

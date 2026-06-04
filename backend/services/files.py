@@ -36,3 +36,21 @@ async def save_payment_proof(file: UploadFile, order_number: str) -> tuple[str, 
 
     file_url = f"/uploads/payments/{unique_name}"
     return file_url, unique_name
+
+
+async def save_grn_image(file: UploadFile, order_number: str) -> tuple[str, str]:
+    """Save GRN photo. Returns (file_url, filename)."""
+    if file.content_type not in ALLOWED_MIME:
+        raise HTTPException(status_code=400, detail="Only PNG, JPG, and JPEG images are accepted.")
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in ALLOWED_EXTS:
+        raise HTTPException(status_code=400, detail="Only .png, .jpg, .jpeg files are accepted.")
+    contents = await file.read()
+    if len(contents) > MAX_MB * 1024 * 1024:
+        raise HTTPException(status_code=400, detail=f"File too large. Maximum size is {MAX_MB}MB.")
+    save_dir = os.path.join(UPLOAD_DIR, "grns")
+    _ensure_dir(save_dir)
+    unique_name = f"grn_{order_number}_{uuid.uuid4().hex[:8]}{ext}"
+    with open(os.path.join(save_dir, unique_name), "wb") as f:
+        f.write(contents)
+    return f"/uploads/grns/{unique_name}", unique_name

@@ -370,6 +370,18 @@ export default function StaffOrderDetail() {
                   <img
                     src={delivery.grn.image_url}
                     alt="GRN photo"
+                    style={{ width: "100%", maxHeight: 220, objectFit: "contain",
+                      borderRadius: "var(--radius)", border: "1px solid var(--border)", cursor: "pointer" }}
+                    onClick={() => window.open(delivery.grn.image_url, "_blank")}
+                  />
+                  <div style={{ fontSize: 11, color: "var(--ink-4)", marginTop: 4 }}>Tap to view full size</div>
+                </div>
+              )}
+              {delivery.grn.image_url && (
+                <div style={{ marginTop: 8 }}>
+                  <img
+                    src={delivery.grn.image_url}
+                    alt="GRN photo"
                     style={{
                       width: "100%", maxHeight: 220, objectFit: "contain",
                       borderRadius: "var(--radius)", border: "1px solid var(--border)",

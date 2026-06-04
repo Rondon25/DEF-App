@@ -279,6 +279,8 @@ class GRN(Base):
     received_qty     = Column(Float, nullable=True)
     condition_notes  = Column(Text, nullable=True)
     is_accepted      = Column(Boolean, default=True)
+    image_url        = Column(String(500), nullable=True)
+    image_filename   = Column(String(255), nullable=True)
     submitted_at     = Column(DateTime, nullable=True)
     logged_by        = Column(Integer, ForeignKey("staff_users.id"), nullable=True)
     created_at       = Column(DateTime, default=datetime.utcnow)

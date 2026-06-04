@@ -38,6 +38,7 @@ app.add_middleware(
 UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_DIR, "payments"), exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_DIR, "grns"), exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 # ── Routers ───────────────────────────────────────────────────────────────────
