@@ -12,6 +12,7 @@ from routers.staff_auth import get_current_staff, require_role
 from services.whatsapp import (
     send_order_received, send_proforma_invoice, send_order_confirmation
 )
+from services.audit import log as audit_log
 
 router = APIRouter(tags=["orders"])
 
@@ -117,9 +118,68 @@ def place_order(
     db.commit()
     db.refresh(order)
 
-    send_order_received(customer.phone_number, customer.name, order.order_number)
+    audit_log(db, "order", order.id, "created", new_value=order.order_number)
+    db.commit()
 
+    send_order_received(customer.phone_number, customer.name, order.order_number)
     return _enrich_order(order)
+
+
+# ── Customer: reorder ────────────────────────────────────────────────────────
+
+@router.post("/orders/{order_id}/reorder", response_model=OrderOut, status_code=201)
+def reorder(
+    order_id: int,
+    db: Session = Depends(get_db),
+    customer: models.Customer = Depends(require_active_customer),
+):
+    original = db.query(models.Order).filter(
+        models.Order.id == order_id,
+        models.Order.customer_id == customer.id,
+    ).first()
+    if not original:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if not original.items:
+        raise HTTPException(status_code=400, detail="Original order has no items")
+
+    order_items = []
+    subtotal = 0.0
+    for item in original.items:
+        sku = db.query(models.SKU).filter(
+            models.SKU.id == item.sku_id,
+            models.SKU.is_active == True,
+        ).first()
+        if not sku:
+            continue
+        item_subtotal = round(item.quantity * sku.current_price, 2)
+        subtotal += item_subtotal
+        order_items.append(models.OrderItem(
+            sku_id=sku.id,
+            quantity=item.quantity,
+            unit_price=sku.current_price,
+            subtotal=item_subtotal,
+        ))
+
+    if not order_items:
+        raise HTTPException(status_code=400, detail="No active SKUs found in original order")
+
+    new_order = models.Order(
+        order_number=_gen_order_number(),
+        customer_id=customer.id,
+        salesperson_id=customer.assigned_salesperson_id,
+        status=models.OrderStatus.submitted,
+        subtotal=round(subtotal, 2),
+        total_amount=round(subtotal, 2),
+        delivery_address=original.delivery_address or customer.address,
+        notes=f"Reorder of {original.order_number}",
+        items=order_items,
+    )
+    db.add(new_order)
+    db.commit()
+    db.refresh(new_order)
+
+    send_order_received(customer.phone_number, customer.name, new_order.order_number)
+    return _enrich_order(new_order)
 
 
 # ── Customer: list my orders ──────────────────────────────────────────────────
@@ -204,6 +264,7 @@ def verify_order(
     order.status      = models.OrderStatus.proforma_sent
     order.verified_by = staff.id
     order.verified_at = datetime.utcnow()
+    audit_log(db, "order", order.id, "status_change", staff=staff, old_value="submitted", new_value="proforma_sent")
     db.commit()
     db.refresh(order)
 
@@ -248,6 +309,7 @@ def confirm_order(
     order.confirmed_at = datetime.utcnow()
     if payload.tentative_delivery_date:
         order.tentative_delivery_date = payload.tentative_delivery_date
+    audit_log(db, "order", order.id, "status_change", staff=staff, old_value="payment_verified", new_value="confirmed")
     db.commit()
     db.refresh(order)
 

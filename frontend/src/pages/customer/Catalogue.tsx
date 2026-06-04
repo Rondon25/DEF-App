@@ -12,6 +12,7 @@ interface SKU {
   unit: string;
   current_price: number;
   min_order_qty: number;
+  stock_qty: number | null;
 }
 
 interface CartItem {
@@ -94,6 +95,12 @@ export default function Catalogue() {
                     {sku.min_order_qty > 1 && (
                       <span style={{ color: "var(--ink-4)", fontSize: 11, marginLeft: 6 }}>Min {sku.min_order_qty} {sku.unit}</span>
                     )}
+                  {sku.stock_qty !== null && sku.stock_qty <= 0 && (
+                    <span style={{ color: "var(--red,#ef4444)", fontSize: 11, marginLeft: 6, fontWeight: 600 }}>Out of stock</span>
+                  )}
+                  {sku.stock_qty !== null && sku.stock_qty > 0 && sku.stock_qty < 10 && (
+                    <span style={{ color: "var(--amber,#d97706)", fontSize: 11, marginLeft: 6, fontWeight: 600 }}>Low stock ({sku.stock_qty} left)</span>
+                  )}
                   </div>
                 </div>
 

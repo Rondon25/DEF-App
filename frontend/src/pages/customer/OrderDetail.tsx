@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../api";
 
@@ -56,9 +56,10 @@ const ORDER_INDEX: Record<string, number> = Object.fromEntries(
 );
 
 export default function OrderDetail() {
-  const { id }  = useParams();
-  const qc      = useQueryClient();
-  const fileRef = useRef<HTMLInputElement>(null);
+  const { id }     = useParams();
+  const navigate   = useNavigate();
+  const qc         = useQueryClient();
+  const fileRef    = useRef<HTMLInputElement>(null);
 
   const [payMethod,  setPayMethod]  = useState("bank_transfer");
   const [payAmount,  setPayAmount]  = useState("");
@@ -90,6 +91,11 @@ export default function OrderDetail() {
       setPayFile(null); setPayAmount(""); setPayError("");
     },
     onError: (err: any) => setPayError(err.response?.data?.detail || "Upload failed"),
+  });
+
+  const reorderMutation = useMutation({
+    mutationFn: () => api.post(`/orders/${id}/reorder`).then(r => r.data),
+    onSuccess: (newOrder) => navigate(`/orders/${newOrder.id}`),
   });
 
   const grnMutation = useMutation({
@@ -398,6 +404,19 @@ export default function OrderDetail() {
         <div className="card" style={{ padding: 14 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-3)", marginBottom: 4 }}>NOTES</div>
           <div style={{ fontSize: 14 }}>{order.notes}</div>
+        </div>
+      )}
+
+      {/* Reorder button — show for closed orders */}
+      {order.status === "closed" && (
+        <div style={{ padding: "4px 0 24px" }}>
+          <button
+            className="btn btn-primary btn-full"
+            onClick={() => reorderMutation.mutate()}
+            disabled={reorderMutation.isPending}
+          >
+            {reorderMutation.isPending ? <span className="spinner" /> : "🔄 Reorder — Place Again"}
+          </button>
         </div>
       )}
     </>

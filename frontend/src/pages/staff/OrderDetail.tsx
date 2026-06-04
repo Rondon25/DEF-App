@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { staffApi } from "../../api";
@@ -51,6 +51,8 @@ export default function StaffOrderDetail() {
   const [cancelReason,  setCancelReason]  = useState("");
   const [showCancel,    setShowCancel]    = useState(false);
   const [actionError,   setActionError]   = useState("");
+  const [newNote,       setNewNote]       = useState("");
+  const noteRef = useRef<HTMLTextAreaElement>(null);
 
   const { data: order, isLoading } = useQuery({
     queryKey: ["staff-order", id],
@@ -131,6 +133,25 @@ export default function StaffOrderDetail() {
     mutationFn: (status: string) => staffApi.patch(`/staff/orders/${id}/status`, { status }).then(r => r.data),
     onSuccess: () => invalidate(),
     onError: (e: any) => setActionError(e.response?.data?.detail || "Failed"),
+  });
+
+  const { data: notes = [] } = useQuery({
+    queryKey: ["order-notes", id],
+    queryFn: () => staffApi.get(`/staff/orders/${id}/notes`).then(r => r.data),
+    enabled: !!order,
+  });
+
+  const addNoteMutation = useMutation({
+    mutationFn: (content: string) => staffApi.post(`/staff/orders/${id}/notes`, { content }).then(r => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["order-notes", id] });
+      setNewNote("");
+    },
+  });
+
+  const deleteNoteMutation = useMutation({
+    mutationFn: (noteId: number) => staffApi.delete(`/staff/orders/${id}/notes/${noteId}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["order-notes", id] }),
   });
 
   if (isLoading) return <div className="loading-screen"><span className="spinner spinner-dark" /></div>;
@@ -433,6 +454,55 @@ export default function StaffOrderDetail() {
           <div style={{ fontSize: 14 }}>{order.notes}</div>
         </div>
       )}
+
+      {/* Internal notes */}
+      <div className="card" style={{ padding: 16 }}>
+        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>
+          🗒️ Internal Notes
+          <span style={{ fontSize: 11, fontWeight: 400, color: "var(--ink-4)", marginLeft: 6 }}>Not visible to customer</span>
+        </div>
+
+        {notes.length === 0 && (
+          <p style={{ fontSize: 13, color: "var(--ink-4)", marginBottom: 10 }}>No notes yet.</p>
+        )}
+
+        {notes.map((note: any) => (
+          <div key={note.id} style={{
+            background: "var(--surface)", borderRadius: "var(--radius)",
+            padding: "10px 12px", marginBottom: 8,
+          }}>
+            <div style={{ fontSize: 13 }}>{note.content}</div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+              <span style={{ fontSize: 11, color: "var(--ink-4)" }}>
+                {note.staff_name} · {new Date(note.created_at).toLocaleString()}
+              </span>
+              <button
+                onClick={() => deleteNoteMutation.mutate(note.id)}
+                style={{ background: "none", border: "none", color: "var(--red,#ef4444)", fontSize: 11, cursor: "pointer" }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+
+        <textarea
+          ref={noteRef}
+          className="input"
+          rows={2}
+          style={{ resize: "none", marginTop: 4, marginBottom: 8 }}
+          placeholder="Add an internal note..."
+          value={newNote}
+          onChange={e => setNewNote(e.target.value)}
+        />
+        <button
+          className="btn btn-secondary btn-full"
+          disabled={!newNote.trim() || addNoteMutation.isPending}
+          onClick={() => addNoteMutation.mutate(newNote)}
+        >
+          {addNoteMutation.isPending ? <span className="spinner spinner-dark" /> : "Add Note"}
+        </button>
+      </div>
 
       {/* Cancel button */}
       {canCancel && (

@@ -21,6 +21,7 @@ class SKUOut(BaseModel):
     unit: str
     current_price: float
     min_order_qty: float = 1.0
+    stock_qty: float | None = None
     is_active: bool
 
     @classmethod
@@ -35,6 +36,7 @@ class SKUOut(BaseModel):
             "unit": obj.unit,
             "current_price": obj.current_price,
             "min_order_qty": getattr(obj, "min_order_qty", 1.0),
+            "stock_qty": obj.stock_qty,
             "is_active": obj.is_active,
         }
         return cls(**data)

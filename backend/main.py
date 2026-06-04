@@ -13,7 +13,7 @@ from slowapi.errors import RateLimitExceeded
 
 from database import engine, Base, SessionLocal
 import models
-from routers import auth, staff_auth, catalog, customers, orders, payments, delivery
+from routers import auth, staff_auth, catalog, customers, orders, payments, delivery, notes, audit, analytics, export, stock
 from services.whatsapp import get_status as wa_status
 
 # ── Create tables ─────────────────────────────────────────────────────────────
@@ -48,6 +48,11 @@ app.include_router(customers.router)
 app.include_router(orders.router)
 app.include_router(payments.router)
 app.include_router(delivery.router)
+app.include_router(notes.router)
+app.include_router(audit.router)
+app.include_router(analytics.router)
+app.include_router(export.router)
+app.include_router(stock.router)
 
 
 # ── Health & WhatsApp status ──────────────────────────────────────────────────

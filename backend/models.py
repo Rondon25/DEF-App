@@ -144,6 +144,7 @@ class SKU(Base):
     volume_liters        = Column(Float, default=0.0)
     unit                 = Column(String(50), default="unit")
     current_price        = Column(Float, nullable=False)
+    stock_qty            = Column(Float, nullable=True)   # None = unlimited/not tracked
     is_active            = Column(Boolean, default=True)
     created_at           = Column(DateTime, default=datetime.utcnow)
     updated_at           = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -302,3 +303,35 @@ class WhatsAppMessage(Base):
     sent_at      = Column(DateTime, default=datetime.utcnow)
 
     customer = relationship("Customer", back_populates="wa_messages")
+
+
+# ─── AUDIT LOG ───────────────────────────────────────────────────────────────
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    entity_type = Column(String(50), nullable=False)   # order, customer, payment, sku
+    entity_id   = Column(Integer, nullable=False)
+    action      = Column(String(100), nullable=False)  # status_change, approved, rejected, etc.
+    old_value   = Column(Text, nullable=True)
+    new_value   = Column(Text, nullable=True)
+    note        = Column(Text, nullable=True)
+    staff_id    = Column(Integer, ForeignKey("staff_users.id"), nullable=True)
+    staff_name  = Column(String(200), nullable=True)   # denormalised for display
+    created_at  = Column(DateTime, default=datetime.utcnow)
+
+
+# ─── ORDER NOTES (staff-only) ────────────────────────────────────────────────
+
+class OrderNote(Base):
+    __tablename__ = "order_notes"
+
+    id         = Column(Integer, primary_key=True, index=True)
+    order_id   = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    staff_id   = Column(Integer, ForeignKey("staff_users.id"), nullable=False)
+    staff_name = Column(String(200), nullable=True)
+    content    = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    order = relationship("Order", backref="notes_list")

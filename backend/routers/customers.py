@@ -8,6 +8,7 @@ from database import get_db
 import models
 from routers.staff_auth import get_current_staff, require_role
 from services.whatsapp import send_registration_approved, send_registration_rejected
+from services.audit import log as audit_log
 
 router = APIRouter(tags=["customers"])
 
@@ -118,6 +119,7 @@ def approve_customer(
     if payload.assigned_salesperson_id:
         c.assigned_salesperson_id = payload.assigned_salesperson_id
 
+    audit_log(db, "customer", c.id, "approved", staff=staff, new_value="active")
     db.commit()
     db.refresh(c)
     send_registration_approved(c.phone_number, c.name)
