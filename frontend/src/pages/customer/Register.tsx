@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import BulkLocationUpload, { type LocationRow } from "../../components/BulkLocationUpload";
 
 interface ExtraLocation {
   label: string;
@@ -16,7 +17,8 @@ export default function CustomerRegister() {
     address: "", city: "", state: "",
   });
   const [extraLocations, setExtraLocations] = useState<ExtraLocation[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [showBulk,       setShowBulk]       = useState(false);
+  const [loading,        setLoading]        = useState(false);
   const [error, setError]     = useState("");
   const [done, setDone]       = useState(false);
 
@@ -176,14 +178,24 @@ export default function CustomerRegister() {
             </div>
           ))}
 
-          <button
-            type="button"
-            className="btn btn-secondary btn-full"
-            style={{ marginBottom: 16 }}
-            onClick={addLocation}
-          >
-            + Add another delivery location
-          </button>
+          <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              style={{ flex: 1 }}
+              onClick={addLocation}
+            >
+              + Add manually
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              style={{ flex: 1 }}
+              onClick={() => setShowBulk(true)}
+            >
+              📂 Upload CSV/Excel
+            </button>
+          </div>
 
           <button className="btn btn-primary btn-full btn-lg" type="submit" disabled={loading}>
             {loading ? <span className="spinner" /> : "Submit registration →"}
@@ -195,6 +207,24 @@ export default function CustomerRegister() {
           <Link to="/login" style={{ color: "var(--blue)", fontWeight: 600 }}>Sign in</Link>
         </p>
       </div>
+
+      {showBulk && (
+        <BulkLocationUpload
+          onClose={() => setShowBulk(false)}
+          onLocations={(rows: LocationRow[]) => {
+            setExtraLocations(prev => [
+              ...prev,
+              ...rows.map(r => ({
+                label:   r.label,
+                address: r.address,
+                city:    r.city,
+                state:   r.state,
+              })),
+            ]);
+            setShowBulk(false);
+          }}
+        />
+      )}
     </div>
   );
 }
