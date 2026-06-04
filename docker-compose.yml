@@ -27,22 +27,17 @@ services:
     depends_on:
       - db
 
-  metabase:
-    image: metabase/metabase:latest
-    container_name: defmobile_metabase
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    container_name: defmobile_cloudbeaver
     restart: unless-stopped
     ports:
-      - "8085:3000"
-    environment:
-      MB_DB_TYPE: postgres
-      MB_DB_DBNAME: ${POSTGRES_DB:-defmobile}
-      MB_DB_PORT: 5432
-      MB_DB_USER: ${POSTGRES_USER:-defuser}
-      MB_DB_PASS: ${POSTGRES_PASSWORD:-defpassword123}
-      MB_DB_HOST: db
+      - "8085:8978"
+    volumes:
+      - cloudbeaver_data:/opt/cloudbeaver/workspace
     depends_on:
-      db:
-        condition: service_healthy
+      - db
 
 volumes:
   postgres_data:
+  cloudbeaver_data:

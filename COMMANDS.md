@@ -4,10 +4,10 @@
 
 Open **4 terminals**:
 
-### Terminal 1 — Database
+### Terminal 1 — Database + CloudBeaver
 ```
 cd "C:\Users\Ronish Sharma\Final DEF app\DEF App Mobile"
-docker compose up db adminer -d
+docker compose up db adminer cloudbeaver -d
 ```
 
 ### Terminal 2 — Backend (port 8004)
@@ -40,6 +40,7 @@ node index.js
 | Customer portal | http://localhost:5174/login |
 | Staff portal | http://localhost:5174/staff/login |
 | Database (Adminer) | http://localhost:8081 |
+| CloudBeaver (visual DB) | http://localhost:8085 |
 | WhatsApp QR | http://localhost:8003/qr |
 | API docs | http://localhost:8004/docs |
 
