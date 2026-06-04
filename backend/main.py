@@ -20,7 +20,7 @@ from services.whatsapp import get_status as wa_status
 Base.metadata.create_all(bind=engine)
 
 # ── App ───────────────────────────────────────────────────────────────────────
-app = FastAPI(title="DEF Platform Mobile", version="1.0.0")
+app = FastAPI(title="Rohan Energy Solutions", version="1.0.0")
 
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter

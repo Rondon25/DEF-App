@@ -164,8 +164,14 @@ def register(request: Request, payload: RegisterRequest, db: Session = Depends(g
 
 # ── Send OTP (login or re-send) ───────────────────────────────────────────────
 
+OTP_SEND_MAX    = 3   # max sends per phone per window
+OTP_SEND_WINDOW = 10  # minutes
+OTP_LOCK_AFTER  = 5   # failed verify attempts before lockout
+OTP_LOCK_MINS   = 30  # lockout duration in minutes
+
+
 @router.post("/auth/send-otp")
-@limiter.limit("3/minute")
+@limiter.limit("10/minute")
 def send_otp_route(request: Request, payload: SendOTPRequest, db: Session = Depends(get_db)):
     phone = "".join(c for c in payload.phone_number if c.isdigit())
     customer = db.query(models.Customer).filter(models.Customer.phone_number == phone).first()
@@ -177,10 +183,28 @@ def send_otp_route(request: Request, payload: SendOTPRequest, db: Session = Depe
     if customer.status == models.CustomerStatus.suspended:
         raise HTTPException(status_code=403, detail="Account is suspended")
 
+    now = datetime.utcnow()
+    window_start = customer.otp_send_window_start
+    send_count   = customer.otp_send_count or 0
+
+    if not window_start or (now - window_start.replace(tzinfo=None)).total_seconds() > OTP_SEND_WINDOW * 60:
+        send_count   = 0
+        window_start = now
+
+    if send_count >= OTP_SEND_MAX:
+        wait_secs = int(OTP_SEND_WINDOW * 60 - (now - window_start.replace(tzinfo=None)).total_seconds())
+        raise HTTPException(
+            status_code=429,
+            detail=f"Too many OTP requests. Please wait {max(1, wait_secs // 60)} minute(s) before trying again."
+        )
+
     otp = generate_otp(6)
-    customer.otp_code       = otp
-    customer.otp_expires_at = otp_expiry(10)
-    customer.otp_channel    = models.OTPChannel.whatsapp
+    customer.otp_code              = otp
+    customer.otp_expires_at        = otp_expiry(10)
+    customer.otp_channel           = models.OTPChannel.whatsapp
+    customer.otp_attempts          = 0
+    customer.otp_send_count        = send_count + 1
+    customer.otp_send_window_start = window_start
     db.commit()
 
     sent = send_otp(phone, otp, customer.name)
@@ -205,11 +229,31 @@ def verify_otp(payload: VerifyOTPRequest, db: Session = Depends(get_db)):
     if customer.status not in [models.CustomerStatus.active]:
         raise HTTPException(status_code=403, detail="Account is not active")
 
-    if not is_otp_valid(payload.otp_code, customer.otp_code, customer.otp_expires_at):
-        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+    now = datetime.utcnow()
 
-    customer.otp_code       = None
-    customer.otp_expires_at = None
+    if customer.otp_locked_until:
+        locked_until = customer.otp_locked_until.replace(tzinfo=None) if customer.otp_locked_until.tzinfo else customer.otp_locked_until
+        if now < locked_until:
+            wait_mins = int((locked_until - now).total_seconds() / 60) + 1
+            raise HTTPException(status_code=429, detail=f"Too many failed attempts. Try again in {wait_mins} minute(s).")
+
+    if not is_otp_valid(payload.otp_code, customer.otp_code, customer.otp_expires_at):
+        attempts = (customer.otp_attempts or 0) + 1
+        customer.otp_attempts = attempts
+        if attempts >= OTP_LOCK_AFTER:
+            from datetime import timedelta
+            customer.otp_locked_until = now + timedelta(minutes=OTP_LOCK_MINS)
+            customer.otp_attempts = 0
+            db.commit()
+            raise HTTPException(status_code=429, detail=f"Too many failed attempts. Account locked for {OTP_LOCK_MINS} minutes.")
+        db.commit()
+        remaining = OTP_LOCK_AFTER - attempts
+        raise HTTPException(status_code=400, detail=f"Invalid or expired OTP. {remaining} attempt(s) remaining.")
+
+    customer.otp_code         = None
+    customer.otp_expires_at   = None
+    customer.otp_attempts     = 0
+    customer.otp_locked_until = None
     db.commit()
 
     token = create_access_token({

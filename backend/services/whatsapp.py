@@ -32,7 +32,7 @@ def _send(phone: str, text: str) -> bool:
 def send_otp(phone: str, otp: str, name: str = "") -> bool:
     greeting = f"Hi {name}! " if name else ""
     text = (
-        f"🔐 *DEF Platform — Verification Code*\n\n"
+        f"🔐 *Rohan Energy Solutions — Verification Code*\n\n"
         f"{greeting}Your one-time code is:\n\n"
         f"*{otp}*\n\n"
         f"This code expires in 10 minutes. Do not share it with anyone."
@@ -53,7 +53,7 @@ def send_registration_pending(phone: str, name: str) -> bool:
 def send_registration_approved(phone: str, name: str) -> bool:
     text = (
         f"✅ *Account Approved!*\n\n"
-        f"Hi *{name}*, your DEF Platform account has been approved.\n\n"
+        f"Hi *{name}*, your Rohan Energy Solutions account has been approved.\n\n"
         f"You can now log in and place orders."
     )
     return _send(phone, text)
@@ -142,7 +142,7 @@ def send_grn_confirmation(phone: str, name: str, order_number: str) -> bool:
     text = (
         f"✅ *GRN Confirmed — #{order_number}*\n\n"
         f"Hi *{name}*, thank you for confirming receipt of your order.\n\n"
-        f"Your order is now complete. Thank you for choosing DEF Platform!"
+        f"Your order is now complete. Thank you for choosing Rohan Energy Solutions!"
     )
     return _send(phone, text)
 

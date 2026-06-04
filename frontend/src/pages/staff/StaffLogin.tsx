@@ -28,7 +28,7 @@ export default function StaffLogin() {
       <div className="auth-card">
         <div className="auth-logo">
           <div className="logo-icon">🏭</div>
-          <h1>DEF Platform</h1>
+          <h1>Rohan Energy Solutions</h1>
           <p className="tagline">Staff Portal</p>
         </div>
 

@@ -50,7 +50,7 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
     <div className="app-shell">
       {/* Mobile header */}
       <header className="mobile-header">
-        <h2>🏭 DEF Staff</h2>
+        <h2>⚡ Rohan Energy</h2>
         <span style={{ fontSize: 11, color: "rgba(255,255,255,.5)", textTransform: "capitalize" }}>
           {user?.role?.replace("_", " ")}
         </span>
@@ -59,7 +59,7 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
       {/* Desktop sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <h2>DEF Platform</h2>
+          <h2>Rohan Energy Solutions</h2>
           <span>Staff Portal</span>
         </div>
         <div className="sidebar-section">

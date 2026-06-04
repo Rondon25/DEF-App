@@ -16,7 +16,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
     <div className="app-shell" style={{ flexDirection: "column" }}>
       {/* Mobile header */}
       <header className="mobile-header">
-        <h2>🧪 DEF Platform</h2>
+        <h2>⚡ Rohan Energy</h2>
         <div className="header-right">
           <span style={{ fontSize: 12, color: "rgba(255,255,255,.6)" }}>{customer?.name}</span>
         </div>
@@ -25,7 +25,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
       {/* Desktop sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <h2>DEF Platform</h2>
+          <h2>Rohan Energy Solutions</h2>
           <span>Customer Portal</span>
         </div>
         <div className="sidebar-section">

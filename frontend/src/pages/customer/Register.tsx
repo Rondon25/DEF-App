@@ -78,8 +78,8 @@ export default function CustomerRegister() {
     <div className="auth-page" style={{ padding: "24px 16px" }}>
       <div className="auth-card">
         <div className="auth-logo">
-          <div className="logo-icon">🧪</div>
-          <h1>DEF Platform</h1>
+          <div className="logo-icon">⚡</div>
+          <h1>Rohan Energy Solutions</h1>
           <p className="tagline">Customer Portal</p>
         </div>
 

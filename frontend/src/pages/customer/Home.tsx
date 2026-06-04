@@ -51,7 +51,7 @@ export default function CustomerHome() {
     <>
       <div className="page-header">
         <h1>👋 Hi, {customer?.name?.split(" ")[0]}!</h1>
-        <p>{customer?.company_name || "Welcome to DEF Platform"}</p>
+        <p>{customer?.company_name || "Welcome to Rohan Energy Solutions"}</p>
       </div>
 
       {/* KPIs */}
