@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.env
+venv/
+env/
+
+# Node
+node_modules/
+dist/
+.DS_Store
+
+# Uploads (user files, not code)
+uploads/
+
+# WhatsApp session (contains auth tokens)
+whatsapp/session/
+whatsapp/.wwebjs_auth/
+whatsapp/.wwebjs_cache/
+
+# Logs
+*.log
+
+# Docker volumes
+postgres_data/
+
+# IDE
+.vscode/
+.idea/
+*.swp

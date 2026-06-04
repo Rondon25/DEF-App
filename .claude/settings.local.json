@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker compose:*)",
+      "Bash(\"C:\\\\Users\\\\Ronish Sharma\\\\bin\\\\python.exe\" -m uvicorn main:app --host 0.0.0.0 --port 8004 --reload)",
+      "Bash(npm run:*)",
+      "Bash(node index.js)",
+      "Bash(taskkill /F /PID 46604 /T)",
+      "Bash(taskkill /F /PID 14372 /T)",
+      "Bash(taskkill /F /IM node.exe /T)",
+      "Bash(taskkill /F /IM python.exe /T)",
+      "Bash(tasklist)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill /F /PID 30096 /T)",
+      "Bash(taskkill /F /PID 26692 /T)",
+      "Bash(cmd /c \"taskkill /F /PID 46604 /T & taskkill /F /PID 30096 /T & taskkill /F /PID 26692 /T\")",
+      "Bash(powershell -Command \"Stop-Process -Id 46604,30096,26692 -Force\")",
+      "Bash(powershell -Command \"Get-Process -Id 46604 | Stop-Process -Force; Start-Sleep -Milliseconds 500; Get-NetTCPConnection -LocalPort 8004 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }\")",
+      "Bash(powershell -Command \"Stop-Process -Id \\(Get-NetTCPConnection -LocalPort 8004\\).OwningProcess -Force\")",
+      "Bash(powershell -Command \"Get-Process -Id 46604 -ErrorAction SilentlyContinue\")",
+      "Bash(taskkill /F /IM uvicorn.exe /T)",
+      "Bash(pip install:*)",
+      "Bash(python -c \"from database import engine, Base; import models; Base.metadata.create_all\\(bind=engine\\); print\\(''DB tables OK''\\)\")",
+      "Bash(uvicorn main:app --host 0.0.0.0 --port 8000 --reload)",
+      "Bash(curl -s http://localhost:8000/health)",
+      "Bash(python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload)",
+      "Bash(curl:*)",
+      "Bash(ls:*)",
+      "Bash(python -m uvicorn main:app --host 0.0.0.0 --port 8004 --reload)"
+    ]
+  }
+}
