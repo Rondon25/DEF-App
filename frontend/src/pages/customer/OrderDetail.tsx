@@ -2,6 +2,10 @@ import { useState, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../api";
+import {
+  Check, AlertCircle, CreditCard, Paperclip, Upload, PackageCheck, Camera,
+  PartyPopper, Factory, Package, Truck, Calendar, MapPin, RotateCcw, Droplet, FileWarning,
+} from "lucide-react";
 
 const STATUS_LABEL: Record<string, string> = {
   submitted:         "Submitted — awaiting review",
@@ -9,7 +13,7 @@ const STATUS_LABEL: Record<string, string> = {
   proforma_sent:     "Invoice sent — please upload payment proof",
   payment_uploaded:  "Payment proof received — awaiting verification",
   payment_verified:  "Payment verified",
-  confirmed:         "Order confirmed 🎉",
+  confirmed:         "Order confirmed",
   in_production:     "In production",
   ready_for_dispatch:"Ready for dispatch",
   shipped:           "Shipped — on the way!",
@@ -142,7 +146,7 @@ export default function OrderDetail() {
   };
 
   if (isLoading) return <div className="loading-screen"><span className="spinner spinner-dark" /></div>;
-  if (!order) return <div className="empty-state"><div className="empty-icon">❌</div><p>Order not found</p></div>;
+  if (!order) return <div className="empty-state"><div className="empty-icon"><AlertCircle size={36} /></div><p>Order not found</p></div>;
 
   const currentIdx = ORDER_INDEX[order.status] ?? 0;
 
@@ -178,7 +182,7 @@ export default function OrderDetail() {
                     border: current ? "3px solid var(--blue-dark, #1d4ed8)" : "none",
                     boxSizing: "border-box",
                   }}>
-                    {done ? "✓" : i + 1}
+                    {done ? <Check size={14} /> : i + 1}
                   </div>
                   <div style={{
                     fontSize: 9, marginTop: 4, textAlign: "center",
@@ -207,8 +211,8 @@ export default function OrderDetail() {
               background: "#fef2f2", border: "1px solid #fecaca",
               borderRadius: "var(--radius)", padding: "10px 12px", marginBottom: 14,
             }}>
-              <div style={{ fontWeight: 700, fontSize: 13, color: "var(--red,#ef4444)", marginBottom: 4 }}>
-                ❌ Previous payment proof was rejected
+              <div style={{ fontWeight: 700, fontSize: 13, color: "var(--red,#ef4444)", marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
+                <FileWarning size={15} /> Previous payment proof was rejected
               </div>
               {paymentInfo.rejection_reason && (
                 <div style={{ fontSize: 13, color: "#991b1b" }}>
@@ -220,7 +224,7 @@ export default function OrderDetail() {
               </div>
             </div>
           )}
-          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>💳 Upload Payment Proof</div>
+          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4, display: "flex", alignItems: "center", gap: 7 }}><CreditCard size={17} /> Upload Payment Proof</div>
           <p style={{ fontSize: 13, color: "var(--ink-3)", marginBottom: 12 }}>
             Upload a screenshot or photo of your payment. Accepted: PNG, JPG, JPEG (max 10MB).
           </p>
@@ -261,14 +265,14 @@ export default function OrderDetail() {
             >
               {payFile ? (
                 <div style={{ fontSize: 13, fontWeight: 600, color: "var(--blue)" }}>
-                  📎 {payFile.name}
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><Paperclip size={15} /> {payFile.name}</span>
                   <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>
                     {(payFile.size / 1024 / 1024).toFixed(2)} MB — tap to change
                   </div>
                 </div>
               ) : (
                 <>
-                  <div style={{ fontSize: 28, marginBottom: 6 }}>📤</div>
+                  <div style={{ display: "flex", justifyContent: "center", marginBottom: 8, color: "var(--ink-4)" }}><Upload size={26} /></div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-2)" }}>Tap to select image</div>
                   <div style={{ fontSize: 11, color: "var(--ink-4)", marginTop: 4 }}>PNG, JPG, JPEG · max 10MB</div>
                 </>
@@ -298,7 +302,7 @@ export default function OrderDetail() {
       {/* GRN — shown when delivered */}
       {order.status === "grn_pending" && (
         <div className="card" style={{ padding: 16, border: "2px solid var(--green, #16a34a)" }}>
-          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>📦 Confirm Goods Received</div>
+          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4, display: "flex", alignItems: "center", gap: 7 }}><PackageCheck size={17} /> Confirm Goods Received</div>
           <p style={{ fontSize: 13, color: "var(--ink-3)", marginBottom: 12 }}>
             Please confirm you have received the goods in good condition.
           </p>
@@ -326,11 +330,11 @@ export default function OrderDetail() {
             >
               {grnFile ? (
                 <div style={{ fontSize: 13, fontWeight: 600, color: "var(--green,#16a34a)" }}>
-                  📎 {grnFile.name}
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><Paperclip size={15} /> {grnFile.name}</span>
                   <div style={{ fontSize: 11, color: "var(--ink-3)", fontWeight: 400, marginTop: 2 }}>Tap to change</div>
                 </div>
               ) : (
-                <div style={{ fontSize: 13, color: "var(--ink-3)" }}>📷 Tap to attach a photo of the delivered goods</div>
+                <div style={{ fontSize: 13, color: "var(--ink-3)", display: "inline-flex", alignItems: "center", gap: 6 }}><Camera size={16} /> Tap to attach a photo of the delivered goods</div>
               )}
             </div>
             <input
@@ -354,7 +358,7 @@ export default function OrderDetail() {
             }}
             disabled={grnMutation.isPending}
           >
-            {grnMutation.isPending ? <span className="spinner" /> : "✅ Confirm Receipt"}
+            {grnMutation.isPending ? <span className="spinner" /> : <><Check size={16} /> Confirm Receipt</>}
           </button>
         </div>
       )}
@@ -362,8 +366,8 @@ export default function OrderDetail() {
       {/* What happens next banner */}
       {["confirmed","in_production","ready_for_dispatch"].includes(order.status) && (
         <div className="alert" style={{ background: "var(--blue-light,#f0fdfa)", border: "1px solid #99f6e4", color: "var(--blue)" }}>
-          <div style={{ fontWeight: 700, marginBottom: 2 }}>
-            {order.status === "confirmed" ? "🎉 Order confirmed!" : order.status === "in_production" ? "🏭 In production" : "📦 Ready for dispatch"}
+          <div style={{ fontWeight: 700, marginBottom: 2, display: "flex", alignItems: "center", gap: 7 }}>
+            {order.status === "confirmed" ? <><PartyPopper size={16} /> Order confirmed!</> : order.status === "in_production" ? <><Factory size={16} /> In production</> : <><Package size={16} /> Ready for dispatch</>}
           </div>
           <div style={{ fontSize: 13 }}>
             {order.status === "confirmed"
@@ -373,8 +377,8 @@ export default function OrderDetail() {
               : "Your order is packed and ready — dispatching soon!"}
           </div>
           {order.tentative_delivery_date && (
-            <div style={{ fontSize: 12, marginTop: 6, opacity: 0.8 }}>
-              📅 Estimated delivery: {new Date(order.tentative_delivery_date).toLocaleDateString("en-US", { dateStyle: "long" })}
+            <div style={{ fontSize: 12, marginTop: 6, opacity: 0.8, display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <Calendar size={13} /> Estimated delivery: {new Date(order.tentative_delivery_date).toLocaleDateString("en-US", { dateStyle: "long" })}
             </div>
           )}
         </div>
@@ -383,8 +387,8 @@ export default function OrderDetail() {
       {/* Tracking info — shown when shipped */}
       {delivery?.delivery && ["shipped","delivered","grn_pending","grn_submitted","closed"].includes(order.status) && (
         <div className="card" style={{ padding: 16, border: "2px solid var(--purple,#7c3aed)" }}>
-          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 10 }}>
-            {order.status === "shipped" ? "🚚 Your order is on the way!" : "📦 Delivery details"}
+          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 10, display: "flex", alignItems: "center", gap: 7 }}>
+            {order.status === "shipped" ? <><Truck size={17} /> Your order is on the way!</> : <><Package size={17} /> Delivery details</>}
           </div>
           {delivery.delivery.carrier && (
             <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid var(--border)" }}>
@@ -409,8 +413,8 @@ export default function OrderDetail() {
           {delivery.delivery.delivered_at && (
             <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0" }}>
               <span style={{ fontSize: 13, color: "var(--ink-3)" }}>Delivered</span>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--green,#16a34a)" }}>
-                ✓ {new Date(delivery.delivery.delivered_at).toLocaleDateString("en-US", { dateStyle: "medium" })}
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--green,#16a34a)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                <Check size={14} /> {new Date(delivery.delivery.delivered_at).toLocaleDateString("en-US", { dateStyle: "medium" })}
               </span>
             </div>
           )}
@@ -423,8 +427,8 @@ export default function OrderDetail() {
       {/* GRN submitted confirmation */}
       {["grn_submitted","closed"].includes(order.status) && (
         <div className="alert" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#166534" }}>
-          <div style={{ fontWeight: 700, marginBottom: 2 }}>
-            {order.status === "closed" ? "✅ Order complete" : "✅ Goods receipt confirmed"}
+          <div style={{ fontWeight: 700, marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>
+            <Check size={16} /> {order.status === "closed" ? "Order complete" : "Goods receipt confirmed"}
           </div>
           <div style={{ fontSize: 13 }}>
             {order.status === "closed"
@@ -444,7 +448,7 @@ export default function OrderDetail() {
         <div style={{ padding: "14px 16px 0", fontWeight: 700, fontSize: 14 }}>Order Items</div>
         {order.items?.map((item: any) => (
           <div key={item.id} className="list-item" style={{ display: "flex" }}>
-            <div className="list-item-icon">🧪</div>
+            <div className="list-item-icon"><Droplet size={18} /></div>
             <div className="list-item-body">
               <div className="list-item-title">{item.sku_name || `SKU #${item.sku_id}`}</div>
               <div className="list-item-sub">{item.quantity} × ${item.unit_price?.toFixed(2)}</div>
@@ -467,10 +471,10 @@ export default function OrderDetail() {
       {order.delivery_address && (
         <div className="card" style={{ padding: 14 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-3)", marginBottom: 4 }}>DELIVERY ADDRESS</div>
-          <div style={{ fontSize: 14 }}>📍 {order.delivery_address}</div>
+          <div style={{ fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}><MapPin size={15} className="shrink-0" /> {order.delivery_address}</div>
           {order.tentative_delivery_date && (
-            <div style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 6 }}>
-              📅 Estimated: {new Date(order.tentative_delivery_date).toLocaleDateString("en-US", { dateStyle: "medium" })}
+            <div style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 6, display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <Calendar size={13} /> Estimated: {new Date(order.tentative_delivery_date).toLocaleDateString("en-US", { dateStyle: "medium" })}
             </div>
           )}
         </div>
@@ -504,7 +508,7 @@ export default function OrderDetail() {
             onClick={() => reorderMutation.mutate()}
             disabled={reorderMutation.isPending}
           >
-            {reorderMutation.isPending ? <span className="spinner" /> : "🔄 Reorder — Place Again"}
+            {reorderMutation.isPending ? <span className="spinner" /> : <><RotateCcw size={16} /> Reorder — Place Again</>}
           </button>
         </div>
       )}

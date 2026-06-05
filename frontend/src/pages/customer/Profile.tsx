@@ -5,6 +5,7 @@ import { api } from "../../api";
 import { getCustomerUser, setCustomerAuth, clearCustomerAuth, getCustomerToken } from "../../hooks/useAuth";
 import type { DeliveryLocation } from "../../hooks/useAuth";
 import BulkLocationUpload, { type LocationRow } from "../../components/BulkLocationUpload";
+import { FolderOpen, Smartphone, X } from "lucide-react";
 
 interface LocationForm { label: string; address: string; city: string; state: string; }
 const emptyForm = (): LocationForm => ({ label: "", address: "", city: "", state: "" });
@@ -183,10 +184,10 @@ export default function Profile() {
             <div style={{ display: "flex", gap: 6 }}>
               <button
                 className="btn btn-secondary"
-                style={{ fontSize: 12, padding: "5px 10px" }}
+                style={{ fontSize: 12, padding: "5px 10px", gap: 5 }}
                 onClick={() => setShowBulk(true)}
               >
-                📂 Bulk
+                <FolderOpen size={14} /> Bulk
               </button>
               <button
                 className="btn btn-secondary"
@@ -325,10 +326,10 @@ export default function Profile() {
         </button>
         <button
           className="btn btn-secondary btn-full"
-          style={{ marginTop: 8 }}
+          style={{ marginTop: 8, gap: 6 }}
           onClick={() => { setShowPhoneChange(true); setPhoneStep("enter"); setPhoneErr(""); setNewPhone(""); setPhoneOtp(""); }}
         >
-          📱 Change phone number
+          <Smartphone size={16} /> Change phone number
         </button>
       </div>
 
@@ -359,7 +360,7 @@ export default function Profile() {
           <div className="card" style={{ width: "100%", maxWidth: 480, padding: 20, margin: "0 auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <h3 style={{ fontWeight: 700 }}>Change Phone Number</h3>
-              <button onClick={() => setShowPhoneChange(false)} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: "var(--ink-3)" }}>✕</button>
+              <button onClick={() => setShowPhoneChange(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-3)", display: "flex" }}><X size={20} /></button>
             </div>
 
             {phoneStep === "enter" ? (

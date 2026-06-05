@@ -5,6 +5,7 @@
 import { useRef, useState } from "react";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
+import { X, Download, FolderOpen, Paperclip, AlertTriangle, Check } from "lucide-react";
 
 export interface LocationRow {
   label: string;
@@ -94,7 +95,7 @@ export default function BulkLocationUpload({ onLocations, onClose }: Props) {
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <h3 style={{ fontWeight: 700, fontSize: 16 }}>Bulk Upload Locations</h3>
-          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: "var(--ink-3)" }}>✕</button>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-3)", display: "flex" }}><X size={20} /></button>
         </div>
 
         {!parsed ? (
@@ -102,9 +103,9 @@ export default function BulkLocationUpload({ onLocations, onClose }: Props) {
             <p style={{ fontSize: 13, color: "var(--ink-3)", marginBottom: 14, lineHeight: 1.6 }}>
               Upload a CSV or Excel file with columns: <strong>label, address, city, state</strong>
             </p>
-            <button className="btn btn-secondary btn-full" style={{ marginBottom: 10, justifyContent: "center" }}
+            <button className="btn btn-secondary btn-full" style={{ marginBottom: 10, justifyContent: "center", gap: 6 }}
               onClick={downloadTemplate}>
-              ⬇️ Download Template (.xlsx)
+              <Download size={16} /> Download Template (.xlsx)
             </button>
             <div
               onClick={() => fileRef.current?.click()}
@@ -112,13 +113,13 @@ export default function BulkLocationUpload({ onLocations, onClose }: Props) {
                 border: `2px dashed ${fileName ? "var(--blue)" : "var(--border)"}`,
                 borderRadius: "var(--radius)", padding: "28px 16px",
                 textAlign: "center", cursor: "pointer",
-                background: fileName ? "var(--blue-light,#eff6ff)" : "var(--surface)",
+                background: fileName ? "var(--blue-light,#f0fdfa)" : "var(--surface)",
                 marginBottom: 10,
               }}
             >
               {fileName
-                ? <div style={{ fontSize: 13, fontWeight: 600, color: "var(--blue)" }}>📎 {fileName}<br /><span style={{ fontSize: 11, fontWeight: 400, color: "var(--ink-3)" }}>Tap to change</span></div>
-                : <><div style={{ fontSize: 28, marginBottom: 6 }}>📂</div><div style={{ fontSize: 13, fontWeight: 600 }}>Tap to select file</div><div style={{ fontSize: 11, color: "var(--ink-4)", marginTop: 4 }}>CSV or Excel (.csv, .xlsx)</div></>
+                ? <div style={{ fontSize: 13, fontWeight: 600, color: "var(--blue)", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}><span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><Paperclip size={15} /> {fileName}</span><span style={{ fontSize: 11, fontWeight: 400, color: "var(--ink-3)" }}>Tap to change</span></div>
+                : <><div style={{ display: "flex", justifyContent: "center", marginBottom: 8, color: "var(--ink-4)" }}><FolderOpen size={28} /></div><div style={{ fontSize: 13, fontWeight: 600 }}>Tap to select file</div><div style={{ fontSize: 11, color: "var(--ink-4)", marginTop: 4 }}>CSV or Excel (.csv, .xlsx)</div></>
               }
             </div>
             <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls" style={{ display: "none" }}
@@ -142,14 +143,14 @@ export default function BulkLocationUpload({ onLocations, onClose }: Props) {
                   <div style={{ fontSize: 12, color: "var(--ink-3)" }}>
                     {[row.address, row.city, row.state].filter(Boolean).join(", ") || "—"}
                   </div>
-                  {row._error && <div style={{ fontSize: 11, color: "#b45309", marginTop: 2 }}>⚠️ {row._error} — will be skipped</div>}
+                  {row._error && <div style={{ fontSize: 11, color: "#b45309", marginTop: 2, display: "inline-flex", alignItems: "center", gap: 4 }}><AlertTriangle size={12} /> {row._error} — will be skipped</div>}
                 </div>
               ))}
             </div>
             {validRows.length === 0
               ? <div className="alert alert-error" style={{ marginBottom: 10 }}>No valid rows. Please check your file.</div>
-              : <button className="btn btn-primary btn-full" style={{ marginBottom: 8 }} onClick={() => onLocations(validRows)}>
-                  ✅ Add {validRows.length} Location{validRows.length !== 1 ? "s" : ""}
+              : <button className="btn btn-primary btn-full" style={{ marginBottom: 8, gap: 6 }} onClick={() => onLocations(validRows)}>
+                  <Check size={16} /> Add {validRows.length} Location{validRows.length !== 1 ? "s" : ""}
                 </button>
             }
             <button className="btn btn-secondary btn-full"
