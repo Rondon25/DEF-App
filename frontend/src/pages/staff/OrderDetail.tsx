@@ -3,6 +3,8 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { staffApi } from "../../api";
 import { getStaffUser } from "../../hooks/useAuth";
+import { SkeletonOrderDetail } from "../../components/Skeleton";
+import ErrorScreen from "../../components/ErrorScreen";
 
 const STATUS_LABEL: Record<string, string> = {
   submitted:         "Submitted",
@@ -154,8 +156,8 @@ export default function StaffOrderDetail() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["order-notes", id] }),
   });
 
-  if (isLoading) return <div className="loading-screen"><span className="spinner spinner-dark" /></div>;
-  if (!order) return <div className="empty-state"><div className="empty-icon">❌</div><p>Order not found</p></div>;
+  if (isLoading) return <SkeletonOrderDetail />;
+  if (!order) return <ErrorScreen title="Order not found" message="This order may have been deleted or you don't have access." back />;
 
   const canVerify    = ["admin","central_team"].includes(user?.role || "");
   const canFinance   = ["admin","finance"].includes(user?.role || "");

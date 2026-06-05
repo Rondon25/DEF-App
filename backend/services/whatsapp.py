@@ -107,6 +107,17 @@ def send_payment_received(phone: str, name: str, order_number: str) -> bool:
     return _send(phone, text)
 
 
+def send_payment_rejected(phone: str, name: str, order_number: str, reason: str = "") -> bool:
+    text = (
+        f"❌ *Payment Proof Rejected — #{order_number}*\n\n"
+        f"Hi *{name}*, unfortunately we could not verify your payment proof for order *#{order_number}*.\n\n"
+        + (f"Reason: _{reason}_\n\n" if reason else "")
+        + f"Please upload a clear image of your payment receipt via the customer portal. "
+        f"Contact us if you need help."
+    )
+    return _send(phone, text)
+
+
 def send_order_confirmation(phone: str, name: str, order_number: str, delivery_date: str = "") -> bool:
     text = (
         f"✅ *Order Confirmed — #{order_number}*\n\n"

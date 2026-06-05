@@ -38,6 +38,25 @@ export default function CustomerRegister() {
     e.preventDefault();
     setError(""); setLoading(true);
     const cleanPhone = form.phone_number.replace(/\D/g, "");
+
+    // Validation
+    if (cleanPhone.length < 8 || cleanPhone.length > 15) {
+      setError("Please enter a valid phone number with country code (8–15 digits).");
+      setLoading(false); return;
+    }
+    if (form.name.trim().length < 2) {
+      setError("Please enter your full name (at least 2 characters).");
+      setLoading(false); return;
+    }
+    if (form.name.trim().length > 200) {
+      setError("Name is too long (max 200 characters).");
+      setLoading(false); return;
+    }
+    if (form.company_name && form.company_name.length > 200) {
+      setError("Company name is too long (max 200 characters).");
+      setLoading(false); return;
+    }
+
     try {
       await axios.post("/auth/register", {
         ...form,

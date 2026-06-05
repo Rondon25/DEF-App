@@ -22,6 +22,15 @@ export default function Profile() {
   const [success, setSuccess] = useState(false);
   const [error,   setError]   = useState("");
 
+  // Phone change state
+  const [showPhoneChange, setShowPhoneChange] = useState(false);
+  const [newPhone,        setNewPhone]        = useState("");
+  const [phoneOtp,        setPhoneOtp]        = useState("");
+  const [phoneStep,       setPhoneStep]       = useState<"enter"|"verify">("enter");
+  const [phoneMsg,        setPhoneMsg]        = useState("");
+  const [phoneErr,        setPhoneErr]        = useState("");
+  const [phoneLoading,    setPhoneLoading]    = useState(false);
+
   // Additional locations state
   const [addingLoc,  setAddingLoc]  = useState(false);
   const [showBulk,   setShowBulk]   = useState(false);
@@ -314,6 +323,13 @@ export default function Profile() {
         >
           Sign out
         </button>
+        <button
+          className="btn btn-secondary btn-full"
+          style={{ marginTop: 8 }}
+          onClick={() => { setShowPhoneChange(true); setPhoneStep("enter"); setPhoneErr(""); setNewPhone(""); setPhoneOtp(""); }}
+        >
+          📱 Change phone number
+        </button>
       </div>
 
       {showBulk && (
@@ -332,6 +348,92 @@ export default function Profile() {
             setShowBulk(false);
           }}
         />
+      )}
+
+      {/* Phone number change modal */}
+      {showPhoneChange && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,.5)",
+          display: "flex", alignItems: "flex-end", zIndex: 300, padding: 16,
+        }}>
+          <div className="card" style={{ width: "100%", maxWidth: 480, padding: 20, margin: "0 auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+              <h3 style={{ fontWeight: 700 }}>Change Phone Number</h3>
+              <button onClick={() => setShowPhoneChange(false)} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: "var(--ink-3)" }}>✕</button>
+            </div>
+
+            {phoneStep === "enter" ? (
+              <>
+                <p style={{ fontSize: 13, color: "var(--ink-3)", marginBottom: 12 }}>
+                  We'll send a WhatsApp OTP to your new number to confirm.
+                </p>
+                <div className="form-group">
+                  <label>New phone number</label>
+                  <input
+                    className="input"
+                    type="tel"
+                    inputMode="numeric"
+                    placeholder="919876543210"
+                    value={newPhone}
+                    onChange={e => setNewPhone(e.target.value.replace(/\D/g, ""))}
+                  />
+                  <p className="hint">Include country code. Digits only.</p>
+                </div>
+                {phoneErr && <div className="alert alert-error" style={{ marginBottom: 10 }}>{phoneErr}</div>}
+                <button
+                  className="btn btn-primary btn-full"
+                  disabled={phoneLoading || newPhone.length < 8}
+                  onClick={async () => {
+                    setPhoneErr(""); setPhoneLoading(true);
+                    try {
+                      const r = await api.post("/auth/request-phone-change", { new_phone: newPhone });
+                      setPhoneMsg(r.data.message);
+                      setPhoneStep("verify");
+                    } catch (e: any) {
+                      setPhoneErr(e.response?.data?.detail || "Failed to send OTP");
+                    } finally { setPhoneLoading(false); }
+                  }}
+                >
+                  {phoneLoading ? <span className="spinner" /> : "Send OTP →"}
+                </button>
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: 13, color: "var(--ink-3)", marginBottom: 12 }}>{phoneMsg}</p>
+                <div className="form-group">
+                  <label>Enter OTP sent to {newPhone}</label>
+                  <input
+                    className="input"
+                    inputMode="numeric"
+                    maxLength={6}
+                    placeholder="6-digit code"
+                    value={phoneOtp}
+                    onChange={e => setPhoneOtp(e.target.value.replace(/\D/g, ""))}
+                  />
+                </div>
+                {phoneErr && <div className="alert alert-error" style={{ marginBottom: 10 }}>{phoneErr}</div>}
+                <button
+                  className="btn btn-primary btn-full"
+                  disabled={phoneLoading || phoneOtp.length < 6}
+                  onClick={async () => {
+                    setPhoneErr(""); setPhoneLoading(true);
+                    try {
+                      await api.post("/auth/confirm-phone-change", { new_phone: newPhone, otp_code: phoneOtp });
+                      setShowPhoneChange(false);
+                      // Force re-login with new number
+                      clearCustomerAuth();
+                      navigate("/login");
+                    } catch (e: any) {
+                      setPhoneErr(e.response?.data?.detail || "Invalid OTP");
+                    } finally { setPhoneLoading(false); }
+                  }}
+                >
+                  {phoneLoading ? <span className="spinner" /> : "Confirm Change"}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
       )}
     </>
   );

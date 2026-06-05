@@ -10,7 +10,7 @@ from routers.auth import require_active_customer
 from routers.staff_auth import get_current_staff, require_role
 from routers.orders import _get_order
 from services.files import save_payment_proof
-from services.whatsapp import send_payment_received
+from services.whatsapp import send_payment_received, send_payment_rejected
 
 router = APIRouter(tags=["payments"])
 
@@ -171,12 +171,22 @@ def verify_payment(
     payment.verified_at = datetime.utcnow()
 
     if payload.approved:
-        payment.status     = models.PaymentStatus.verified
+        payment.status       = models.PaymentStatus.verified
         payment.order.status = models.OrderStatus.payment_verified
     else:
         payment.status           = models.PaymentStatus.rejected
         payment.rejection_reason = payload.rejection_reason
         payment.order.status     = models.OrderStatus.proforma_sent  # back to awaiting payment
+
+        # Notify customer via WhatsApp
+        customer = payment.order.customer
+        if customer:
+            send_payment_rejected(
+                customer.phone_number,
+                customer.name,
+                payment.order.order_number,
+                payload.rejection_reason or "",
+            )
 
     db.commit()
     return {"message": "Payment verified" if payload.approved else "Payment rejected"}

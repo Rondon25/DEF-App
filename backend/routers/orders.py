@@ -83,6 +83,24 @@ def place_order(
     if not payload.items:
         raise HTTPException(status_code=400, detail="Order must have at least one item")
 
+    # ── Duplicate guard: block identical order within 5 minutes ──────────────
+    from datetime import timedelta
+    five_min_ago = datetime.utcnow() - timedelta(minutes=5)
+    recent_orders = db.query(models.Order).filter(
+        models.Order.customer_id == customer.id,
+        models.Order.created_at >= five_min_ago,
+        models.Order.status != models.OrderStatus.cancelled,
+    ).all()
+
+    incoming_skus = sorted([(i.sku_id, i.quantity) for i in payload.items])
+    for recent in recent_orders:
+        existing_skus = sorted([(item.sku_id, item.quantity) for item in recent.items])
+        if existing_skus == incoming_skus:
+            raise HTTPException(
+                status_code=409,
+                detail=f"This order looks identical to {recent.order_number} placed just now. Wait 5 minutes or contact us if this is a new order."
+            )
+
     order_items = []
     subtotal = 0.0
 
@@ -123,6 +141,31 @@ def place_order(
 
     send_order_received(customer.phone_number, customer.name, order.order_number)
     return _enrich_order(order)
+
+
+# ── Customer: cancel own order ───────────────────────────────────────────────
+
+@router.post("/orders/{order_id}/cancel")
+def customer_cancel_order(
+    order_id: int,
+    db: Session = Depends(get_db),
+    customer: models.Customer = Depends(require_active_customer),
+):
+    order = db.query(models.Order).filter(
+        models.Order.id == order_id,
+        models.Order.customer_id == customer.id,
+    ).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if order.status != models.OrderStatus.submitted:
+        raise HTTPException(
+            status_code=400,
+            detail="You can only cancel an order before it has been reviewed by our team."
+        )
+    order.status = models.OrderStatus.cancelled
+    audit_log(db, "order", order.id, "cancelled_by_customer", new_value="cancelled")
+    db.commit()
+    return {"message": "Order cancelled"}
 
 
 # ── Customer: reorder ────────────────────────────────────────────────────────

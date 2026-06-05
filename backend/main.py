@@ -15,6 +15,8 @@ from database import engine, Base, SessionLocal
 import models
 from routers import auth, staff_auth, catalog, customers, orders, payments, delivery, notes, audit, analytics, export, stock
 from services.whatsapp import get_status as wa_status
+from services.rls import apply_rls_policies
+from services.scheduler import start_scheduler
 
 # ── Create tables ─────────────────────────────────────────────────────────────
 Base.metadata.create_all(bind=engine)
@@ -134,3 +136,15 @@ def seed_staff():
 
 seed_skus()
 seed_staff()
+
+# Apply RLS policies
+try:
+    apply_rls_policies(engine)
+except Exception as e:
+    print(f"[RLS] Could not apply policies: {e}")
+
+# Start background scheduler
+try:
+    start_scheduler()
+except Exception as e:
+    print(f"[Scheduler] Could not start: {e}")

@@ -12,7 +12,11 @@ export default function CustomerLogin() {
   const [otp, setOtp]                 = useState(["", "", "", "", "", ""]);
   const channel = "whatsapp";
   const [loading, setLoading]         = useState(false);
-  const [error, setError]             = useState("");
+  const [error, setError]             = useState(() => {
+    const expired = sessionStorage.getItem("session_expired") === "1";
+    if (expired) sessionStorage.removeItem("session_expired");
+    return expired ? "Your session expired. Please log in again." : "";
+  });
   const [successMsg, setSuccessMsg]   = useState("");
 
   const cleanPhone = phone.replace(/\D/g, "");
@@ -20,6 +24,10 @@ export default function CustomerLogin() {
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cleanPhone) return;
+    if (cleanPhone.length < 8 || cleanPhone.length > 15) {
+      setError("Please enter a valid phone number with country code.");
+      return;
+    }
     setError(""); setLoading(true);
     try {
       const res = await axios.post("/auth/send-otp", { phone_number: cleanPhone, otp_channel: channel });

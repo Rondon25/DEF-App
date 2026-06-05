@@ -13,9 +13,15 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401 && getCustomerToken()) {
-      clearCustomerAuth();
-      window.location.href = "/login";
+    if (err.response?.status === 401) {
+      // Try to refresh first, then redirect
+      const token = getCustomerToken();
+      if (token) {
+        clearCustomerAuth();
+        // Set a flag so the login page shows "session expired" message
+        sessionStorage.setItem("session_expired", "1");
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(err);
   }
@@ -35,6 +41,7 @@ staffApi.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401 && getStaffToken()) {
       clearStaffAuth();
+      sessionStorage.setItem("session_expired", "1");
       window.location.href = "/staff/login";
     }
     return Promise.reject(err);

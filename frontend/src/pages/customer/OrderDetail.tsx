@@ -93,6 +93,19 @@ export default function OrderDetail() {
     onError: (err: any) => setPayError(err.response?.data?.detail || "Upload failed"),
   });
 
+  const [showCancel,   setShowCancel]   = useState(false);
+  const [cancelError,  setCancelError]  = useState("");
+
+  const cancelMutation = useMutation({
+    mutationFn: () => api.post(`/orders/${id}/cancel`).then(r => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["order", id] });
+      qc.invalidateQueries({ queryKey: ["my-orders"] });
+      setShowCancel(false);
+    },
+    onError: (err: any) => setCancelError(err.response?.data?.detail || "Could not cancel order"),
+  });
+
   const reorderMutation = useMutation({
     mutationFn: () => api.post(`/orders/${id}/reorder`).then(r => r.data),
     onSuccess: (newOrder) => navigate(`/orders/${newOrder.id}`),
@@ -407,6 +420,19 @@ export default function OrderDetail() {
         </div>
       )}
 
+      {/* Cancel button — only for submitted orders */}
+      {order.status === "submitted" && (
+        <div style={{ padding: "4px 0 8px" }}>
+          <button
+            className="btn btn-secondary btn-full"
+            style={{ color: "var(--red,#ef4444)", borderColor: "var(--red,#ef4444)" }}
+            onClick={() => setShowCancel(true)}
+          >
+            Cancel Order
+          </button>
+        </div>
+      )}
+
       {/* Reorder button — show for closed orders */}
       {order.status === "closed" && (
         <div style={{ padding: "4px 0 24px" }}>
@@ -417,6 +443,35 @@ export default function OrderDetail() {
           >
             {reorderMutation.isPending ? <span className="spinner" /> : "🔄 Reorder — Place Again"}
           </button>
+        </div>
+      )}
+
+      {/* Cancel confirmation modal */}
+      {showCancel && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,.5)",
+          display: "flex", alignItems: "flex-end", zIndex: 300, padding: 16,
+        }}>
+          <div className="card" style={{ width: "100%", maxWidth: 480, padding: 20, margin: "0 auto" }}>
+            <h3 style={{ fontWeight: 700, marginBottom: 8 }}>Cancel Order?</h3>
+            <p style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 16 }}>
+              Are you sure you want to cancel <strong>{order.order_number}</strong>? This cannot be undone.
+            </p>
+            {cancelError && <div className="alert alert-error" style={{ marginBottom: 10 }}>{cancelError}</div>}
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowCancel(false)}>
+                Keep Order
+              </button>
+              <button
+                className="btn btn-primary"
+                style={{ flex: 1, background: "var(--red,#ef4444)" }}
+                disabled={cancelMutation.isPending}
+                onClick={() => cancelMutation.mutate()}
+              >
+                {cancelMutation.isPending ? <span className="spinner" /> : "Yes, Cancel"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </>

@@ -2,6 +2,8 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { staffApi } from "../../api";
+import { SkeletonList } from "../../components/Skeleton";
+import ErrorScreen from "../../components/ErrorScreen";
 
 const STATUS_BADGE: Record<string, string> = {
   submitted:         "badge-blue",
@@ -50,7 +52,7 @@ export default function StaffOrders() {
   const [filter, setFilter] = useState("");
   const [search, setSearch] = useState("");
 
-  const { data: orders = [], isLoading } = useQuery({
+  const { data: orders = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["staff-orders-all"],
     queryFn: () => staffApi.get("/staff/orders").then(r => r.data),
     refetchInterval: 20_000,
@@ -108,7 +110,9 @@ export default function StaffOrders() {
       </div>
 
       {isLoading ? (
-        <div className="loading-screen"><span className="spinner spinner-dark" /></div>
+        <SkeletonList rows={6} />
+      ) : isError ? (
+        <ErrorScreen message="Could not load orders." retry={refetch} />
       ) : filtered.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">📋</div>

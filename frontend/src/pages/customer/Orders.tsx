@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { api } from "../../api";
+import { SkeletonList } from "../../components/Skeleton";
+import ErrorScreen from "../../components/ErrorScreen";
 
 const STATUS_BADGE: Record<string, string> = {
   submitted:         "badge-blue",
@@ -37,7 +39,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default function Orders() {
-  const { data: orders = [], isLoading } = useQuery({
+  const { data: orders = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["my-orders"],
     queryFn: () => api.get("/orders").then(r => r.data),
     refetchInterval: 30_000,
@@ -51,7 +53,9 @@ export default function Orders() {
       </div>
 
       {isLoading ? (
-        <div className="loading-screen"><span className="spinner spinner-dark" /></div>
+        <SkeletonList rows={5} />
+      ) : isError ? (
+        <ErrorScreen message="Could not load orders." retry={refetch} />
       ) : orders.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">📦</div>

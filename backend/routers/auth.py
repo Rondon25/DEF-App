@@ -324,3 +324,83 @@ def delete_my_location(
         raise HTTPException(status_code=404, detail="Location not found")
     db.delete(loc)
     db.commit()
+
+
+# ── Refresh token ─────────────────────────────────────────────────────────────
+
+@router.post("/auth/refresh", response_model=TokenResponse)
+def refresh_token(
+    current: models.Customer = Depends(require_active_customer),
+    db: Session = Depends(get_db),
+):
+    """Exchange a valid token for a fresh one. Called when token is near expiry."""
+    token = create_access_token({
+        "sub":   str(current.id),
+        "phone": current.phone_number,
+        "type":  "customer",
+    })
+    return TokenResponse(access_token=token, customer=CustomerOut.model_validate(current))
+
+
+# ── Request phone number change ───────────────────────────────────────────────
+
+class PhoneChangeRequest(BaseModel):
+    new_phone: str
+
+
+@router.post("/auth/request-phone-change")
+@limiter.limit("3/hour")
+def request_phone_change(
+    request: Request,
+    payload: PhoneChangeRequest,
+    db: Session = Depends(get_db),
+    current: models.Customer = Depends(require_active_customer),
+):
+    """Customer requests a phone number change — sends OTP to new number for verification."""
+    new_phone = "".join(c for c in payload.new_phone if c.isdigit())
+    if not new_phone or len(new_phone) < 8:
+        raise HTTPException(status_code=400, detail="Invalid phone number")
+
+    existing = db.query(models.Customer).filter(models.Customer.phone_number == new_phone).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Phone number already registered to another account")
+
+    otp = generate_otp(6)
+    # Store new phone + OTP temporarily in the pending fields
+    current.otp_code       = otp
+    current.otp_expires_at = otp_expiry(10)
+    db.commit()
+
+    # Send OTP to NEW number
+    from services.whatsapp import send_otp as send_wa_otp
+    send_wa_otp(new_phone, otp, current.name)
+
+    return {"message": f"OTP sent to {new_phone[-4:].rjust(len(new_phone), '*')}. Enter it to confirm the change."}
+
+
+class PhoneChangeVerify(BaseModel):
+    new_phone: str
+    otp_code: str
+
+
+@router.post("/auth/confirm-phone-change", response_model=CustomerOut)
+def confirm_phone_change(
+    payload: PhoneChangeVerify,
+    db: Session = Depends(get_db),
+    current: models.Customer = Depends(require_active_customer),
+):
+    new_phone = "".join(c for c in payload.new_phone if c.isdigit())
+
+    if not is_otp_valid(payload.otp_code, current.otp_code, current.otp_expires_at):
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+
+    existing = db.query(models.Customer).filter(models.Customer.phone_number == new_phone).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Phone number already taken")
+
+    current.phone_number  = new_phone
+    current.otp_code      = None
+    current.otp_expires_at = None
+    db.commit()
+    db.refresh(current)
+    return current
