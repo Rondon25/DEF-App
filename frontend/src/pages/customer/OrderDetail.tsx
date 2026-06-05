@@ -361,7 +361,7 @@ export default function OrderDetail() {
 
       {/* What happens next banner */}
       {["confirmed","in_production","ready_for_dispatch"].includes(order.status) && (
-        <div className="alert" style={{ background: "var(--blue-light,#eff6ff)", border: "1px solid #bfdbfe", color: "var(--blue)" }}>
+        <div className="alert" style={{ background: "var(--blue-light,#f0fdfa)", border: "1px solid #99f6e4", color: "var(--blue)" }}>
           <div style={{ fontWeight: 700, marginBottom: 2 }}>
             {order.status === "confirmed" ? "🎉 Order confirmed!" : order.status === "in_production" ? "🏭 In production" : "📦 Ready for dispatch"}
           </div>
