@@ -23,20 +23,28 @@
   --color-teal-900: #134e4a;
   --color-teal-950: #042f2e;
 
-  /* Amber (energetic accent — the "today" pop from Prodexa) */
+  /* Lime (energetic accent — the Prodexa "today" pop / active nav) */
+  --color-lime-100: #f7fee7;
+  --color-lime-200: #ecfccb;
+  --color-lime-300: #d9f99d;  /* PRIMARY ACCENT — Prodexa lime */
+  --color-lime-400: #bef264;
+  --color-lime-500: #a3e635;
+  --color-lime-600: #84cc16;
+
+  /* Amber (kept for warnings only) */
   --color-amber-400: #fbbf24;
   --color-amber-500: #f59e0b;
   --color-amber-600: #d97706;
 
-  /* Slate (neutral surfaces + dark sidebar) */
-  --color-ink:       #0f172a;  /* slate-900, headings */
-  --color-ink-2:     #334155;  /* slate-700, body */
-  --color-ink-3:     #64748b;  /* slate-500, muted */
-  --color-ink-4:     #94a3b8;  /* slate-400, faint */
-  --color-canvas:    #f8fafc;  /* slate-50, page bg */
+  /* Neutral surfaces + dark navy sidebar (Prodexa) */
+  --color-ink:       #1a1a1a;  /* near-black headings */
+  --color-ink-2:     #334155;  /* body */
+  --color-ink-3:     #6c757d;  /* muted */
+  --color-ink-4:     #94a3b8;  /* faint */
+  --color-canvas:    #f8f9fa;  /* page bg */
   --color-surface:   #ffffff;  /* cards */
-  --color-line:      #e2e8f0;  /* slate-200, borders */
-  --color-sidebar-bg: #0b1120; /* near slate-950, dark nav */
+  --color-line:      #eef0f2;  /* soft borders */
+  --color-sidebar-bg: #1e1e2d; /* navy-purple dark nav (Prodexa) */
 
   /* Semantic status */
   --color-success: #16a34a;
@@ -55,11 +63,11 @@
   --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 
-  /* Shadows — soft, neutral (not colored) */
-  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow:    0 4px 12px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.12);
+  /* Shadows — soft, airy (Prodexa-style) */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.04);
+  --shadow:    0 4px 20px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.08);
 }
 
 /* ----------------------------------------------------------------------------
@@ -84,8 +92,8 @@
   --muted:                 #f1f5f9;
   --muted-foreground:      #64748b;
 
-  --accent:                #ccfbf1;   /* teal-100 wash */
-  --accent-foreground:     #115e59;
+  --accent:                #d9f99d;   /* Prodexa lime — active/today highlight */
+  --accent-foreground:     #1e1e2d;
 
   --destructive:           #dc2626;
   --destructive-foreground:#ffffff;
@@ -101,15 +109,15 @@
   --chart-4: #6366f1;
   --chart-5: #f43f5e;
 
-  /* Dark sidebar tokens */
-  --sidebar:                 #0b1120;
-  --sidebar-foreground:      #cbd5e1;
-  --sidebar-primary:         #14b8a6;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent:          #1e293b;
-  --sidebar-accent-foreground:#f1f5f9;
-  --sidebar-border:          #1e293b;
-  --sidebar-ring:            #14b8a6;
+  /* Dark navy sidebar tokens (Prodexa) */
+  --sidebar:                 #1e1e2d;
+  --sidebar-foreground:      #a0a0b0;
+  --sidebar-primary:         #d9f99d;   /* lime active pill */
+  --sidebar-primary-foreground: #1e1e2d;
+  --sidebar-accent:          #2a2a3c;
+  --sidebar-accent-foreground:#ffffff;
+  --sidebar-border:          #2a2a3c;
+  --sidebar-ring:            #d9f99d;
 }
 
 /* Map shadcn tokens into Tailwind's color namespace so utilities like
