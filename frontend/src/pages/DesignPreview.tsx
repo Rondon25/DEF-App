@@ -32,7 +32,7 @@ export default function DesignPreview() {
   const [period, setPeriod] = useState("Last 30 days");
 
   return (
-    <div className="grid grid-cols-[260px_1fr] min-h-screen bg-background">
+    <div className="grid grid-cols-[260px_minmax(0,1fr)] min-h-screen w-full max-w-full overflow-x-hidden bg-background">
       {/* ─── Sidebar ─── */}
       <aside className="bg-sidebar text-sidebar-foreground p-6 flex flex-col">
         <div className="flex items-center gap-3 mb-10">
@@ -58,7 +58,7 @@ export default function DesignPreview() {
       </aside>
 
       {/* ─── Main ─── */}
-      <main className="p-6 md:px-10 overflow-y-auto">
+      <main className="min-w-0 p-6 md:px-10 overflow-y-auto">
         {/* Top bar */}
         <header className="flex items-center justify-between mb-8">
           <div className="text-sm font-semibold text-ink-3">Dashboard</div>
@@ -99,7 +99,7 @@ export default function DesignPreview() {
         </div>
 
         {/* Middle grid: chart + side panel */}
-        <div className="grid grid-cols-[2fr_1fr] gap-5 mb-6">
+        <div className="grid grid-cols-[2fr_minmax(0,1fr)] gap-5 mb-6">
           <div className="bg-surface rounded-2xl p-6 shadow-[var(--shadow)]">
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-bold">Order Status Breakdown</h3>
@@ -127,7 +127,7 @@ export default function DesignPreview() {
             </div>
           </div>
 
-          <div className="bg-surface rounded-2xl p-6 shadow-[var(--shadow)]">
+          <div className="min-w-0 bg-surface rounded-2xl p-6 shadow-[var(--shadow)]">
             <h3 className="font-bold mb-4">Recent Activity</h3>
             <div className="space-y-3">
               {[
@@ -154,7 +154,8 @@ export default function DesignPreview() {
             <h3 className="font-bold">Recent Orders</h3>
             <button className="px-3 py-1.5 rounded-lg border border-border text-[13px]">⚙️ Filter</button>
           </div>
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[560px]">
             <thead>
               <tr className="text-left text-[13px] text-ink-3 border-b border-border">
                 <th className="py-3 font-medium">Order #</th>
@@ -176,6 +177,7 @@ export default function DesignPreview() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
 
         <p className="text-center text-xs text-ink-4 mt-8 mb-4">
