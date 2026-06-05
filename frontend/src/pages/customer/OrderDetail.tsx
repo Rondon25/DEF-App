@@ -67,6 +67,8 @@ export default function OrderDetail() {
   const [payError,   setPayError]   = useState("");
   const [grnNotes,   setGrnNotes]   = useState("");
   const [grnError,   setGrnError]   = useState("");
+  const [grnFile,    setGrnFile]    = useState<File | null>(null);
+  const grnFileRef = useRef<HTMLInputElement>(null);
 
   const { data: order, isLoading } = useQuery({
     queryKey: ["order", id],
@@ -119,11 +121,13 @@ export default function OrderDetail() {
   });
 
   const grnMutation = useMutation({
-    mutationFn: (body: any) => api.post(`/orders/${id}/grn`, body).then(r => r.data),
+    mutationFn: (fd: FormData) => api.post(`/orders/${id}/grn`, fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }).then(r => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["order", id] });
       qc.invalidateQueries({ queryKey: ["order-delivery", id] });
-      setGrnNotes(""); setGrnError("");
+      setGrnNotes(""); setGrnError(""); setGrnFile(null);
     },
     onError: (err: any) => setGrnError(err.response?.data?.detail || "Failed to submit GRN"),
   });
@@ -310,10 +314,44 @@ export default function OrderDetail() {
             />
           </div>
 
+          <div className="form-group">
+            <label>Delivery photo (optional)</label>
+            <div
+              onClick={() => grnFileRef.current?.click()}
+              style={{
+                border: `2px dashed ${grnFile ? "var(--green,#16a34a)" : "var(--border)"}`,
+                borderRadius: "var(--radius)", padding: 16, textAlign: "center",
+                cursor: "pointer", background: grnFile ? "#f0fdf4" : "var(--surface)",
+              }}
+            >
+              {grnFile ? (
+                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--green,#16a34a)" }}>
+                  📎 {grnFile.name}
+                  <div style={{ fontSize: 11, color: "var(--ink-3)", fontWeight: 400, marginTop: 2 }}>Tap to change</div>
+                </div>
+              ) : (
+                <div style={{ fontSize: 13, color: "var(--ink-3)" }}>📷 Tap to attach a photo of the delivered goods</div>
+              )}
+            </div>
+            <input
+              ref={grnFileRef}
+              type="file"
+              accept="image/png,image/jpeg,image/jpg"
+              style={{ display: "none" }}
+              onChange={e => { if (e.target.files?.[0]) setGrnFile(e.target.files[0]); }}
+            />
+          </div>
+
           {grnError && <div className="alert alert-error" style={{ marginBottom: 10 }}>{grnError}</div>}
           <button
             className="btn btn-primary btn-full"
-            onClick={() => grnMutation.mutate({ condition_notes: grnNotes, is_accepted: true })}
+            onClick={() => {
+              const fd = new FormData();
+              fd.append("condition_notes", grnNotes);
+              fd.append("is_accepted", "true");
+              if (grnFile) fd.append("image", grnFile);
+              grnMutation.mutate(fd);
+            }}
             disabled={grnMutation.isPending}
           >
             {grnMutation.isPending ? <span className="spinner" /> : "✅ Confirm Receipt"}

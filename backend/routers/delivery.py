@@ -1,11 +1,6 @@
 """Delivery dispatch, tracking, and GRN."""
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
-
-from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
@@ -14,6 +9,7 @@ import models
 from routers.auth import require_active_customer
 from routers.staff_auth import get_current_staff, require_role
 from services.whatsapp import send_order_shipped, send_order_delivered, send_grn_confirmation
+from services.files import save_grn_image
 
 router = APIRouter(tags=["delivery"])
 
@@ -85,18 +81,15 @@ def mark_delivered(
     return {"message": "Order marked delivered, GRN notification sent to customer"}
 
 
-# ── Customer: submit GRN ──────────────────────────────────────────────────────
-
-class GRNIn(BaseModel):
-    received_qty: float | None = None
-    condition_notes: str | None = None
-    is_accepted: bool = True
-
+# ── Customer: submit GRN (with optional delivery photo) ──────────────────────
 
 @router.post("/orders/{order_id}/grn")
-def submit_grn(
+async def submit_grn(
     order_id: int,
-    payload: GRNIn,
+    condition_notes: str = Form(None),
+    is_accepted: bool    = Form(True),
+    received_qty: float  = Form(None),
+    image: UploadFile    = File(None),
     db: Session = Depends(get_db),
     customer: models.Customer = Depends(require_active_customer),
 ):
@@ -111,11 +104,17 @@ def submit_grn(
     if order.grn:
         raise HTTPException(status_code=400, detail="GRN already submitted")
 
+    image_url, image_filename = None, None
+    if image and image.filename:
+        image_url, image_filename = await save_grn_image(image, order.order_number)
+
     grn = models.GRN(
         order_id=order.id,
-        received_qty=payload.received_qty,
-        condition_notes=payload.condition_notes,
-        is_accepted=payload.is_accepted,
+        received_qty=received_qty,
+        condition_notes=condition_notes,
+        is_accepted=is_accepted,
+        image_url=image_url,
+        image_filename=image_filename,
         submitted_at=datetime.utcnow(),
     )
     db.add(grn)
@@ -171,6 +170,7 @@ def get_delivery_customer(
         } if d else None,
         "grn": {
             "condition_notes": g.condition_notes if g else None,
+            "image_url":       g.image_url if g else None,
             "is_accepted":     g.is_accepted if g else None,
             "submitted_at":    g.submitted_at.isoformat() if g and g.submitted_at else None,
         } if g else None,
@@ -202,6 +202,7 @@ def get_delivery(
         "grn": {
             "received_qty":    g.received_qty if g else None,
             "condition_notes": g.condition_notes if g else None,
+            "image_url":       g.image_url if g else None,
             "is_accepted":     g.is_accepted if g else None,
             "submitted_at":    g.submitted_at.isoformat() if g and g.submitted_at else None,
         } if g else None,
