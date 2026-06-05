@@ -18,7 +18,7 @@
    ---------------------------------------------------------------------------- */
 @theme {
   /* ─── Fonts ─────────────────────────────────────────────── */
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "Fira Code", monospace;
 
   /* ─── Teal — PRIMARY brand ──────────────────────────────── */

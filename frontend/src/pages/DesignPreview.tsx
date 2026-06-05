@@ -38,14 +38,14 @@ const HTML = `<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
 :root{
   --sidebar-bg:#1e1e2d; --main-bg:#f8f9fa; --accent:#d9f99d; --teal:#0d9488;
   --text-primary:#1a1a1a; --text-secondary:#6c757d;
   --card-shadow:0 4px 20px rgba(0,0,0,.05); --border-radius:16px;
 }
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',-apple-system,sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Manrope',-apple-system,sans-serif;}
 body{background:var(--main-bg);color:var(--text-primary);}
 svg{display:block;}
 .dashboard-container{display:grid;grid-template-columns:260px minmax(0,1fr);min-height:100vh;}

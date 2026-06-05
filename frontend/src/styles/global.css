@@ -1,5 +1,5 @@
 /* ── Google Fonts ─────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+/* Fonts loaded in index.html (Manrope + JetBrains Mono) */
 
 /* ── Design tokens ────────────────────────────────────────────────── */
 :root {
@@ -27,8 +27,8 @@
   --ink-3:       #64748B;
   --ink-4:       #94A3B8;
 
-  --font:        'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono:   'DM Mono', 'Courier New', monospace;
+  --font:        'Manrope', system-ui, -apple-system, sans-serif;
+  --font-mono:   'JetBrains Mono', 'Courier New', monospace;
 
   --radius-sm:   6px;
   --radius:      10px;
