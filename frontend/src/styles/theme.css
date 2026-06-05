@@ -5,7 +5,13 @@
    Stack: Tailwind v4 (@theme) + shadcn-compatible semantic layer.
    ============================================================================ */
 
+/* Cascade layer order: legacy global.css sits BELOW Tailwind utilities so
+   utility classes (mb-5, p-6, space-y-4, etc.) always win over global.css's
+   unlayered universal reset. */
+@layer theme, base, components, legacy, utilities;
+
 @import "tailwindcss";
+@import "./global.css" layer(legacy);
 
 /* ----------------------------------------------------------------------------
    THEME TOKENS — exposed to Tailwind utilities (bg-*, text-*, etc.)
