@@ -74,6 +74,13 @@ export default function OrderDetail() {
     refetchInterval: 20_000,
   });
 
+  // Fetch payment to show rejection reason if it was rejected
+  const { data: paymentInfo } = useQuery({
+    queryKey: ["my-payment", id],
+    queryFn: () => api.get(`/orders/${id}/payment`).then(r => r.data).catch(() => null),
+    enabled: !!order && order.status === "proforma_sent",
+  });
+
   const { data: delivery } = useQuery({
     queryKey: ["order-delivery", id],
     queryFn: () => api.get(`/orders/${id}/delivery`).then(r => r.data).catch(() => null),
@@ -190,7 +197,25 @@ export default function OrderDetail() {
 
       {/* Payment upload — shown when proforma sent */}
       {order.status === "proforma_sent" && (
-        <div className="card" style={{ padding: 16, border: "2px solid var(--amber, #f59e0b)" }}>
+        <div className="card" style={{ padding: 16, border: `2px solid ${paymentInfo?.status === "rejected" ? "var(--red,#ef4444)" : "var(--amber,#f59e0b)"}` }}>
+          {paymentInfo?.status === "rejected" && (
+            <div style={{
+              background: "#fef2f2", border: "1px solid #fecaca",
+              borderRadius: "var(--radius)", padding: "10px 12px", marginBottom: 14,
+            }}>
+              <div style={{ fontWeight: 700, fontSize: 13, color: "var(--red,#ef4444)", marginBottom: 4 }}>
+                ❌ Previous payment proof was rejected
+              </div>
+              {paymentInfo.rejection_reason && (
+                <div style={{ fontSize: 13, color: "#991b1b" }}>
+                  Reason: {paymentInfo.rejection_reason}
+                </div>
+              )}
+              <div style={{ fontSize: 12, color: "#b91c1c", marginTop: 4 }}>
+                Please upload a new, clear image of your payment receipt.
+              </div>
+            </div>
+          )}
           <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>💳 Upload Payment Proof</div>
           <p style={{ fontSize: 13, color: "var(--ink-3)", marginBottom: 12 }}>
             Upload a screenshot or photo of your payment. Accepted: PNG, JPG, JPEG (max 10MB).

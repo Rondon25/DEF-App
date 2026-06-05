@@ -56,8 +56,9 @@ async def upload_payment_proof(
     if order.status != models.OrderStatus.proforma_sent:
         raise HTTPException(status_code=400, detail="Order must have a proforma invoice before uploading payment")
 
-    if order.payment:
-        raise HTTPException(status_code=400, detail="Payment proof already uploaded")
+    # Block re-upload only if a pending or verified payment already exists
+    if order.payment and order.payment.status != models.PaymentStatus.rejected:
+        raise HTTPException(status_code=400, detail="Payment proof already uploaded and is being reviewed.")
 
     file_url, filename = await save_payment_proof(file, order.order_number)
 
@@ -66,15 +67,29 @@ async def upload_payment_proof(
     except ValueError:
         pay_method = models.PaymentMethod.bank_transfer
 
-    payment = models.Payment(
-        order_id=order.id,
-        method=pay_method,
-        amount=amount,
-        proof_file_url=file_url,
-        proof_filename=filename,
-        status=models.PaymentStatus.pending,
-    )
-    db.add(payment)
+    if order.payment and order.payment.status == models.PaymentStatus.rejected:
+        # Update existing rejected payment rather than creating a new one
+        payment = order.payment
+        payment.method         = pay_method
+        payment.amount         = amount
+        payment.proof_file_url = file_url
+        payment.proof_filename = filename
+        payment.status         = models.PaymentStatus.pending
+        payment.rejection_reason = None
+        payment.verified_by    = None
+        payment.verified_at    = None
+        payment.uploaded_at    = datetime.utcnow()
+    else:
+        payment = models.Payment(
+            order_id=order.id,
+            method=pay_method,
+            amount=amount,
+            proof_file_url=file_url,
+            proof_filename=filename,
+            status=models.PaymentStatus.pending,
+        )
+        db.add(payment)
+
     order.status = models.OrderStatus.payment_uploaded
     db.commit()
     db.refresh(payment)

@@ -108,11 +108,12 @@ def send_payment_received(phone: str, name: str, order_number: str) -> bool:
 
 
 def send_payment_rejected(phone: str, name: str, order_number: str, reason: str = "") -> bool:
+    reason_line = f"\n📝 Reason: _{reason}_\n" if reason and reason.strip() else "\n"
     text = (
         f"❌ *Payment Proof Rejected — #{order_number}*\n\n"
-        f"Hi *{name}*, unfortunately we could not verify your payment proof for order *#{order_number}*.\n\n"
-        + (f"Reason: _{reason}_\n\n" if reason else "")
-        + f"Please upload a clear image of your payment receipt via the customer portal. "
+        f"Hi *{name}*, unfortunately we could not verify your payment proof for order *#{order_number}*."
+        f"{reason_line}\n"
+        f"Please log in to the portal and upload a new, clear image of your payment receipt. "
         f"Contact us if you need help."
     )
     return _send(phone, text)
