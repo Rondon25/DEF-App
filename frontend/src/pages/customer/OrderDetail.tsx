@@ -240,7 +240,7 @@ export default function OrderDetail() {
               step="0.01"
               placeholder={order.total_amount?.toFixed(2)}
               value={payAmount}
-              onChange={e => setPayAmount(e.target.value)}
+              onChange={e => { setPayAmount(e.target.value); setPayError(""); }}
             />
           </div>
 
@@ -275,7 +275,7 @@ export default function OrderDetail() {
               type="file"
               accept="image/png,image/jpeg,image/jpg"
               style={{ display: "none" }}
-              onChange={e => { if (e.target.files?.[0]) setPayFile(e.target.files[0]); }}
+              onChange={e => { if (e.target.files?.[0]) { setPayFile(e.target.files[0]); setPayError(""); } }}
             />
           </div>
 
