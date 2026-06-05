@@ -1,189 +1,169 @@
 /* ============================================================================
-   Rohan Energy Solutions — Design System (Phase 4)
-   Tailwind v4 + shadcn-compatible token layer
-   Palette: Teal middle-ground (bridges AdBlue-blue convention + eco-green)
+   ROHAN ENERGY SOLUTIONS — DESIGN SYSTEM (Phase 4)
+   Single source of truth for all design tokens.
+   Direction: Prodexa-inspired — navy sidebar, lime accent, teal primary.
+   Stack: Tailwind v4 (@theme) + shadcn-compatible semantic layer.
    ============================================================================ */
 
 @import "tailwindcss";
 
 /* ----------------------------------------------------------------------------
-   1. BRAND SCALE — raw teal + neutral ramps
+   THEME TOKENS — exposed to Tailwind utilities (bg-*, text-*, etc.)
    ---------------------------------------------------------------------------- */
 @theme {
-  /* Teal (primary brand) */
+  /* ─── Fonts ─────────────────────────────────────────────── */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Fira Code", monospace;
+
+  /* ─── Teal — PRIMARY brand ──────────────────────────────── */
   --color-teal-50:  #f0fdfa;
   --color-teal-100: #ccfbf1;
   --color-teal-200: #99f6e4;
   --color-teal-300: #5eead4;
   --color-teal-400: #2dd4bf;
   --color-teal-500: #14b8a6;
-  --color-teal-600: #0d9488;  /* PRIMARY */
-  --color-teal-700: #0f766e;
+  --color-teal-600: #0d9488;   /* PRIMARY */
+  --color-teal-700: #0f766e;   /* primary hover */
   --color-teal-800: #115e59;
   --color-teal-900: #134e4a;
-  --color-teal-950: #042f2e;
 
-  /* Lime (energetic accent — the Prodexa "today" pop / active nav) */
+  /* ─── Lime — ACCENT (active nav, "today" pills, featured) ── */
   --color-lime-100: #f7fee7;
   --color-lime-200: #ecfccb;
-  --color-lime-300: #d9f99d;  /* PRIMARY ACCENT — Prodexa lime */
+  --color-lime-300: #d9f99d;   /* ACCENT */
   --color-lime-400: #bef264;
   --color-lime-500: #a3e635;
   --color-lime-600: #84cc16;
 
-  /* Amber (kept for warnings only) */
-  --color-amber-400: #fbbf24;
-  --color-amber-500: #f59e0b;
-  --color-amber-600: #d97706;
+  /* ─── Navy — sidebar / dark surfaces ────────────────────── */
+  --color-navy-900: #1a1a26;
+  --color-navy-800: #1e1e2d;   /* SIDEBAR */
+  --color-navy-700: #2a2a3c;   /* sidebar hover */
 
-  /* Neutral surfaces + dark navy sidebar (Prodexa) */
-  --color-ink:       #1a1a1a;  /* near-black headings */
-  --color-ink-2:     #334155;  /* body */
-  --color-ink-3:     #6c757d;  /* muted */
-  --color-ink-4:     #94a3b8;  /* faint */
-  --color-canvas:    #f8f9fa;  /* page bg */
-  --color-surface:   #ffffff;  /* cards */
-  --color-line:      #eef0f2;  /* soft borders */
-  --color-sidebar-bg: #1e1e2d; /* navy-purple dark nav (Prodexa) */
+  /* ─── Neutrals ──────────────────────────────────────────── */
+  --color-ink:     #1a1a1a;    /* headings, primary text */
+  --color-ink-2:   #334155;    /* body */
+  --color-ink-3:   #6c757d;    /* muted / secondary */
+  --color-ink-4:   #94a3b8;    /* faint / placeholder */
+  --color-canvas:  #f8f9fa;    /* page background */
+  --color-surface: #ffffff;    /* cards, panels */
+  --color-line:    #f0f0f0;    /* dividers */
+  --color-line-2:  #e5e5e5;    /* input borders */
 
-  /* Semantic status */
+  /* ─── Status ────────────────────────────────────────────── */
   --color-success: #16a34a;
   --color-warning: #d97706;
   --color-danger:  #dc2626;
   --color-info:    #2563eb;
 
-  /* Radius scale */
-  --radius-xs: 6px;
-  --radius-sm: 8px;
-  --radius:    12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
+  /* ─── Radius ────────────────────────────────────────────── */
+  --radius-xs:   6px;    /* small tags */
+  --radius-sm:   9px;    /* filter buttons */
+  --radius-md:   12px;   /* list rows, inner cards */
+  --radius-lg:   16px;   /* cards, panels */
+  --radius-xl:   20px;   /* sheets, modals */
+  --radius-pill: 9999px; /* buttons, nav items, pills */
 
-  /* Typography */
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
-
-  /* Shadows — soft, airy (Prodexa-style) */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
-  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.04);
-  --shadow:    0 4px 20px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.08);
+  /* ─── Shadows — soft, neutral ───────────────────────────── */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,.03);
+  --shadow-sm: 0 2px 10px rgba(0,0,0,.04);
+  --shadow:    0 4px 20px rgba(0,0,0,.05);   /* default card */
+  --shadow-lg: 0 12px 32px rgba(0,0,0,.08);  /* modals */
 }
 
 /* ----------------------------------------------------------------------------
-   2. SHADCN SEMANTIC TOKENS — mapped to the brand scale
+   SHADCN SEMANTIC TOKENS
    ---------------------------------------------------------------------------- */
 :root {
-  --background:            #f8fafc;
-  --foreground:            #0f172a;
+  --background:             #f8f9fa;
+  --foreground:             #1a1a1a;
+  --card:                   #ffffff;
+  --card-foreground:        #1a1a1a;
+  --popover:                #ffffff;
+  --popover-foreground:     #1a1a1a;
+  --primary:                #0d9488;   /* teal */
+  --primary-foreground:     #ffffff;
+  --secondary:              #f1f3f5;
+  --secondary-foreground:   #1a1a1a;
+  --muted:                  #f1f3f5;
+  --muted-foreground:       #6c757d;
+  --accent:                 #d9f99d;   /* lime */
+  --accent-foreground:      #1e1e2d;
+  --destructive:            #dc2626;
+  --destructive-foreground: #ffffff;
+  --border:                 #f0f0f0;
+  --input:                  #e5e5e5;
+  --ring:                   #0d9488;
 
-  --card:                  #ffffff;
-  --card-foreground:       #0f172a;
-
-  --popover:               #ffffff;
-  --popover-foreground:    #0f172a;
-
-  --primary:               #0d9488;
-  --primary-foreground:    #ffffff;
-
-  --secondary:             #f1f5f9;
-  --secondary-foreground:  #0f172a;
-
-  --muted:                 #f1f5f9;
-  --muted-foreground:      #64748b;
-
-  --accent:                #d9f99d;   /* Prodexa lime — active/today highlight */
-  --accent-foreground:     #1e1e2d;
-
-  --destructive:           #dc2626;
-  --destructive-foreground:#ffffff;
-
-  --border:                #e2e8f0;
-  --input:                 #e2e8f0;
-  --ring:                  #14b8a6;
-
-  /* Chart palette — teal-forward with warm + cool support */
+  /* Charts — teal-forward */
   --chart-1: #0d9488;
-  --chart-2: #2dd4bf;
-  --chart-3: #f59e0b;
+  --chart-2: #bef264;
+  --chart-3: #2dd4bf;
   --chart-4: #6366f1;
   --chart-5: #f43f5e;
 
-  /* Dark navy sidebar tokens (Prodexa) */
-  --sidebar:                 #1e1e2d;
-  --sidebar-foreground:      #a0a0b0;
-  --sidebar-primary:         #d9f99d;   /* lime active pill */
+  /* Sidebar (navy + lime) */
+  --sidebar:                    #1e1e2d;
+  --sidebar-foreground:         #a0a0b0;
+  --sidebar-primary:            #d9f99d;
   --sidebar-primary-foreground: #1e1e2d;
-  --sidebar-accent:          #2a2a3c;
-  --sidebar-accent-foreground:#ffffff;
-  --sidebar-border:          #2a2a3c;
-  --sidebar-ring:            #d9f99d;
+  --sidebar-accent:             #2a2a3c;
+  --sidebar-accent-foreground:  #ffffff;
+  --sidebar-border:             #2a2a3c;
+  --sidebar-ring:               #d9f99d;
 }
 
-/* Map shadcn tokens into Tailwind's color namespace so utilities like
-   bg-primary, text-muted-foreground, border-border etc. all work. */
+/* Bridge semantic vars into Tailwind's color namespace */
 @theme inline {
-  --color-background:            var(--background);
-  --color-foreground:            var(--foreground);
-  --color-card:                  var(--card);
-  --color-card-foreground:       var(--card-foreground);
-  --color-popover:               var(--popover);
-  --color-popover-foreground:    var(--popover-foreground);
-  --color-primary:               var(--primary);
-  --color-primary-foreground:    var(--primary-foreground);
-  --color-secondary:             var(--secondary);
-  --color-secondary-foreground:  var(--secondary-foreground);
-  --color-muted:                 var(--muted);
-  --color-muted-foreground:      var(--muted-foreground);
-  --color-accent:                var(--accent);
-  --color-accent-foreground:     var(--accent-foreground);
-  --color-destructive:           var(--destructive);
-  --color-destructive-foreground:var(--destructive-foreground);
-  --color-border:                var(--border);
-  --color-input:                 var(--input);
-  --color-ring:                  var(--ring);
+  --color-background:             var(--background);
+  --color-foreground:             var(--foreground);
+  --color-card:                   var(--card);
+  --color-card-foreground:        var(--card-foreground);
+  --color-popover:                var(--popover);
+  --color-popover-foreground:     var(--popover-foreground);
+  --color-primary:                var(--primary);
+  --color-primary-foreground:     var(--primary-foreground);
+  --color-secondary:              var(--secondary);
+  --color-secondary-foreground:   var(--secondary-foreground);
+  --color-muted:                  var(--muted);
+  --color-muted-foreground:       var(--muted-foreground);
+  --color-accent:                 var(--accent);
+  --color-accent-foreground:      var(--accent-foreground);
+  --color-destructive:            var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border:                 var(--border);
+  --color-input:                  var(--input);
+  --color-ring:                   var(--ring);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --color-sidebar:                  var(--sidebar);
-  --color-sidebar-foreground:       var(--sidebar-foreground);
-  --color-sidebar-primary:          var(--sidebar-primary);
+  --color-sidebar:                    var(--sidebar);
+  --color-sidebar-foreground:         var(--sidebar-foreground);
+  --color-sidebar-primary:            var(--sidebar-primary);
   --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent:           var(--sidebar-accent);
-  --color-sidebar-accent-foreground:var(--sidebar-accent-foreground);
-  --color-sidebar-border:           var(--sidebar-border);
-  --color-sidebar-ring:             var(--sidebar-ring);
-
-  --radius-sm: var(--radius-xs);
-  --radius-md: var(--radius-sm);
-  --radius-lg: var(--radius);
-  --radius-xl: var(--radius-lg);
+  --color-sidebar-accent:             var(--sidebar-accent);
+  --color-sidebar-accent-foreground:  var(--sidebar-accent-foreground);
+  --color-sidebar-border:             var(--sidebar-border);
+  --color-sidebar-ring:               var(--sidebar-ring);
 }
 
 /* ----------------------------------------------------------------------------
-   3. BASE
+   BASE + TYPOGRAPHY SCALE
    ---------------------------------------------------------------------------- */
 @layer base {
-  * {
-    border-color: var(--border);
-  }
   body {
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
-  h1, h2, h3, h4 {
-    color: var(--foreground);
-    font-weight: 700;
-    letter-spacing: -0.01em;
-  }
+  /* Type scale — headings use Inter heavy + tight tracking as the display treatment */
+  h1 { font-size: 23px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+  h2 { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+  h3 { font-size: 16px; font-weight: 700; color: var(--ink); }
 }
 
-/* Skeleton shimmer keyframe (reused by Skeleton component) */
-@keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
