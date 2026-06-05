@@ -23,6 +23,7 @@ import Payments             from "./pages/staff/Payments";
 import CatalogueManagement  from "./pages/staff/CatalogueManagement";
 import Analytics            from "./pages/staff/Analytics";
 import Stock                from "./pages/staff/Stock";
+import DesignPreview        from "./pages/DesignPreview";
 
 const ComingSoon = ({ title }: { title: string }) => (
   <div style={{ padding: 40, textAlign: "center" }}>
@@ -36,6 +37,7 @@ export default function App() {
   return (
     <Routes>
       {/* Public */}
+      <Route path="/design-preview" element={<DesignPreview />} />
       <Route path="/login"       element={<CustomerLogin />} />
       <Route path="/register"    element={<CustomerRegister />} />
       <Route path="/staff/login" element={<StaffLogin />} />

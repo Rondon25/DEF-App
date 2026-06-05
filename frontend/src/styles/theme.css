@@ -1,0 +1,181 @@
+/* ============================================================================
+   Rohan Energy Solutions — Design System (Phase 4)
+   Tailwind v4 + shadcn-compatible token layer
+   Palette: Teal middle-ground (bridges AdBlue-blue convention + eco-green)
+   ============================================================================ */
+
+@import "tailwindcss";
+
+/* ----------------------------------------------------------------------------
+   1. BRAND SCALE — raw teal + neutral ramps
+   ---------------------------------------------------------------------------- */
+@theme {
+  /* Teal (primary brand) */
+  --color-teal-50:  #f0fdfa;
+  --color-teal-100: #ccfbf1;
+  --color-teal-200: #99f6e4;
+  --color-teal-300: #5eead4;
+  --color-teal-400: #2dd4bf;
+  --color-teal-500: #14b8a6;
+  --color-teal-600: #0d9488;  /* PRIMARY */
+  --color-teal-700: #0f766e;
+  --color-teal-800: #115e59;
+  --color-teal-900: #134e4a;
+  --color-teal-950: #042f2e;
+
+  /* Amber (energetic accent — the "today" pop from Prodexa) */
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+
+  /* Slate (neutral surfaces + dark sidebar) */
+  --color-ink:       #0f172a;  /* slate-900, headings */
+  --color-ink-2:     #334155;  /* slate-700, body */
+  --color-ink-3:     #64748b;  /* slate-500, muted */
+  --color-ink-4:     #94a3b8;  /* slate-400, faint */
+  --color-canvas:    #f8fafc;  /* slate-50, page bg */
+  --color-surface:   #ffffff;  /* cards */
+  --color-line:      #e2e8f0;  /* slate-200, borders */
+  --color-sidebar-bg: #0b1120; /* near slate-950, dark nav */
+
+  /* Semantic status */
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-danger:  #dc2626;
+  --color-info:    #2563eb;
+
+  /* Radius scale */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius:    12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  /* Typography */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+
+  /* Shadows — soft, neutral (not colored) */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow:    0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.12);
+}
+
+/* ----------------------------------------------------------------------------
+   2. SHADCN SEMANTIC TOKENS — mapped to the brand scale
+   ---------------------------------------------------------------------------- */
+:root {
+  --background:            #f8fafc;
+  --foreground:            #0f172a;
+
+  --card:                  #ffffff;
+  --card-foreground:       #0f172a;
+
+  --popover:               #ffffff;
+  --popover-foreground:    #0f172a;
+
+  --primary:               #0d9488;
+  --primary-foreground:    #ffffff;
+
+  --secondary:             #f1f5f9;
+  --secondary-foreground:  #0f172a;
+
+  --muted:                 #f1f5f9;
+  --muted-foreground:      #64748b;
+
+  --accent:                #ccfbf1;   /* teal-100 wash */
+  --accent-foreground:     #115e59;
+
+  --destructive:           #dc2626;
+  --destructive-foreground:#ffffff;
+
+  --border:                #e2e8f0;
+  --input:                 #e2e8f0;
+  --ring:                  #14b8a6;
+
+  /* Chart palette — teal-forward with warm + cool support */
+  --chart-1: #0d9488;
+  --chart-2: #2dd4bf;
+  --chart-3: #f59e0b;
+  --chart-4: #6366f1;
+  --chart-5: #f43f5e;
+
+  /* Dark sidebar tokens */
+  --sidebar:                 #0b1120;
+  --sidebar-foreground:      #cbd5e1;
+  --sidebar-primary:         #14b8a6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent:          #1e293b;
+  --sidebar-accent-foreground:#f1f5f9;
+  --sidebar-border:          #1e293b;
+  --sidebar-ring:            #14b8a6;
+}
+
+/* Map shadcn tokens into Tailwind's color namespace so utilities like
+   bg-primary, text-muted-foreground, border-border etc. all work. */
+@theme inline {
+  --color-background:            var(--background);
+  --color-foreground:            var(--foreground);
+  --color-card:                  var(--card);
+  --color-card-foreground:       var(--card-foreground);
+  --color-popover:               var(--popover);
+  --color-popover-foreground:    var(--popover-foreground);
+  --color-primary:               var(--primary);
+  --color-primary-foreground:    var(--primary-foreground);
+  --color-secondary:             var(--secondary);
+  --color-secondary-foreground:  var(--secondary-foreground);
+  --color-muted:                 var(--muted);
+  --color-muted-foreground:      var(--muted-foreground);
+  --color-accent:                var(--accent);
+  --color-accent-foreground:     var(--accent-foreground);
+  --color-destructive:           var(--destructive);
+  --color-destructive-foreground:var(--destructive-foreground);
+  --color-border:                var(--border);
+  --color-input:                 var(--input);
+  --color-ring:                  var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar:                  var(--sidebar);
+  --color-sidebar-foreground:       var(--sidebar-foreground);
+  --color-sidebar-primary:          var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent:           var(--sidebar-accent);
+  --color-sidebar-accent-foreground:var(--sidebar-accent-foreground);
+  --color-sidebar-border:           var(--sidebar-border);
+  --color-sidebar-ring:             var(--sidebar-ring);
+
+  --radius-sm: var(--radius-xs);
+  --radius-md: var(--radius-sm);
+  --radius-lg: var(--radius);
+  --radius-xl: var(--radius-lg);
+}
+
+/* ----------------------------------------------------------------------------
+   3. BASE
+   ---------------------------------------------------------------------------- */
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 {
+    color: var(--foreground);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Skeleton shimmer keyframe (reused by Skeleton component) */
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
