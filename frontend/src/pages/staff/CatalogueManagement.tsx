@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { staffApi } from "../../api";
-import { Pencil, DollarSign, X, Plus, Droplet, Power, PowerOff, Upload, FileDown, FileSpreadsheet, FileText, Trash2, Search } from "lucide-react";
+import { Pencil, DollarSign, X, Plus, Droplet, Power, PowerOff, Upload, FileDown, FileSpreadsheet, FileText, Trash2, Search, Layers } from "lucide-react";
+import StatCard from "@/components/ui/StatCard";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -158,9 +159,17 @@ export default function CatalogueManagement() {
 
   return (
     <>
-      <div className="mb-4">
+      <div className="mb-5">
         <h1 className="text-2xl font-bold text-ink">Catalogue</h1>
         <p className="text-sm text-ink-3">{filtered.length} of {skus.length} products</p>
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+        <StatCard label="Total Products" value={skus.length} icon={<Layers className="size-4" />} />
+        <StatCard label="Active" value={skus.filter(s => s.is_active).length} icon={<Power className="size-4" />} />
+        <StatCard label="Inactive" value={skus.filter(s => !s.is_active).length} icon={<PowerOff className="size-4" />} />
+        <StatCard label="Avg Price" value={skus.length ? `$${(skus.reduce((a, s) => a + (s.current_price || 0), 0) / skus.length).toFixed(0)}` : "—"} icon={<DollarSign className="size-4" />} />
       </div>
 
       {/* Search + actions */}

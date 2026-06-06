@@ -7,6 +7,7 @@ import ErrorScreen from "@/components/ErrorScreen";
 import { StatusPill, statusLabel } from "@/components/StatusPill";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import StaffCreateOrder from "@/components/StaffCreateOrder";
+import StatCard from "@/components/ui/StatCard";
 import { Search, ClipboardList, X, FileDown, FileSpreadsheet, FileText, Trash2, Plus, Clock, Loader, Truck, CheckCircle2 } from "lucide-react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -118,10 +119,10 @@ export default function StaffOrders() {
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <Kpi featured label="New Orders" value={kpi.newOrders} icon={<Clock className="size-4" />} />
-        <Kpi label="Processing" value={kpi.processing} icon={<Loader className="size-4" />} />
-        <Kpi label="In Delivery" value={kpi.delivery} icon={<Truck className="size-4" />} />
-        <Kpi label="Completed" value={kpi.completed} icon={<CheckCircle2 className="size-4" />} />
+        <StatCard label="New Orders" value={kpi.newOrders} icon={<Clock className="size-4" />} />
+        <StatCard label="Processing" value={kpi.processing} icon={<Loader className="size-4" />} />
+        <StatCard label="In Delivery" value={kpi.delivery} icon={<Truck className="size-4" />} />
+        <StatCard label="Completed" value={kpi.completed} icon={<CheckCircle2 className="size-4" />} />
       </div>
 
       {/* Search */}
@@ -281,14 +282,3 @@ export default function StaffOrders() {
   );
 }
 
-function Kpi({ featured, label, value, icon }: { featured?: boolean; label: string; value: React.ReactNode; icon: React.ReactNode }) {
-  return (
-    <div className={`rounded-2xl p-5 ${featured ? "bg-sidebar text-white" : "bg-surface shadow-[var(--shadow-sm)]"}`}>
-      <div className="flex items-center justify-between mb-4">
-        <span className={`text-[13px] font-medium ${featured ? "text-white/60" : "text-ink-3"}`}>{label}</span>
-        <span className={`flex size-7 items-center justify-center rounded-lg ${featured ? "bg-white/10 text-accent" : "bg-teal-50 text-primary"}`}>{icon}</span>
-      </div>
-      <div className="text-3xl font-bold">{value}</div>
-    </div>
-  );
-}

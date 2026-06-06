@@ -4,7 +4,8 @@ import { Link } from "react-router-dom";
 import { staffApi } from "../../api";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { SkeletonList } from "@/components/Skeleton";
-import { Check, X, UserPlus, ChevronRight, Trash2, CreditCard, Loader2, FileDown, FileSpreadsheet, FileText, Plus, Search, Eye } from "lucide-react";
+import StatCard from "@/components/ui/StatCard";
+import { Check, X, UserPlus, ChevronRight, Trash2, CreditCard, Loader2, FileDown, FileSpreadsheet, FileText, Plus, Search, Eye, Users, UserCheck } from "lucide-react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -93,9 +94,17 @@ export default function Customers() {
 
   return (
     <>
-      <div className="mb-4">
+      <div className="mb-5">
         <h1 className="text-2xl font-bold text-ink">Customers</h1>
         <p className="text-sm text-ink-3">Manage customer accounts and approvals</p>
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+        <StatCard label="Total Customers" value={all.length} icon={<Users className="size-4" />} />
+        <StatCard label="Active" value={all.filter((c: any) => c.status === "active").length} icon={<UserCheck className="size-4" />} />
+        <StatCard label="Pending Approval" value={pending.length} warn={pending.length > 0} icon={<UserPlus className="size-4" />} />
+        <StatCard label="Credit Accounts" value={all.filter((c: any) => c.is_credit_account).length} icon={<CreditCard className="size-4" />} />
       </div>
 
       {/* Approval alert */}
