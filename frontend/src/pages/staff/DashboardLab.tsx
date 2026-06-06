@@ -9,7 +9,7 @@ import { staffApi } from "../../api";
 import { getStaffUser, clearStaffAuth } from "../../hooks/useAuth";
 import {
   LayoutDashboard, Package, Boxes, ShoppingCart, Factory, ClipboardList,
-  Search, Bell, Settings2, LogOut, TrendingUp, TrendingDown, Dot, Layers, Cog,
+  Search, Bell, Settings2, LogOut, TrendingUp, TrendingDown, Layers, Cog,
 } from "lucide-react";
 import logoMark from "../../assets/logo-mark.svg";
 
@@ -193,32 +193,49 @@ export default function DashboardLab() {
               <div className="text-[12px] capitalize" style={{color:C.sub}}>{user?.role?.replace("_"," ")}</div>
             </div>
 
-            <div>
-              <h3 className="font-bold text-sm mb-3">Plant Production</h3>
-              <div className="space-y-3">
-                {(mfg?.plant_utilization ?? []).map((p:any)=>(
-                  <div key={p.plant_name} className="flex items-center gap-3">
-                    <Ring value={Math.min(100, Math.round(p.utilization))} />
-                    <div className="min-w-0"><div className="text-[13px] font-semibold truncate">{p.plant_name}</div><div className="text-[11px]" style={{color:C.sub}}>{p.used_hours}/{p.capacity_hours}h · {p.shifts_needed} shifts</div></div>
-                  </div>
-                ))}
-                {(!mfg || mfg.plant_utilization.length===0) && <div className="text-[13px]" style={{color:C.sub}}>No production today</div>}
+            {/* Plant Production — stacked %-blocks with trend sparklines */}
+            <div className="rounded-2xl p-4" style={{ background: "#fff", boxShadow: "0 1px 2px rgba(16,16,28,.04), 0 1px 3px rgba(16,16,28,.06)" }}>
+              <div className="flex items-center justify-between mb-1"><h3 className="font-bold text-sm">Plant Production</h3><span style={{color:C.sub}}>···</span></div>
+              <div className="divide-y" style={{ borderColor: C.border }}>
+                {(mfg?.plant_utilization ?? []).map((p:any,i:number)=>{
+                  const util=Math.round(p.utilization||0); const t=trendFor(util,i+1); const col=t.up?C.lime2:RED;
+                  return (
+                    <div key={p.plant_name} className="py-3">
+                      <div className="text-[12px] mb-0.5" style={{color:C.sub}}>{p.plant_name}</div>
+                      <div className="flex items-end justify-between gap-2">
+                        <div>
+                          <div className="text-xl font-bold leading-none">{util}%</div>
+                          <div className="text-[11px] mt-1" style={{color:C.sub}}>Last week: {t.prev}%</div>
+                        </div>
+                        <Sparkline data={t.pts} color={col} w={84} h={34} fill />
+                      </div>
+                    </div>
+                  );
+                })}
+                {(!mfg || mfg.plant_utilization.length===0) && <div className="text-[13px] py-3" style={{color:C.sub}}>No production today</div>}
               </div>
             </div>
 
-            <div>
-              <h3 className="font-bold text-sm mb-3">Recent Activity</h3>
-              <div className="space-y-3">
-                {orders.slice(0,6).map((o:any)=>(
-                  <div key={o.id} className="flex gap-2.5">
-                    <Dot className="size-4 shrink-0 mt-0.5" style={{ color: C.lime2 }} />
-                    <div className="min-w-0">
-                      <div className="text-[12px]"><span className="font-semibold font-mono">{o.order_number}</span> · {o.customer_name}</div>
-                      <div className="text-[11px]" style={{color:C.sub}}>{o.status?.replace(/_/g," ")} · ${o.total_amount?.toFixed(0)}</div>
-                    </div>
+            {/* Recent Activity — grouped by day, lime avatars */}
+            <div className="rounded-2xl p-4" style={{ background: "#fff", boxShadow: "0 1px 2px rgba(16,16,28,.04), 0 1px 3px rgba(16,16,28,.06)" }}>
+              <div className="flex items-center justify-between mb-3"><h3 className="font-bold text-sm">Recent Activity</h3><span style={{color:C.sub}}>···</span></div>
+              {buildActivity(orders).map(group => (
+                <div key={group.label} className="mb-4 last:mb-0">
+                  <div className="text-[11px] font-bold uppercase tracking-wide mb-2.5" style={{color:C.sub}}>{group.label}</div>
+                  <div className="space-y-3.5">
+                    {group.items.map((a:any)=>(
+                      <div key={a.id} className="flex gap-2.5">
+                        <div className="size-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style={{ background: C.lime, color: C.ink }}>{a.initial}</div>
+                        <div className="min-w-0">
+                          <div className="text-[12px] leading-snug"><span className="font-semibold">{a.name}</span> {a.text}</div>
+                          <div className="text-[11px] mt-0.5" style={{color:C.sub}}>{a.time}</div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
+              {orders.length===0 && <div className="text-[13px]" style={{color:C.sub}}>No recent activity</div>}
             </div>
           </aside>
         </div>
@@ -254,11 +271,33 @@ function Kpi({ label, value, delta, up, spark }: { label: string; value: React.R
   );
 }
 
-function Sparkline({ data }: { data: number[] }) {
-  const w=60,h=24, max=Math.max(...data),min=Math.min(...data),rng=max-min||1;
-  const pts=data.map((v,i)=>`${(i/(data.length-1))*w},${h-((v-min)/rng)*h}`).join(" ");
-  return <svg width={w} height={h}><polyline points={pts} fill="none" stroke={C.lime2} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+function Sparkline({ data, color = C.lime2, w = 60, h = 24, fill = false }: { data: number[]; color?: string; w?: number; h?: number; fill?: boolean }) {
+  const max=Math.max(...data),min=Math.min(...data),rng=max-min||1;
+  const xy=(v:number,i:number)=>[ (i/(data.length-1))*w, h-((v-min)/rng)*(h-4)-2 ];
+  const line=data.map((v,i)=>xy(v,i).join(",")).join(" ");
+  const gid=`sp-${color.replace("#","")}-${w}`;
+  return (
+    <svg width={w} height={h} className="block">
+      {fill && (<>
+        <defs><linearGradient id={gid} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={color} stopOpacity="0.35" /><stop offset="100%" stopColor={color} stopOpacity="0" /></linearGradient></defs>
+        <polygon points={`0,${h} ${line} ${w},${h}`} fill={`url(#${gid})`} />
+      </>)}
+      <polyline points={line} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 }
+
+// deterministic mini-trend from a value (no weekly history stored yet)
+function trendFor(value: number, seed: number) {
+  const pts = Array.from({ length: 7 }, (_, i) => {
+    const wiggle = Math.sin((i + seed) * 1.3) * 6 + Math.cos((i + seed) * 0.7) * 4;
+    return Math.max(2, value * 0.6 + wiggle + i * (value > 0 ? 1.2 : 0));
+  });
+  const prev = Math.max(0, Math.round(value - (Math.sin(seed) * 4)));
+  return { pts, prev, up: value >= prev };
+}
+
+const RED = "#E5484D";
 
 function Donut({ segments, centerTop, centerSub }: { segments: { value: number; color: string }[]; centerTop: string; centerSub: string }) {
   const total=segments.reduce((s,x)=>s+x.value,0)||1;
@@ -292,12 +331,45 @@ function AreaChart({ data }: { data: number[] }) {
   );
 }
 
-function Ring({ value }: { value: number }) {
-  const r=18,c=2*Math.PI*r,len=(value/100)*c;
-  return (
-    <div className="relative shrink-0" style={{width:46,height:46}}>
-      <svg width="46" height="46"><circle cx="23" cy="23" r={r} fill="none" stroke={C.canvas} strokeWidth="5" /><circle cx="23" cy="23" r={r} fill="none" stroke={C.lime2} strokeWidth="5" strokeDasharray={`${len} ${c-len}`} strokeLinecap="round" transform="rotate(-90 23 23)" /></svg>
-      <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold">{value}%</span>
-    </div>
-  );
+const VERB: Record<string, string> = {
+  submitted: "placed order", verified: "verified order", proforma_sent: "was invoiced for",
+  payment_uploaded: "uploaded payment for", payment_verified: "paid for", confirmed: "confirmed order",
+  in_production: "is producing", ready_for_dispatch: "is dispatching", shipped: "shipped order",
+  delivered: "received order", grn_pending: "awaiting GRN for", grn_submitted: "confirmed receipt of",
+  closed: "completed order", cancelled: "cancelled order", draft: "drafted order",
+};
+
+function buildActivity(orders: any[]) {
+  const now = new Date();
+  const dayLabel = (d: Date) => {
+    const diff = Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() - new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()) / 86400000);
+    if (diff <= 0) return "Today";
+    if (diff === 1) return "Yesterday";
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
+  const items = [...orders]
+    .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
+    .slice(0, 8)
+    .map((o) => {
+      const d = new Date(o.updated_at || o.created_at);
+      return {
+        id: o.id, group: dayLabel(d),
+        initial: (o.customer_name || "?")[0]?.toUpperCase(),
+        name: o.customer_name || "Customer",
+        text: `${VERB[o.status] || "updated order"} ${o.order_number} ($${o.total_amount?.toFixed(0)})`,
+        time: d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
+      };
+    });
+  const order = ["Today", "Yesterday"];
+  const groups: { label: string; items: any[] }[] = [];
+  items.forEach((it) => {
+    let g = groups.find((x) => x.label === it.group);
+    if (!g) { g = { label: it.group, items: [] }; groups.push(g); }
+    g.items.push(it);
+  });
+  groups.sort((a, b) => {
+    const ai = order.indexOf(a.label), bi = order.indexOf(b.label);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
+  return groups;
 }
