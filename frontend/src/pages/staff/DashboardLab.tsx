@@ -10,6 +10,7 @@ import { getStaffUser, clearStaffAuth } from "../../hooks/useAuth";
 import {
   LayoutDashboard, Package, Boxes, ShoppingCart, Factory, ClipboardList,
   Search, Bell, Settings2, LogOut, TrendingUp, TrendingDown, Layers, Cog,
+  Users, PackageCheck,
 } from "lucide-react";
 import logoMark from "../../assets/logo-mark.svg";
 
@@ -36,16 +37,29 @@ export default function DashboardLab() {
   const inTransit = orders.filter(o => o.status === "shipped").length;
   const reorder = mfg?.kpis?.active_reorder_signals ?? 0;
 
-  const nav = [
-    { icon: LayoutDashboard, label: "Dashboard", active: true, to: "/staff/dashboard-lab" },
-    { icon: ClipboardList, label: "Orders", to: "/staff/orders" },
-    { icon: Layers, label: "Catalogue", to: "/staff/catalog" },
-    { icon: Package, label: "Stock", to: "/staff/stock" },
-    { icon: Boxes, label: "Raw Materials", to: "/staff/raw-materials" },
-    { icon: ShoppingCart, label: "Procurement", to: "/staff/procurement" },
-    { icon: Cog, label: "Production", to: "/staff/production" },
-    { icon: Factory, label: "Plants", to: "/staff/plants" },
-    { icon: Settings2, label: "Configuration", to: "/staff/config" },
+  const navSections = [
+    { title: "Overview", items: [
+      { icon: LayoutDashboard, label: "Dashboard", to: "/staff/dashboard-lab", active: true },
+    ]},
+    { title: "Sales", items: [
+      { icon: Users,         label: "Customers", to: "/staff/customers" },
+      { icon: ClipboardList, label: "Orders",    to: "/staff/orders" },
+      { icon: Layers,        label: "Catalogue", to: "/staff/catalog" },
+    ]},
+    { title: "Inventory", items: [
+      { icon: Package,      label: "Stock",          to: "/staff/stock" },
+      { icon: PackageCheck, label: "Finished Goods", to: "/staff/finished-goods" },
+      { icon: Boxes,        label: "Raw Materials",  to: "/staff/raw-materials" },
+    ]},
+    { title: "Supply Chain", items: [
+      { icon: ShoppingCart, label: "Procurement", to: "/staff/procurement" },
+      { icon: Cog,          label: "Production",   to: "/staff/production" },
+      { icon: TrendingUp,   label: "Forecast",     to: "/staff/forecast" },
+    ]},
+    { title: "Setup", items: [
+      { icon: Factory,   label: "Plants",        to: "/staff/plants" },
+      { icon: Settings2, label: "Configuration", to: "/staff/config" },
+    ]},
   ];
 
   return (
@@ -56,17 +70,22 @@ export default function DashboardLab() {
           <div className="size-9 rounded-xl bg-white flex items-center justify-center"><img src={logoMark} alt="" className="size-6" /></div>
           <span className="font-bold text-[15px]" style={{ color: C.lime }}>Rohan Energy</span>
         </div>
-        <nav className="flex-1 space-y-1">
-          {nav.map(n => {
-            const Icon = n.icon;
-            return (
-              <Link key={n.label} to={n.to}
-                className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13px] font-medium transition-colors"
-                style={n.active ? { background: C.lime, color: C.ink } : { color: "#9c9ca6" }}>
-                <Icon className="size-[18px]" /> {n.label}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 overflow-y-auto -mx-1 px-1">
+          {navSections.map(sec => (
+            <div key={sec.title} className="mb-3 last:mb-0">
+              <div className="text-[10px] font-bold uppercase tracking-wider px-3.5 mb-1.5" style={{ color: "#6b6b73" }}>{sec.title}</div>
+              {sec.items.map(n => {
+                const Icon = n.icon;
+                return (
+                  <Link key={n.label} to={n.to}
+                    className="flex items-center gap-3 rounded-xl px-3.5 py-2 mb-0.5 text-[13px] font-medium transition-colors"
+                    style={(n as any).active ? { background: C.lime, color: C.ink } : { color: "#9c9ca6" }}>
+                    <Icon className="size-[18px]" /> {n.label}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </nav>
         <button onClick={() => { clearStaffAuth(); navigate("/staff/login"); }}
           className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[13px] font-medium" style={{ color: "#9c9ca6" }}>
@@ -186,7 +205,7 @@ export default function DashboardLab() {
           </div>
 
           {/* Right rail */}
-          <aside className="border-l p-5 space-y-5 hidden xl:block" style={{ borderColor: C.border, background: "#fff" }}>
+          <aside className="border-l p-5 space-y-5 hidden xl:block" style={{ borderColor: C.border, background: C.canvas }}>
             {/* Plant Production — stacked %-blocks with trend sparklines */}
             <div className="rounded-2xl p-4" style={{ background: "#fff", boxShadow: "0 1px 2px rgba(16,16,28,.04), 0 1px 3px rgba(16,16,28,.06)" }}>
               <div className="flex items-center justify-between mb-1"><h3 className="font-bold text-sm">Plant Production</h3><span style={{color:C.sub}}>···</span></div>
