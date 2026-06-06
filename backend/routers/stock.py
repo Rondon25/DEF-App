@@ -120,6 +120,39 @@ def _recompute_sku_total(db: Session, sku_id: int):
         sku.stock_qty = total
 
 
+def post_fg_movement(db: Session, plant_id: int, sku_id: int, *, qty_in: float = 0.0,
+                     qty_out: float = 0.0, reason: str = "adjustment", note: str | None = None,
+                     staff_id: int | None = None, movement_date=None):
+    """Post a finished-goods StockMovement and update the plant stock + SKU total.
+    Shared by manual production/dispatch endpoints and the order-dispatch hook."""
+    from datetime import date as _date
+    ps = db.query(models.PlantStock).filter(
+        models.PlantStock.sku_id == sku_id, models.PlantStock.plant_id == plant_id,
+    ).first()
+    if not ps:
+        ps = models.PlantStock(sku_id=sku_id, plant_id=plant_id, quantity=0)
+        db.add(ps); db.flush()
+    opening = ps.quantity or 0
+    closing = opening + qty_in - qty_out
+    db.add(models.StockMovement(
+        entity=models.StockEntity.finished_good, plant_id=plant_id, sku_id=sku_id,
+        movement_date=movement_date or _date.today(), opening=opening, qty_in=qty_in,
+        qty_out=qty_out, closing=closing, reason=reason, note=note, staff_id=staff_id,
+    ))
+    ps.quantity = closing
+    db.flush()
+    _recompute_sku_total(db, sku_id)
+    return ps
+
+
+def pick_plant_for_sku(db: Session, sku_id: int) -> int | None:
+    """Plant holding the most of a SKU (used to auto-source order dispatch)."""
+    row = db.query(models.PlantStock).filter(models.PlantStock.sku_id == sku_id).order_by(
+        models.PlantStock.quantity.desc()
+    ).first()
+    return row.plant_id if row else None
+
+
 @router.post("/admin/stock")
 def set_stock(payload: StockSet, db: Session = Depends(get_db), _: models.StaffUser = Depends(require_role(*STOCK_ROLES))):
     sku = db.query(models.SKU).filter(models.SKU.id == payload.sku_id).first()
@@ -207,4 +240,109 @@ def stock_summary(db: Session = Depends(get_db), _: models.StaffUser = Depends(r
         "plant_count": len(plants),
         "top_products": per_product[:6],
         "by_plant": by_plant,
+    }
+
+
+# ── Finished-goods daily ledger + economics (FG_INVENTORY sheet) ──────────────
+
+from datetime import date, timedelta
+
+
+class FgMovementIn(BaseModel):
+    plant_id: int
+    sku_id: int
+    quantity: float
+    reason: str | None = None
+    note: str | None = None
+    movement_date: date | None = None
+
+
+@router.post("/admin/fg/production")
+def record_production(payload: FgMovementIn, db: Session = Depends(get_db), user: models.StaffUser = Depends(require_role(*STOCK_ROLES))):
+    """Record finished-goods produced at a plant (FG in)."""
+    if not db.query(models.SKU).filter(models.SKU.id == payload.sku_id).first():
+        raise HTTPException(404, "Product not found")
+    if not db.query(models.Plant).filter(models.Plant.id == payload.plant_id).first():
+        raise HTTPException(404, "Plant not found")
+    post_fg_movement(db, payload.plant_id, payload.sku_id, qty_in=payload.quantity,
+                     reason=payload.reason or "production", note=payload.note,
+                     staff_id=user.id, movement_date=payload.movement_date)
+    db.commit()
+    return {"message": "Production recorded"}
+
+
+@router.post("/admin/fg/dispatch")
+def record_dispatch(payload: FgMovementIn, db: Session = Depends(get_db), user: models.StaffUser = Depends(require_role(*STOCK_ROLES))):
+    """Record finished-goods dispatched/shipped from a plant (FG out)."""
+    if not db.query(models.SKU).filter(models.SKU.id == payload.sku_id).first():
+        raise HTTPException(404, "Product not found")
+    post_fg_movement(db, payload.plant_id, payload.sku_id, qty_out=payload.quantity,
+                     reason=payload.reason or "dispatch", note=payload.note,
+                     staff_id=user.id, movement_date=payload.movement_date)
+    db.commit()
+    return {"message": "Dispatch recorded"}
+
+
+@router.get("/admin/fg/ledger")
+def fg_ledger(plant_id: int | None = None, sku_id: int | None = None, limit: int = 80,
+              db: Session = Depends(get_db), _: models.StaffUser = Depends(require_role(*STOCK_ROLES))):
+    q = db.query(models.StockMovement).filter(models.StockMovement.entity == models.StockEntity.finished_good)
+    if plant_id:
+        q = q.filter(models.StockMovement.plant_id == plant_id)
+    if sku_id:
+        q = q.filter(models.StockMovement.sku_id == sku_id)
+    rows = q.order_by(models.StockMovement.movement_date.desc(), models.StockMovement.id.desc()).limit(limit).all()
+    plant_names = {p.id: p.name for p in db.query(models.Plant).all()}
+    sku_names = {s.id: (s.code, s.name) for s in db.query(models.SKU).all()}
+    out = []
+    for m in rows:
+        code, name = sku_names.get(m.sku_id, ("?", "?"))
+        out.append({
+            "id": m.id, "date": m.movement_date.isoformat(), "plant_name": plant_names.get(m.plant_id, "?"),
+            "sku_code": code, "sku_name": name, "opening": m.opening, "qty_in": m.qty_in,
+            "qty_out": m.qty_out, "closing": m.closing, "reason": m.reason, "note": m.note,
+        })
+    return out
+
+
+@router.get("/admin/fg/summary")
+def fg_summary(days: int = 30, db: Session = Depends(get_db), _: models.StaffUser = Depends(require_role(*STOCK_ROLES))):
+    """Economics + status over the last N days (produced, dispatched, revenue, cost)."""
+    since = date.today() - timedelta(days=days)
+    skus = {s.id: s for s in db.query(models.SKU).filter(models.SKU.is_archived == False).all()}
+
+    movements = db.query(models.StockMovement).filter(
+        models.StockMovement.entity == models.StockEntity.finished_good,
+        models.StockMovement.movement_date >= since,
+    ).all()
+    produced = dispatched = revenue = dispatch_cost = 0.0
+    for m in movements:
+        s = skus.get(m.sku_id)
+        produced += m.qty_in
+        dispatched += m.qty_out
+        if s:
+            revenue += m.qty_out * (s.revenue_per_unit or 0)
+            dispatch_cost += m.qty_out * (s.dispatch_cost_per_unit or 0)
+
+    # FG status vs each SKU's min safety stock (current totals)
+    below_safety = 0
+    status_rows = []
+    for s in skus.values():
+        qty = db.query(func.coalesce(func.sum(models.PlantStock.quantity), 0)).filter(
+            models.PlantStock.sku_id == s.id
+        ).scalar() or 0
+        min_ss = s.min_fg_safety_stock or 0
+        status = "critical" if qty <= min_ss else "warning" if qty <= min_ss * 1.2 else "ok"
+        if status != "ok":
+            below_safety += 1
+        status_rows.append({"sku_code": s.code, "name": s.name, "qty": round(qty, 2),
+                            "min_safety": min_ss, "status": status})
+    status_rows.sort(key=lambda r: ({"critical": 0, "warning": 1, "ok": 2}[r["status"]], r["name"]))
+
+    return {
+        "days": days,
+        "produced": round(produced, 2), "dispatched": round(dispatched, 2),
+        "revenue": round(revenue, 2), "dispatch_cost": round(dispatch_cost, 2),
+        "gross_margin": round(revenue - dispatch_cost, 2),
+        "below_safety": below_safety, "status_rows": status_rows,
     }

@@ -20,6 +20,7 @@ class DispatchIn(BaseModel):
     tracking_number: str | None = None
     carrier: str | None = None
     notes: str | None = None
+    plant_id: int | None = None   # fulfilling plant; auto-picked per item if omitted
 
 
 @router.post("/staff/orders/{order_id}/dispatch")
@@ -45,6 +46,16 @@ def dispatch_order(
     )
     db.add(delivery)
     order.status = models.OrderStatus.shipped
+
+    # Post finished-goods dispatch movements (decrement plant stock) for each line
+    from routers.stock import post_fg_movement, pick_plant_for_sku
+    for item in order.items:
+        plant_id = payload.plant_id or pick_plant_for_sku(db, item.sku_id)
+        if plant_id:
+            post_fg_movement(
+                db, plant_id, item.sku_id, qty_out=item.quantity,
+                reason="dispatch", note=f"Order {order.order_number}", staff_id=staff.id,
+            )
     db.commit()
 
     customer = order.customer
