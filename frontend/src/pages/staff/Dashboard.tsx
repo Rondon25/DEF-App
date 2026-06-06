@@ -37,7 +37,6 @@ export default function StaffDashboard() {
   const shipped  = orders.filter((o: any) => o.status === "shipped");
   const total    = orders.length || 1;
   const activePct  = Math.round((active.length / total) * 100);
-  const awaitPct   = Math.round((awaiting.length / total) * 100);
 
   // donut conic stops
   const a = (active.length / total) * 100;

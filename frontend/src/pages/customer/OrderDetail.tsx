@@ -148,8 +148,6 @@ export default function OrderDetail() {
   if (isLoading) return <div className="loading-screen"><span className="spinner spinner-dark" /></div>;
   if (!order) return <div className="empty-state"><div className="empty-icon"><AlertCircle size={36} /></div><p>Order not found</p></div>;
 
-  const currentIdx = ORDER_INDEX[order.status] ?? 0;
-
   return (
     <>
       <div className="page-header" style={{ display: "flex", alignItems: "center", gap: 12 }}>

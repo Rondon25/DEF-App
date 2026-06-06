@@ -8,42 +8,8 @@ import ErrorScreen from "../../components/ErrorScreen";
 import { StatusPill } from "@/components/StatusPill";
 import {
   ChevronLeft, ClipboardCheck, CreditCard, Check, X, PartyPopper, Truck,
-  PackageCheck, Lock, StickyNote, Trash2, ArrowRight, Droplet, MapPin,
+  PackageCheck, Lock, StickyNote, Droplet, MapPin,
 } from "lucide-react";
-
-const STATUS_LABEL: Record<string, string> = {
-  submitted:         "Submitted",
-  verified:          "Verified",
-  proforma_sent:     "Invoice Sent",
-  payment_uploaded:  "Payment Uploaded",
-  payment_verified:  "Payment Verified",
-  confirmed:         "Confirmed",
-  in_production:     "In Production",
-  ready_for_dispatch:"Ready to Ship",
-  shipped:           "Shipped",
-  delivered:         "Delivered",
-  grn_pending:       "GRN Pending",
-  grn_submitted:     "GRN Submitted",
-  closed:            "Closed",
-  cancelled:         "Cancelled",
-};
-
-const STATUS_BADGE: Record<string, string> = {
-  submitted:         "badge-blue",
-  verified:          "badge-blue",
-  proforma_sent:     "badge-amber",
-  payment_uploaded:  "badge-amber",
-  payment_verified:  "badge-green",
-  confirmed:         "badge-green",
-  in_production:     "badge-purple",
-  ready_for_dispatch:"badge-purple",
-  shipped:           "badge-purple",
-  delivered:         "badge-green",
-  grn_pending:       "badge-amber",
-  grn_submitted:     "badge-green",
-  closed:            "badge-gray",
-  cancelled:         "badge-gray",
-};
 
 export default function StaffOrderDetail() {
   const { id } = useParams();
