@@ -72,7 +72,8 @@ def get_pending_customers(
     _: models.StaffUser = Depends(require_role("admin", "central_team")),
 ):
     return db.query(models.Customer).filter(
-        models.Customer.status == models.CustomerStatus.pending
+        models.Customer.status == models.CustomerStatus.pending,
+        models.Customer.is_archived == False,
     ).order_by(models.Customer.created_at.asc()).all()
 
 
@@ -82,10 +83,25 @@ def list_customers(
     db: Session = Depends(get_db),
     _: models.StaffUser = Depends(get_current_staff),
 ):
-    q = db.query(models.Customer)
+    q = db.query(models.Customer).filter(models.Customer.is_archived == False)
     if status:
         q = q.filter(models.Customer.status == status)
     return q.order_by(models.Customer.created_at.desc()).all()
+
+
+@router.post("/customers/{customer_id}/archive")
+def archive_customer(
+    customer_id: int,
+    db: Session = Depends(get_db),
+    staff: models.StaffUser = Depends(require_role("admin", "central_team")),
+):
+    c = db.query(models.Customer).filter(models.Customer.id == customer_id).first()
+    if not c:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    c.is_archived = True
+    audit_log(db, "customer", c.id, "archived", staff=staff)
+    db.commit()
+    return {"message": "Customer archived"}
 
 
 @router.get("/customers/{customer_id}", response_model=CustomerListOut)

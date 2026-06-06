@@ -70,7 +70,9 @@ class SKUPriceUpdate(BaseModel):
 # ── Public catalogue (active SKUs) ────────────────────────────────────────────
 
 def _active_skus(db):
-    skus = db.query(models.SKU).filter(models.SKU.is_active == True).all()
+    skus = db.query(models.SKU).filter(
+        models.SKU.is_active == True, models.SKU.is_archived == False
+    ).all()
     return [SKUOut.from_orm_with_alias(s) for s in skus]
 
 @router.get("/catalog", response_model=list[SKUOut])
@@ -89,8 +91,22 @@ def list_all_skus(
     db: Session = Depends(get_db),
     _: models.StaffUser = Depends(get_current_staff),
 ):
-    skus = db.query(models.SKU).all()
+    skus = db.query(models.SKU).filter(models.SKU.is_archived == False).all()
     return [SKUOut.from_orm_with_alias(s) for s in skus]
+
+
+@router.post("/admin/skus/{sku_id}/archive")
+def archive_sku(
+    sku_id: int,
+    db: Session = Depends(get_db),
+    _: models.StaffUser = Depends(require_role("admin", "central_team")),
+):
+    sku = db.query(models.SKU).filter(models.SKU.id == sku_id).first()
+    if not sku:
+        raise HTTPException(status_code=404, detail="SKU not found")
+    sku.is_archived = True
+    db.commit()
+    return {"message": "Product archived"}
 
 
 @router.post("/admin/skus", response_model=SKUOut, status_code=201)

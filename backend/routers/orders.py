@@ -233,7 +233,8 @@ def list_my_orders(
     customer: models.Customer = Depends(require_active_customer),
 ):
     orders = db.query(models.Order).filter(
-        models.Order.customer_id == customer.id
+        models.Order.customer_id == customer.id,
+        models.Order.is_archived == False,
     ).order_by(models.Order.created_at.desc()).all()
     return [_enrich_order(o) for o in orders]
 
@@ -261,11 +262,26 @@ def list_all_orders(
     db: Session = Depends(get_db),
     _: models.StaffUser = Depends(get_current_staff),
 ):
-    q = db.query(models.Order)
+    q = db.query(models.Order).filter(models.Order.is_archived == False)
     if status:
         q = q.filter(models.Order.status == status)
     orders = q.order_by(models.Order.created_at.desc()).all()
     return [_enrich_order_staff(o) for o in orders]
+
+
+# ── Staff: archive (soft delete) order ───────────────────────────────────────
+
+@router.post("/staff/orders/{order_id}/archive")
+def archive_order(
+    order_id: int,
+    db: Session = Depends(get_db),
+    staff: models.StaffUser = Depends(require_role("admin", "central_team")),
+):
+    order = _get_order(order_id, db)
+    order.is_archived = True
+    audit_log(db, "order", order.id, "archived", staff=staff)
+    db.commit()
+    return {"message": "Order archived"}
 
 
 # ── Staff: get single order ──────────────────────────────────────────────────

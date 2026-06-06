@@ -106,6 +106,7 @@ class Customer(Base):
     otp_code         = Column(String(10), nullable=True)
     otp_expires_at   = Column(DateTime, nullable=True)
     otp_channel      = Column(SAEnum(OTPChannel), default=OTPChannel.whatsapp)
+    is_archived      = Column(Boolean, default=False)  # soft delete
     created_at       = Column(DateTime, default=datetime.utcnow)
 
     approved_by_user     = relationship("StaffUser", back_populates="approved_customers", foreign_keys=[approved_by])
@@ -144,13 +145,43 @@ class SKU(Base):
     volume_liters        = Column(Float, default=0.0)
     unit                 = Column(String(50), default="unit")
     current_price        = Column(Float, nullable=False)
-    stock_qty            = Column(Float, nullable=True)   # None = unlimited/not tracked
+    stock_qty            = Column(Float, nullable=True)   # legacy total; now derived from plant_stocks
     is_active            = Column(Boolean, default=True)
+    is_archived          = Column(Boolean, default=False)  # soft delete
     created_at           = Column(DateTime, default=datetime.utcnow)
     updated_at           = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     price_history = relationship("SKUPriceHistory", back_populates="sku")
     order_items   = relationship("OrderItem", back_populates="sku")
+    plant_stocks  = relationship("PlantStock", back_populates="sku", cascade="all, delete-orphan")
+
+
+# ─── PLANTS (FACTORIES / WAREHOUSES) ─────────────────────────────────────────
+
+class Plant(Base):
+    __tablename__ = "plants"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    name        = Column(String(150), nullable=False)
+    location    = Column(String(200), nullable=True)
+    is_active   = Column(Boolean, default=True)
+    is_archived = Column(Boolean, default=False)
+    created_at  = Column(DateTime, default=datetime.utcnow)
+
+    stocks = relationship("PlantStock", back_populates="plant", cascade="all, delete-orphan")
+
+
+class PlantStock(Base):
+    __tablename__ = "plant_stocks"
+
+    id         = Column(Integer, primary_key=True, index=True)
+    plant_id   = Column(Integer, ForeignKey("plants.id"), nullable=False)
+    sku_id     = Column(Integer, ForeignKey("skus.id"), nullable=False)
+    quantity   = Column(Float, default=0.0)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    plant = relationship("Plant", back_populates="stocks")
+    sku   = relationship("SKU", back_populates="plant_stocks")
 
 
 class SKUPriceHistory(Base):
@@ -187,6 +218,7 @@ class Order(Base):
     verified_at     = Column(DateTime, nullable=True)
     confirmed_by    = Column(Integer, ForeignKey("staff_users.id"), nullable=True)
     confirmed_at    = Column(DateTime, nullable=True)
+    is_archived     = Column(Boolean, default=False)  # soft delete
     created_at      = Column(DateTime, default=datetime.utcnow)
     updated_at      = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
