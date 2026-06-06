@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { staffApi } from "../../api";
-import { Pencil, DollarSign, X } from "lucide-react";
+import { Pencil, DollarSign, X, Plus, Droplet, Power, PowerOff } from "lucide-react";
 
 const ic = { display: "inline", verticalAlign: "-3px", marginRight: 5 } as const;
 
@@ -84,52 +84,72 @@ export default function CatalogueManagement() {
 
   return (
     <>
-      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <div className="flex items-start justify-between mb-5">
         <div>
-          <h1>Catalogue</h1>
-          <p>{skus.length} products</p>
+          <h1 className="text-2xl font-bold text-ink">Catalogue</h1>
+          <p className="text-sm text-ink-3">{skus.length} products</p>
         </div>
-        <button className="btn btn-primary" onClick={() => { setShowAdd(true); setError(""); }}>
-          + Add SKU
+        <button
+          onClick={() => { setShowAdd(true); setError(""); }}
+          className="inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-primary text-white text-sm font-semibold hover:bg-teal-700 transition-colors"
+        >
+          <Plus size={16} /> Add SKU
         </button>
       </div>
 
       {isLoading ? (
         <div className="loading-screen"><span className="spinner spinner-dark" /></div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {skus.map(sku => (
-            <div key={sku.id} className="card" style={{ padding: 16, opacity: sku.is_active ? 1 : 0.55 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                    <span style={{ fontWeight: 700, fontSize: 15 }}>{sku.name}</span>
-                    <span style={{ fontSize: 11, color: "var(--ink-4)", fontFamily: "monospace" }}>{sku.sku_code}</span>
-                    {!sku.is_active && <span className="badge badge-gray">Inactive</span>}
+        <div className="flex flex-col gap-3">
+          {skus.map((sku) => (
+            <div
+              key={sku.id}
+              className={`bg-surface rounded-2xl shadow-[var(--shadow-sm)] p-4 flex flex-col sm:flex-row sm:items-center gap-4 ${sku.is_active ? "" : "opacity-60"}`}
+            >
+              {/* Icon + info */}
+              <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                <div className="size-12 rounded-xl bg-teal-50 flex items-center justify-center text-primary shrink-0">
+                  <Droplet size={22} />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-[15px]">{sku.name}</span>
+                    <span className="text-[11px] font-mono text-ink-4">{sku.sku_code}</span>
+                    {!sku.is_active && <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Inactive</span>}
                   </div>
-                  {sku.description && (
-                    <div style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 4 }}>{sku.description}</div>
-                  )}
-                  <div style={{ fontSize: 13, marginTop: 6, display: "flex", gap: 16 }}>
-                    <span><strong style={{ color: "var(--blue)" }}>${sku.current_price.toFixed(2)}</strong> / {sku.unit}</span>
-                    {sku.volume_liters > 0 && <span style={{ color: "var(--ink-3)" }}>{sku.volume_liters}L</span>}
+                  {sku.description && <p className="text-[13px] text-ink-3 mt-0.5 line-clamp-1">{sku.description}</p>}
+                  <div className="flex items-center gap-3 mt-1 text-[13px]">
+                    <span className="font-bold text-primary">${sku.current_price.toFixed(2)}</span>
+                    <span className="text-ink-3">/ {sku.unit}</span>
+                    {sku.volume_liters > 0 && <span className="text-ink-4">· {sku.volume_liters}L</span>}
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <button className="btn btn-secondary" style={{ fontSize: 12, padding: "6px 12px" }} onClick={() => openEdit(sku)}>
-                  <Pencil size={13} style={ic} /> Edit
-                </button>
-                <button className="btn btn-secondary" style={{ fontSize: 12, padding: "6px 12px" }} onClick={() => openPrice(sku)}>
-                  <DollarSign size={13} style={ic} /> Update Price
+              {/* Actions on the right */}
+              <div className="flex items-center gap-2 shrink-0 sm:pl-2 sm:border-l sm:border-border">
+                <button
+                  onClick={() => openEdit(sku)}
+                  className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-border text-[13px] font-medium text-ink-2 hover:border-primary hover:text-primary transition-colors"
+                >
+                  <Pencil size={14} /> Edit
                 </button>
                 <button
-                  className="btn btn-secondary"
-                  style={{ fontSize: 12, padding: "6px 12px", color: sku.is_active ? "var(--red,#ef4444)" : "var(--green,#16a34a)" }}
+                  onClick={() => openPrice(sku)}
+                  className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-border text-[13px] font-medium text-ink-2 hover:border-primary hover:text-primary transition-colors"
+                >
+                  <DollarSign size={14} /> Price
+                </button>
+                <button
                   onClick={() => toggleMutation.mutate(sku.id)}
                   disabled={toggleMutation.isPending}
+                  className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full border text-[13px] font-medium transition-colors ${
+                    sku.is_active
+                      ? "border-red-200 text-red-600 hover:bg-red-50"
+                      : "border-green-200 text-green-600 hover:bg-green-50"
+                  }`}
                 >
+                  {sku.is_active ? <Power size={14} /> : <PowerOff size={14} />}
                   {sku.is_active ? "Deactivate" : "Activate"}
                 </button>
               </div>
