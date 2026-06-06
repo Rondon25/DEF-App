@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { getCustomerUser } from "../hooks/useAuth";
-import { Droplet, Home, ShoppingCart, Package, User } from "lucide-react";
+import { Home, ShoppingCart, Package, User } from "lucide-react";
+import logoMark from "../assets/logo-mark.svg";
 
 const NAV = [
   { to: "/",        icon: Home,         label: "Home"    },
@@ -19,8 +20,8 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
       <header className="sticky top-0 z-40 bg-surface/90 backdrop-blur border-b border-border">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="size-8 rounded-lg bg-sidebar flex items-center justify-center">
-              <Droplet className="size-4 text-accent" fill="currentColor" />
+            <div className="size-8 rounded-lg bg-white border border-border flex items-center justify-center">
+              <img src={logoMark} alt="" className="size-5" />
             </div>
             <span className="font-bold text-[15px] text-ink">Rohan Energy</span>
           </div>

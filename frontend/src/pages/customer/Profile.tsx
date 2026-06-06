@@ -5,40 +5,44 @@ import { api } from "../../api";
 import { getCustomerUser, setCustomerAuth, clearCustomerAuth, getCustomerToken } from "../../hooks/useAuth";
 import type { DeliveryLocation } from "../../hooks/useAuth";
 import BulkLocationUpload, { type LocationRow } from "../../components/BulkLocationUpload";
-import { FolderOpen, Smartphone, X } from "lucide-react";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import {
+  FolderOpen, Smartphone, X, MapPin, Plus, Pencil, Trash2, LogOut, Loader2, Check, CreditCard,
+} from "lucide-react";
 
 interface LocationForm { label: string; address: string; city: string; state: string; }
 const emptyForm = (): LocationForm => ({ label: "", address: "", city: "", state: "" });
 
+const inputCls = "w-full h-11 rounded-xl border border-input bg-surface px-3.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-ink-4";
+
 export default function Profile() {
-  const navigate  = useNavigate();
-  const qc        = useQueryClient();
-  const customer  = getCustomerUser();
+  const navigate = useNavigate();
+  const qc       = useQueryClient();
+  const customer = getCustomerUser();
 
   const [name,    setName]    = useState(customer?.name || "");
   const [company, setCompany] = useState(customer?.company_name || "");
   const [address, setAddress] = useState(customer?.address || "");
   const [city,    setCity]    = useState(customer?.city || "");
-  const [state, setState] = useState(customer?.state || "");
+  const [state,   setState]   = useState(customer?.state || "");
   const [success, setSuccess] = useState(false);
   const [error,   setError]   = useState("");
 
-  // Phone change state
   const [showPhoneChange, setShowPhoneChange] = useState(false);
-  const [newPhone,        setNewPhone]        = useState("");
-  const [phoneOtp,        setPhoneOtp]        = useState("");
-  const [phoneStep,       setPhoneStep]       = useState<"enter"|"verify">("enter");
-  const [phoneMsg,        setPhoneMsg]        = useState("");
-  const [phoneErr,        setPhoneErr]        = useState("");
-  const [phoneLoading,    setPhoneLoading]    = useState(false);
+  const [newPhone, setNewPhone] = useState("");
+  const [phoneOtp, setPhoneOtp] = useState("");
+  const [phoneStep, setPhoneStep] = useState<"enter"|"verify">("enter");
+  const [phoneMsg, setPhoneMsg] = useState("");
+  const [phoneErr, setPhoneErr] = useState("");
+  const [phoneLoading, setPhoneLoading] = useState(false);
 
-  // Additional locations state
-  const [addingLoc,  setAddingLoc]  = useState(false);
-  const [showBulk,   setShowBulk]   = useState(false);
-  const [newLoc,     setNewLoc]     = useState<LocationForm>(emptyForm());
-  const [editingId,  setEditingId]  = useState<number | null>(null);
-  const [editLoc,    setEditLoc]    = useState<LocationForm>(emptyForm());
-  const [locError,   setLocError]   = useState("");
+  const [addingLoc, setAddingLoc] = useState(false);
+  const [showBulk,  setShowBulk]  = useState(false);
+  const [newLoc,    setNewLoc]    = useState<LocationForm>(emptyForm());
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editLoc,   setEditLoc]   = useState<LocationForm>(emptyForm());
+  const [locError,  setLocError]  = useState("");
+  const [delLoc,    setDelLoc]    = useState<DeliveryLocation | null>(null);
 
   const { data: locations = [], isLoading: locsLoading } = useQuery<DeliveryLocation[]>({
     queryKey: ["my-locations"],
@@ -48,59 +52,32 @@ export default function Profile() {
   const profileMutation = useMutation({
     mutationFn: (body: any) => api.patch("/auth/me", body).then(r => r.data),
     onSuccess: (updated) => {
-      const token = getCustomerToken()!;
-      setCustomerAuth(token, updated);
+      setCustomerAuth(getCustomerToken()!, updated);
       qc.invalidateQueries({ queryKey: ["my-orders"] });
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      setSuccess(true); setTimeout(() => setSuccess(false), 3000);
     },
     onError: (err: any) => setError(err.response?.data?.detail || "Update failed"),
   });
-
   const addLocMutation = useMutation({
-    mutationFn: (body: LocationForm) => api.post("/auth/me/locations", {
-      label: body.label || "Factory Location",
-      address: body.address || null,
-      city: body.city || null,
-      state: body.state || null,
-    }).then(r => r.data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["my-locations"] });
-      setNewLoc(emptyForm());
-      setAddingLoc(false);
-      setLocError("");
-    },
+    mutationFn: (body: LocationForm) => api.post("/auth/me/locations", { label: body.label || "Factory Location", address: body.address || null, city: body.city || null, state: body.state || null }).then(r => r.data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["my-locations"] }); setNewLoc(emptyForm()); setAddingLoc(false); setLocError(""); },
     onError: (err: any) => setLocError(err.response?.data?.detail || "Failed to add location"),
   });
-
   const editLocMutation = useMutation({
-    mutationFn: ({ id, body }: { id: number; body: LocationForm }) =>
-      api.patch(`/auth/me/locations/${id}`, {
-        label: body.label || "Factory Location",
-        address: body.address || null,
-        city: body.city || null,
-        state: body.state || null,
-      }).then(r => r.data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["my-locations"] });
-      setEditingId(null);
-      setLocError("");
-    },
+    mutationFn: ({ id, body }: { id: number; body: LocationForm }) => api.patch(`/auth/me/locations/${id}`, { label: body.label || "Factory Location", address: body.address || null, city: body.city || null, state: body.state || null }).then(r => r.data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["my-locations"] }); setEditingId(null); setLocError(""); },
     onError: (err: any) => setLocError(err.response?.data?.detail || "Failed to update location"),
   });
-
   const deleteLocMutation = useMutation({
     mutationFn: (id: number) => api.delete(`/auth/me/locations/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-locations"] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["my-locations"] }); setDelLoc(null); },
     onError: (err: any) => setLocError(err.response?.data?.detail || "Failed to delete location"),
   });
 
   const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(""); setSuccess(false);
+    e.preventDefault(); setError(""); setSuccess(false);
     profileMutation.mutate({ name, company_name: company, address, city, state });
   };
-
   const startEdit = (loc: DeliveryLocation) => {
     setEditingId(loc.id);
     setEditLoc({ label: loc.label, address: loc.address || "", city: loc.city || "", state: loc.state || "" });
@@ -109,327 +86,146 @@ export default function Profile() {
 
   return (
     <>
-      <div className="page-header">
-        <h1>My Profile</h1>
-        <p>{customer?.phone_number}</p>
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold text-ink">My Profile</h1>
+        <p className="text-sm text-ink-3 font-mono">{customer?.phone_number}</p>
       </div>
 
-      <div className="card" style={{ padding: 16, marginBottom: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: "50%",
-            background: "var(--blue)", color: "#fff",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 22, fontWeight: 700,
-          }}>
-            {customer?.name?.[0]?.toUpperCase() || "?"}
-          </div>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 16 }}>{customer?.name}</div>
-            <div style={{ fontSize: 13, color: "var(--ink-3)" }}>{customer?.company_name || "Customer"}</div>
-            <div style={{ fontSize: 12, color: "var(--ink-4)", marginTop: 2 }}>
-              {customer?.is_credit_account ? "Credit account" : "Cash account"}
-            </div>
-          </div>
+      {/* Profile card */}
+      <div className="bg-surface rounded-2xl shadow-[var(--shadow-sm)] p-4 mb-4 flex items-center gap-4">
+        <div className="size-14 rounded-full bg-primary text-white flex items-center justify-center text-2xl font-bold shrink-0">{customer?.name?.[0]?.toUpperCase() || "?"}</div>
+        <div className="min-w-0">
+          <div className="font-bold text-[16px] truncate">{customer?.name}</div>
+          <div className="text-[13px] text-ink-3 truncate">{customer?.company_name || "Customer"}</div>
+          <div className="text-[12px] text-ink-4 mt-0.5 inline-flex items-center gap-1"><CreditCard className="size-3" /> {customer?.is_credit_account ? "Credit account" : "Cash account"}</div>
         </div>
       </div>
 
-      {/* Personal details */}
-      <form onSubmit={handleSave}>
-        <div className="card" style={{ padding: 16 }}>
-          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14, color: "var(--ink-2)" }}>Edit Details</div>
-
-          <div className="form-group">
-            <label>Full name</label>
-            <input className="input" value={name} onChange={e => setName(e.target.value)} required />
-          </div>
-          <div className="form-group">
-            <label>Company name</label>
-            <input className="input" value={company} onChange={e => setCompany(e.target.value)} placeholder="Optional" />
-          </div>
-
-          {/* Main delivery address */}
-          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-3)", letterSpacing: "0.05em", marginBottom: 8, marginTop: 4 }}>
-            MAIN DELIVERY ADDRESS
-          </div>
-          <div className="form-group">
-            <label>Address</label>
-            <input className="input" value={address} onChange={e => setAddress(e.target.value)} placeholder="Plot 12, MIDC Industrial Area" />
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div className="form-group">
-              <label>City</label>
-              <input className="input" value={city} onChange={e => setCity(e.target.value)} placeholder="Mumbai" />
-            </div>
-            <div className="form-group">
-              <label>State</label>
-              <input className="input" value={state} onChange={e => setState(e.target.value)} placeholder="Maharashtra" />
-            </div>
-          </div>
-
-          {error   && <div className="alert alert-error"   style={{ marginBottom: 10 }}>{error}</div>}
-          {success && <div className="alert alert-success" style={{ marginBottom: 10 }}>Profile updated</div>}
-
-          <button className="btn btn-primary btn-full" type="submit" disabled={profileMutation.isPending}>
-            {profileMutation.isPending ? <span className="spinner" /> : "Save changes"}
-          </button>
+      {/* Edit details */}
+      <form onSubmit={handleSave} className="bg-surface rounded-2xl shadow-[var(--shadow-sm)] p-4 mb-4">
+        <h3 className="font-bold text-[14px] mb-4">Edit Details</h3>
+        <Field label="Full name"><input className={inputCls} value={name} onChange={e => setName(e.target.value)} required /></Field>
+        <Field label="Company name"><input className={inputCls} value={company} onChange={e => setCompany(e.target.value)} placeholder="Optional" /></Field>
+        <div className="text-[11px] font-bold uppercase tracking-wide text-ink-4 mb-2 mt-1">Main Delivery Address</div>
+        <Field label="Address"><input className={inputCls} value={address} onChange={e => setAddress(e.target.value)} placeholder="Plot 12, MIDC Industrial Area" /></Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="City"><input className={inputCls} value={city} onChange={e => setCity(e.target.value)} placeholder="Mumbai" /></Field>
+          <Field label="State"><input className={inputCls} value={state} onChange={e => setState(e.target.value)} placeholder="Maharashtra" /></Field>
         </div>
+        {error && <div className="rounded-xl bg-red-50 border border-red-100 px-3.5 py-2.5 mb-3 text-[13px] text-red-700">{error}</div>}
+        {success && <div className="rounded-xl bg-green-50 border border-green-200 px-3.5 py-2.5 mb-3 text-[13px] text-green-700 inline-flex items-center gap-1.5"><Check className="size-4" /> Profile updated</div>}
+        <button type="submit" disabled={profileMutation.isPending} className="w-full h-12 rounded-full bg-primary text-white font-semibold flex items-center justify-center gap-1.5 hover:bg-teal-700 transition-colors disabled:opacity-60">
+          {profileMutation.isPending ? <Loader2 className="size-5 animate-spin" /> : "Save changes"}
+        </button>
       </form>
 
-      {/* Additional delivery locations */}
-      <div className="card" style={{ padding: 16, marginTop: 8 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <div style={{ fontWeight: 700, fontSize: 14, color: "var(--ink-2)" }}>Additional Delivery Locations</div>
+      {/* Delivery locations */}
+      <div className="bg-surface rounded-2xl shadow-[var(--shadow-sm)] p-4 mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-[14px]">Additional Delivery Locations</h3>
           {!addingLoc && (
-            <div style={{ display: "flex", gap: 6 }}>
-              <button
-                className="btn btn-secondary"
-                style={{ fontSize: 12, padding: "5px 10px", gap: 5 }}
-                onClick={() => setShowBulk(true)}
-              >
-                <FolderOpen size={14} /> Bulk
-              </button>
-              <button
-                className="btn btn-secondary"
-                style={{ fontSize: 12, padding: "5px 10px" }}
-                onClick={() => { setAddingLoc(true); setLocError(""); }}
-              >
-                + Add
-              </button>
+            <div className="flex gap-2">
+              <button onClick={() => setShowBulk(true)} className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full border border-border text-[12px] font-medium text-ink-2 hover:border-primary hover:text-primary transition-colors"><FolderOpen className="size-3.5" /> Bulk</button>
+              <button onClick={() => { setAddingLoc(true); setLocError(""); }} className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-primary text-white text-[12px] font-semibold hover:bg-teal-700 transition-colors"><Plus className="size-3.5" /> Add</button>
             </div>
           )}
         </div>
 
-        {locError && <div className="alert alert-error" style={{ marginBottom: 10 }}>{locError}</div>}
+        {locError && <div className="rounded-xl bg-red-50 border border-red-100 px-3.5 py-2.5 mb-3 text-[13px] text-red-700">{locError}</div>}
 
         {locsLoading ? (
-          <div style={{ textAlign: "center", padding: "12px 0" }}><span className="spinner spinner-dark" /></div>
+          <div className="py-3 flex justify-center"><Loader2 className="size-5 animate-spin text-primary" /></div>
         ) : locations.length === 0 && !addingLoc ? (
-          <p style={{ fontSize: 13, color: "var(--ink-4)", textAlign: "center", padding: "8px 0" }}>
-            No additional locations yet
-          </p>
-        ) : (
-          locations.map(loc => (
-            <div key={loc.id} style={{ borderBottom: "1px solid var(--border)", paddingBottom: 12, marginBottom: 12 }}>
-              {editingId === loc.id ? (
-                <div>
-                  <div className="form-group" style={{ marginBottom: 8 }}>
-                    <label>Location name</label>
-                    <input className="input" value={editLoc.label} onChange={e => setEditLoc(p => ({ ...p, label: e.target.value }))} placeholder="e.g. Factory A" />
-                  </div>
-                  <div className="form-group" style={{ marginBottom: 8 }}>
-                    <label>Address</label>
-                    <input className="input" value={editLoc.address} onChange={e => setEditLoc(p => ({ ...p, address: e.target.value }))} placeholder="Plot 12, MIDC Industrial Area" />
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label>City</label>
-                      <input className="input" value={editLoc.city} onChange={e => setEditLoc(p => ({ ...p, city: e.target.value }))} placeholder="Mumbai" />
-                    </div>
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label>State</label>
-                      <input className="input" value={editLoc.state} onChange={e => setEditLoc(p => ({ ...p, state: e.target.value }))} placeholder="Maharashtra" />
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button
-                      className="btn btn-primary"
-                      style={{ flex: 1, fontSize: 13 }}
-                      onClick={() => editLocMutation.mutate({ id: loc.id, body: editLoc })}
-                      disabled={editLocMutation.isPending}
-                    >
-                      {editLocMutation.isPending ? <span className="spinner" /> : "Save"}
-                    </button>
-                    <button className="btn btn-secondary" style={{ flex: 1, fontSize: 13 }} onClick={() => setEditingId(null)}>
-                      Cancel
-                    </button>
-                  </div>
+          <p className="text-[13px] text-ink-4 text-center py-3">No additional locations yet</p>
+        ) : locations.map(loc => (
+          <div key={loc.id} className="border-b border-border last:border-0 py-3 first:pt-0">
+            {editingId === loc.id ? (
+              <div>
+                <Field label="Location name"><input className={inputCls} value={editLoc.label} onChange={e => setEditLoc(p => ({ ...p, label: e.target.value }))} placeholder="e.g. Factory A" /></Field>
+                <Field label="Address"><input className={inputCls} value={editLoc.address} onChange={e => setEditLoc(p => ({ ...p, address: e.target.value }))} placeholder="Plot 12, MIDC Industrial Area" /></Field>
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div><label className="text-[13px] font-semibold text-ink-2 mb-1.5 block">City</label><input className={inputCls} value={editLoc.city} onChange={e => setEditLoc(p => ({ ...p, city: e.target.value }))} placeholder="Mumbai" /></div>
+                  <div><label className="text-[13px] font-semibold text-ink-2 mb-1.5 block">State</label><input className={inputCls} value={editLoc.state} onChange={e => setEditLoc(p => ({ ...p, state: e.target.value }))} placeholder="Maharashtra" /></div>
                 </div>
-              ) : (
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: 14 }}>{loc.label}</div>
-                    {loc.address && <div style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 2 }}>{loc.address}</div>}
-                    {(loc.city || loc.state) && (
-                      <div style={{ fontSize: 13, color: "var(--ink-3)" }}>
-                        {[loc.city, loc.state].filter(Boolean).join(", ")}
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ display: "flex", gap: 8, flexShrink: 0, marginLeft: 8 }}>
-                    <button
-                      style={{ background: "none", border: "none", color: "var(--blue)", fontSize: 13, cursor: "pointer", padding: 0, fontWeight: 600 }}
-                      onClick={() => startEdit(loc)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      style={{ background: "none", border: "none", color: "var(--red, #ef4444)", fontSize: 13, cursor: "pointer", padding: 0, fontWeight: 600 }}
-                      onClick={() => deleteLocMutation.mutate(loc.id)}
-                      disabled={deleteLocMutation.isPending}
-                    >
-                      Delete
-                    </button>
-                  </div>
+                <div className="flex gap-2">
+                  <button onClick={() => editLocMutation.mutate({ id: loc.id, body: editLoc })} disabled={editLocMutation.isPending} className="flex-1 h-10 rounded-full bg-primary text-white text-sm font-semibold flex items-center justify-center hover:bg-teal-700 transition-colors disabled:opacity-60">{editLocMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : "Save"}</button>
+                  <button onClick={() => setEditingId(null)} className="flex-1 h-10 rounded-full border border-border text-sm font-semibold text-ink-2 hover:bg-canvas transition-colors">Cancel</button>
                 </div>
-              )}
-            </div>
-          ))
-        )}
+              </div>
+            ) : (
+              <div className="flex justify-between items-start gap-3">
+                <div className="min-w-0">
+                  <div className="font-semibold text-sm flex items-center gap-1.5"><MapPin className="size-3.5 text-primary shrink-0" /> {loc.label}</div>
+                  {loc.address && <div className="text-[13px] text-ink-3 mt-0.5">{loc.address}</div>}
+                  {(loc.city || loc.state) && <div className="text-[13px] text-ink-3">{[loc.city, loc.state].filter(Boolean).join(", ")}</div>}
+                </div>
+                <div className="flex gap-1.5 shrink-0">
+                  <button onClick={() => startEdit(loc)} className="size-8 rounded-full border border-border flex items-center justify-center text-ink-4 hover:border-primary hover:text-primary transition-colors"><Pencil className="size-3.5" /></button>
+                  <button onClick={() => setDelLoc(loc)} className="size-8 rounded-full border border-border flex items-center justify-center text-ink-4 hover:border-red-300 hover:text-red-600 transition-colors"><Trash2 className="size-3.5" /></button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
 
-        {/* Add new location form */}
         {addingLoc && (
-          <div style={{ borderTop: locations.length > 0 ? "1px solid var(--border)" : "none", paddingTop: locations.length > 0 ? 12 : 0 }}>
-            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 10, color: "var(--ink-2)" }}>New Location</div>
-            <div className="form-group" style={{ marginBottom: 8 }}>
-              <label>Location name</label>
-              <input className="input" value={newLoc.label} onChange={e => setNewLoc(p => ({ ...p, label: e.target.value }))} placeholder="e.g. Factory A, Warehouse North" />
+          <div className={locations.length > 0 ? "border-t border-border pt-3 mt-1" : ""}>
+            <div className="font-semibold text-[13px] mb-3">New Location</div>
+            <Field label="Location name"><input className={inputCls} value={newLoc.label} onChange={e => setNewLoc(p => ({ ...p, label: e.target.value }))} placeholder="e.g. Factory A, Warehouse North" /></Field>
+            <Field label="Address"><input className={inputCls} value={newLoc.address} onChange={e => setNewLoc(p => ({ ...p, address: e.target.value }))} placeholder="Plot 12, MIDC Industrial Area" /></Field>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div><label className="text-[13px] font-semibold text-ink-2 mb-1.5 block">City</label><input className={inputCls} value={newLoc.city} onChange={e => setNewLoc(p => ({ ...p, city: e.target.value }))} placeholder="Mumbai" /></div>
+              <div><label className="text-[13px] font-semibold text-ink-2 mb-1.5 block">State</label><input className={inputCls} value={newLoc.state} onChange={e => setNewLoc(p => ({ ...p, state: e.target.value }))} placeholder="Maharashtra" /></div>
             </div>
-            <div className="form-group" style={{ marginBottom: 8 }}>
-              <label>Address</label>
-              <input className="input" value={newLoc.address} onChange={e => setNewLoc(p => ({ ...p, address: e.target.value }))} placeholder="Plot 12, MIDC Industrial Area" />
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label>City</label>
-                <input className="input" value={newLoc.city} onChange={e => setNewLoc(p => ({ ...p, city: e.target.value }))} placeholder="Mumbai" />
-              </div>
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label>State</label>
-                <input className="input" value={newLoc.state} onChange={e => setNewLoc(p => ({ ...p, state: e.target.value }))} placeholder="Maharashtra" />
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button
-                className="btn btn-primary"
-                style={{ flex: 1, fontSize: 13 }}
-                onClick={() => addLocMutation.mutate(newLoc)}
-                disabled={addLocMutation.isPending}
-              >
-                {addLocMutation.isPending ? <span className="spinner" /> : "Save location"}
-              </button>
-              <button className="btn btn-secondary" style={{ flex: 1, fontSize: 13 }} onClick={() => { setAddingLoc(false); setNewLoc(emptyForm()); }}>
-                Cancel
-              </button>
+            <div className="flex gap-2">
+              <button onClick={() => addLocMutation.mutate(newLoc)} disabled={addLocMutation.isPending} className="flex-1 h-10 rounded-full bg-primary text-white text-sm font-semibold flex items-center justify-center hover:bg-teal-700 transition-colors disabled:opacity-60">{addLocMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : "Save location"}</button>
+              <button onClick={() => { setAddingLoc(false); setNewLoc(emptyForm()); }} className="flex-1 h-10 rounded-full border border-border text-sm font-semibold text-ink-2 hover:bg-canvas transition-colors">Cancel</button>
             </div>
           </div>
         )}
       </div>
 
-      <div className="card" style={{ padding: 16, marginTop: 8 }}>
-        <button
-          className="btn btn-secondary btn-full"
-          style={{ color: "var(--red, #ef4444)" }}
-          onClick={() => { clearCustomerAuth(); navigate("/login"); }}
-        >
-          Sign out
-        </button>
-        <button
-          className="btn btn-secondary btn-full"
-          style={{ marginTop: 8, gap: 6 }}
-          onClick={() => { setShowPhoneChange(true); setPhoneStep("enter"); setPhoneErr(""); setNewPhone(""); setPhoneOtp(""); }}
-        >
-          <Smartphone size={16} /> Change phone number
-        </button>
+      {/* Account actions */}
+      <div className="bg-surface rounded-2xl shadow-[var(--shadow-sm)] p-4 space-y-2.5">
+        <button onClick={() => { setShowPhoneChange(true); setPhoneStep("enter"); setPhoneErr(""); setNewPhone(""); setPhoneOtp(""); }} className="w-full h-11 rounded-full border border-border text-sm font-semibold text-ink-2 hover:bg-canvas transition-colors flex items-center justify-center gap-1.5"><Smartphone className="size-4" /> Change phone number</button>
+        <button onClick={() => { clearCustomerAuth(); navigate("/login"); }} className="w-full h-11 rounded-full border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50 transition-colors flex items-center justify-center gap-1.5"><LogOut className="size-4" /> Sign out</button>
       </div>
 
       {showBulk && (
-        <BulkLocationUpload
-          onClose={() => setShowBulk(false)}
-          onLocations={async (rows: LocationRow[]) => {
-            for (const row of rows) {
-              await api.post("/auth/me/locations", {
-                label:   row.label,
-                address: row.address || null,
-                city:    row.city    || null,
-                state:   row.state   || null,
-              }).catch(() => {});
-            }
-            qc.invalidateQueries({ queryKey: ["my-locations"] });
-            setShowBulk(false);
-          }}
-        />
+        <BulkLocationUpload onClose={() => setShowBulk(false)} onLocations={async (rows: LocationRow[]) => {
+          for (const row of rows) { await api.post("/auth/me/locations", { label: row.label, address: row.address || null, city: row.city || null, state: row.state || null }).catch(() => {}); }
+          qc.invalidateQueries({ queryKey: ["my-locations"] }); setShowBulk(false);
+        }} />
       )}
 
-      {/* Phone number change modal */}
-      {showPhoneChange && (
-        <div style={{
-          position: "fixed", inset: 0, background: "rgba(0,0,0,.5)",
-          display: "flex", alignItems: "flex-end", zIndex: 300, padding: 16,
-        }}>
-          <div className="card" style={{ width: "100%", maxWidth: 480, padding: 20, margin: "0 auto" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-              <h3 style={{ fontWeight: 700 }}>Change Phone Number</h3>
-              <button onClick={() => setShowPhoneChange(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-3)", display: "flex" }}><X size={20} /></button>
-            </div>
+      {delLoc && (
+        <ConfirmDialog title="Delete location?" message={<>Remove <strong>{delLoc.label}</strong> from your delivery locations?</>} confirmLabel="Delete" loading={deleteLocMutation.isPending} onConfirm={() => deleteLocMutation.mutate(delLoc.id)} onCancel={() => setDelLoc(null)} />
+      )}
 
+      {/* Phone change modal */}
+      {showPhoneChange && (
+        <div className="fixed inset-0 z-[300] bg-black/50 flex items-end sm:items-center sm:justify-center" onClick={() => setShowPhoneChange(false)}>
+          <div className="bg-surface w-full sm:max-w-[440px] rounded-t-2xl sm:rounded-2xl p-6" onClick={e => e.stopPropagation()} style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)" }}>
+            <div className="flex items-center justify-between mb-4"><h3 className="text-lg font-bold">Change Phone Number</h3><button onClick={() => setShowPhoneChange(false)} className="text-ink-3"><X className="size-5" /></button></div>
             {phoneStep === "enter" ? (
               <>
-                <p style={{ fontSize: 13, color: "var(--ink-3)", marginBottom: 12 }}>
-                  We'll send a WhatsApp OTP to your new number to confirm.
-                </p>
-                <div className="form-group">
-                  <label>New phone number</label>
-                  <input
-                    className="input"
-                    type="tel"
-                    inputMode="numeric"
-                    placeholder="919876543210"
-                    value={newPhone}
-                    onChange={e => setNewPhone(e.target.value.replace(/\D/g, ""))}
-                  />
-                  <p className="hint">Include country code. Digits only.</p>
-                </div>
-                {phoneErr && <div className="alert alert-error" style={{ marginBottom: 10 }}>{phoneErr}</div>}
-                <button
-                  className="btn btn-primary btn-full"
-                  disabled={phoneLoading || newPhone.length < 8}
-                  onClick={async () => {
-                    setPhoneErr(""); setPhoneLoading(true);
-                    try {
-                      const r = await api.post("/auth/request-phone-change", { new_phone: newPhone });
-                      setPhoneMsg(r.data.message);
-                      setPhoneStep("verify");
-                    } catch (e: any) {
-                      setPhoneErr(e.response?.data?.detail || "Failed to send OTP");
-                    } finally { setPhoneLoading(false); }
-                  }}
-                >
-                  {phoneLoading ? <span className="spinner" /> : "Send OTP →"}
+                <p className="text-[13px] text-ink-3 mb-3">We'll send a WhatsApp OTP to your new number to confirm.</p>
+                <Field label="New phone number"><input className={inputCls} type="tel" inputMode="numeric" placeholder="919876543210" value={newPhone} onChange={e => setNewPhone(e.target.value.replace(/\D/g, ""))} /></Field>
+                <p className="text-[12px] text-ink-4 -mt-1 mb-3">Include country code. Digits only.</p>
+                {phoneErr && <div className="rounded-xl bg-red-50 border border-red-100 px-3.5 py-2.5 mb-3 text-[13px] text-red-700">{phoneErr}</div>}
+                <button className="w-full h-12 rounded-full bg-primary text-white font-semibold flex items-center justify-center hover:bg-teal-700 transition-colors disabled:opacity-60" disabled={phoneLoading || newPhone.length < 8}
+                  onClick={async () => { setPhoneErr(""); setPhoneLoading(true); try { const r = await api.post("/auth/request-phone-change", { new_phone: newPhone }); setPhoneMsg(r.data.message); setPhoneStep("verify"); } catch (e: any) { setPhoneErr(e.response?.data?.detail || "Failed to send OTP"); } finally { setPhoneLoading(false); } }}>
+                  {phoneLoading ? <Loader2 className="size-5 animate-spin" /> : "Send OTP"}
                 </button>
               </>
             ) : (
               <>
-                <p style={{ fontSize: 13, color: "var(--ink-3)", marginBottom: 12 }}>{phoneMsg}</p>
-                <div className="form-group">
-                  <label>Enter OTP sent to {newPhone}</label>
-                  <input
-                    className="input"
-                    inputMode="numeric"
-                    maxLength={6}
-                    placeholder="6-digit code"
-                    value={phoneOtp}
-                    onChange={e => setPhoneOtp(e.target.value.replace(/\D/g, ""))}
-                  />
-                </div>
-                {phoneErr && <div className="alert alert-error" style={{ marginBottom: 10 }}>{phoneErr}</div>}
-                <button
-                  className="btn btn-primary btn-full"
-                  disabled={phoneLoading || phoneOtp.length < 6}
-                  onClick={async () => {
-                    setPhoneErr(""); setPhoneLoading(true);
-                    try {
-                      await api.post("/auth/confirm-phone-change", { new_phone: newPhone, otp_code: phoneOtp });
-                      setShowPhoneChange(false);
-                      // Force re-login with new number
-                      clearCustomerAuth();
-                      navigate("/login");
-                    } catch (e: any) {
-                      setPhoneErr(e.response?.data?.detail || "Invalid OTP");
-                    } finally { setPhoneLoading(false); }
-                  }}
-                >
-                  {phoneLoading ? <span className="spinner" /> : "Confirm Change"}
+                <p className="text-[13px] text-ink-3 mb-3">{phoneMsg}</p>
+                <Field label={`Enter OTP sent to ${newPhone}`}><input className={inputCls} inputMode="numeric" maxLength={6} placeholder="6-digit code" value={phoneOtp} onChange={e => setPhoneOtp(e.target.value.replace(/\D/g, ""))} /></Field>
+                {phoneErr && <div className="rounded-xl bg-red-50 border border-red-100 px-3.5 py-2.5 mb-3 text-[13px] text-red-700">{phoneErr}</div>}
+                <button className="w-full h-12 rounded-full bg-primary text-white font-semibold flex items-center justify-center hover:bg-teal-700 transition-colors disabled:opacity-60" disabled={phoneLoading || phoneOtp.length < 6}
+                  onClick={async () => { setPhoneErr(""); setPhoneLoading(true); try { await api.post("/auth/confirm-phone-change", { new_phone: newPhone, otp_code: phoneOtp }); setShowPhoneChange(false); clearCustomerAuth(); navigate("/login"); } catch (e: any) { setPhoneErr(e.response?.data?.detail || "Invalid OTP"); } finally { setPhoneLoading(false); } }}>
+                  {phoneLoading ? <Loader2 className="size-5 animate-spin" /> : "Confirm Change"}
                 </button>
               </>
             )}
@@ -438,4 +234,8 @@ export default function Profile() {
       )}
     </>
   );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return <div className="mb-3"><label className="text-[13px] font-semibold text-ink-2 mb-1.5 block">{label}</label>{children}</div>;
 }
