@@ -7,7 +7,7 @@ import ErrorScreen from "@/components/ErrorScreen";
 import { StatusPill, statusLabel } from "@/components/StatusPill";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import StaffCreateOrder from "@/components/StaffCreateOrder";
-import { Search, ClipboardList, X, FileDown, FileSpreadsheet, FileText, Trash2, Plus } from "lucide-react";
+import { Search, ClipboardList, X, FileDown, FileSpreadsheet, FileText, Trash2, Plus, Clock, Loader, Truck, CheckCircle2 } from "lucide-react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -57,6 +57,16 @@ export default function StaffOrders() {
     return list;
   }, [orders, filter, search]);
 
+  const kpi = useMemo(() => {
+    const inSet = (s: string[]) => orders.filter((o: any) => s.includes(o.status)).length;
+    return {
+      newOrders:  inSet(["submitted", "verified"]),
+      processing: inSet(["proforma_sent", "payment_uploaded", "payment_verified", "confirmed", "in_production", "ready_for_dispatch"]),
+      delivery:   inSet(["shipped", "delivered", "grn_pending", "grn_submitted"]),
+      completed:  inSet(["closed"]),
+    };
+  }, [orders]);
+
   const exportExcel = () => {
     const data = filtered.map((o: any) => ({
       Order: o.order_number,
@@ -101,41 +111,17 @@ export default function StaffOrders() {
 
   return (
     <>
-      <div className="flex items-start justify-between gap-3 mb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-ink">Orders</h1>
-          <p className="text-sm text-ink-3">{filtered.length} of {orders.length} order{orders.length !== 1 ? "s" : ""}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <button
-              onClick={() => setShowExport((v) => !v)}
-              disabled={filtered.length === 0}
-              className="inline-flex items-center gap-1.5 h-10 px-4 rounded-full border border-border bg-surface text-sm font-medium text-ink-2 hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
-            >
-              <FileDown size={16} /> Export
-            </button>
-            {showExport && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowExport(false)} />
-                <div className="absolute right-0 top-12 z-20 w-48 bg-surface rounded-xl shadow-[var(--shadow-lg)] border border-border overflow-hidden">
-                  <button onClick={exportExcel} className="w-full flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-canvas text-left">
-                    <FileSpreadsheet size={16} className="text-green-600" /> Export as Excel
-                  </button>
-                  <button onClick={exportPDF} className="w-full flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-canvas text-left border-t border-border">
-                    <FileText size={16} className="text-red-600" /> Export as PDF
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-primary text-white text-sm font-semibold hover:bg-teal-700 transition-colors"
-          >
-            <Plus size={16} /> Add Order
-          </button>
-        </div>
+      <div className="mb-5">
+        <h1 className="text-2xl font-bold text-ink">Orders</h1>
+        <p className="text-sm text-ink-3">{filtered.length} of {orders.length} order{orders.length !== 1 ? "s" : ""}</p>
+      </div>
+
+      {/* KPI cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+        <Kpi featured label="New Orders" value={kpi.newOrders} icon={<Clock className="size-4" />} />
+        <Kpi label="Processing" value={kpi.processing} icon={<Loader className="size-4" />} />
+        <Kpi label="In Delivery" value={kpi.delivery} icon={<Truck className="size-4" />} />
+        <Kpi label="Completed" value={kpi.completed} icon={<CheckCircle2 className="size-4" />} />
       </div>
 
       {/* Search */}
@@ -149,19 +135,51 @@ export default function StaffOrders() {
         />
       </div>
 
-      {/* Filter chips */}
-      <div className="flex gap-2 overflow-x-auto pb-1 mb-5">
-        {FILTERS.map((f) => (
+      {/* Filter pills + actions */}
+      <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {FILTERS.map((f) => (
+            <button
+              key={f.value}
+              onClick={() => setFilter(f.value)}
+              className={`px-4 py-1.5 rounded-full text-[13px] font-semibold whitespace-nowrap border-2 transition-colors ${
+                filter === f.value ? "bg-primary border-primary text-white" : "bg-surface border-border text-ink-2 hover:border-primary"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <button
+              onClick={() => setShowExport((v) => !v)}
+              disabled={filtered.length === 0}
+              className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full border border-border bg-surface text-[13px] font-medium text-ink-2 hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
+            >
+              <FileDown size={15} /> Export
+            </button>
+            {showExport && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowExport(false)} />
+                <div className="absolute right-0 top-11 z-20 w-48 bg-surface rounded-xl shadow-[var(--shadow-lg)] border border-border overflow-hidden">
+                  <button onClick={exportExcel} className="w-full flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-canvas text-left">
+                    <FileSpreadsheet size={16} className="text-green-600" /> Export as Excel
+                  </button>
+                  <button onClick={exportPDF} className="w-full flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-canvas text-left border-t border-border">
+                    <FileText size={16} className="text-red-600" /> Export as PDF
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
           <button
-            key={f.value}
-            onClick={() => setFilter(f.value)}
-            className={`px-4 py-1.5 rounded-full text-[13px] font-semibold whitespace-nowrap border-2 transition-colors ${
-              filter === f.value ? "bg-primary border-primary text-white" : "bg-surface border-border text-ink-2 hover:border-primary"
-            }`}
+            onClick={() => setShowCreate(true)}
+            className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-primary text-white text-[13px] font-semibold hover:bg-teal-700 transition-colors"
           >
-            {f.label}
+            <Plus size={15} /> Add Order
           </button>
-        ))}
+        </div>
       </div>
 
       {isLoading ? (
@@ -260,5 +278,17 @@ export default function StaffOrders() {
 
       {showCreate && <StaffCreateOrder onClose={() => setShowCreate(false)} />}
     </>
+  );
+}
+
+function Kpi({ featured, label, value, icon }: { featured?: boolean; label: string; value: React.ReactNode; icon: React.ReactNode }) {
+  return (
+    <div className={`rounded-2xl p-5 ${featured ? "bg-sidebar text-white" : "bg-surface shadow-[var(--shadow-sm)]"}`}>
+      <div className="flex items-center justify-between mb-4">
+        <span className={`text-[13px] font-medium ${featured ? "text-white/60" : "text-ink-3"}`}>{label}</span>
+        <span className={`flex size-7 items-center justify-center rounded-lg ${featured ? "bg-white/10 text-accent" : "bg-teal-50 text-primary"}`}>{icon}</span>
+      </div>
+      <div className="text-3xl font-bold">{value}</div>
+    </div>
   );
 }
