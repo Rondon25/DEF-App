@@ -1,48 +1,10 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, ClipboardList } from "lucide-react";
+import { ChevronLeft, ClipboardList, MapPin, Plus, Pencil, Trash2, Loader2, Package, Activity, Wallet, Phone, Building2, Calendar, X, ChevronRight } from "lucide-react";
+import { StatusPill } from "@/components/StatusPill";
 import { staffApi } from "../../api";
 import { getStaffUser } from "../../hooks/useAuth";
-
-const STATUS_BADGE: Record<string, string> = {
-  submitted:         "badge-blue",
-  proforma_sent:     "badge-amber",
-  payment_uploaded:  "badge-amber",
-  payment_verified:  "badge-green",
-  confirmed:         "badge-green",
-  in_production:     "badge-purple",
-  ready_for_dispatch:"badge-purple",
-  shipped:           "badge-purple",
-  delivered:         "badge-green",
-  grn_pending:       "badge-amber",
-  grn_submitted:     "badge-green",
-  closed:            "badge-gray",
-  cancelled:         "badge-gray",
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  submitted:         "Submitted",
-  proforma_sent:     "Invoice Sent",
-  payment_uploaded:  "Payment Uploaded",
-  payment_verified:  "Payment Verified",
-  confirmed:         "Confirmed",
-  in_production:     "In Production",
-  ready_for_dispatch:"Ready to Ship",
-  shipped:           "Shipped",
-  delivered:         "Delivered",
-  grn_pending:       "GRN Pending",
-  grn_submitted:     "GRN Submitted",
-  closed:            "Closed",
-  cancelled:         "Cancelled",
-};
-
-const CUSTOMER_STATUS_BADGE: Record<string, string> = {
-  pending:   "badge-amber",
-  active:    "badge-green",
-  suspended: "badge-gray",
-  rejected:  "badge-gray",
-};
 
 interface Location { id: number; label: string; address: string | null; city: string | null; state: string | null; is_primary: boolean; }
 interface LocForm { label: string; address: string; city: string; state: string; }
@@ -135,258 +97,170 @@ export default function CustomerDetail() {
 
   const totalSpent   = orders.reduce((s: number, o: any) => s + (o.total_amount || 0), 0);
   const activeOrders = orders.filter((o: any) => !["closed","cancelled"].includes(o.status));
+  const inputCls = "w-full h-10 rounded-xl border border-input bg-surface px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20";
+  const statusTone: Record<string, string> = { pending: "bg-amber-100 text-amber-700", active: "bg-green-100 text-green-700", suspended: "bg-slate-100 text-slate-600", rejected: "bg-red-100 text-red-700" };
 
   return (
     <>
-      <div className="page-header" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <Link to="/staff/customers" style={{ color: "var(--ink-3)", textDecoration: "none", display: "inline-flex" }}><ChevronLeft size={22} /></Link>
-        <div>
-          <h1>{customer.name}</h1>
-          <span className={`badge ${CUSTOMER_STATUS_BADGE[customer.status] || "badge-gray"}`} style={{ textTransform: "capitalize" }}>
-            {customer.status}
-          </span>
-        </div>
-      </div>
-
-      {/* Profile card */}
-      <div className="card" style={{ padding: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
-          <div style={{
-            width: 52, height: 52, borderRadius: "50%",
-            background: "var(--blue)", color: "#fff",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 20, fontWeight: 700, flexShrink: 0,
-          }}>
-            {customer.name[0]?.toUpperCase()}
-          </div>
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
+        <div className="flex items-center gap-3">
+          <Link to="/staff/customers" className="flex size-9 items-center justify-center rounded-full border border-border text-ink-3 hover:text-ink hover:border-primary transition-colors">
+            <ChevronLeft className="size-5" />
+          </Link>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 16 }}>{customer.name}</div>
-            {customer.company_name && <div style={{ fontSize: 13, color: "var(--ink-3)" }}>{customer.company_name}</div>}
-            <div style={{ fontSize: 13, color: "var(--blue)", fontWeight: 600 }}>{customer.phone_number}</div>
+            <h1 className="text-xl font-bold">{customer.name}</h1>
+            <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full capitalize ${statusTone[customer.status] || "bg-slate-100 text-slate-600"}`}>{customer.status}</span>
           </div>
         </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {(customer.city || customer.state) && (
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-              <span style={{ color: "var(--ink-3)" }}>Location</span>
-              <span>{[customer.city, customer.state].filter(Boolean).join(", ")}</span>
-            </div>
-          )}
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-            <span style={{ color: "var(--ink-3)" }}>Registered</span>
-            <span>{new Date(customer.created_at).toLocaleDateString("en-US", { dateStyle: "medium" })}</span>
-          </div>
-        </div>
+        {canEdit && customer.status === "active" && (
+          <button onClick={() => suspendMutation.mutate()} disabled={suspendMutation.isPending}
+            className="inline-flex items-center gap-1.5 h-10 px-4 rounded-full border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 transition-colors">
+            {suspendMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : "Suspend Account"}
+          </button>
+        )}
+        {canEdit && customer.status === "suspended" && (
+          <button onClick={() => reactivateMutation.mutate()} disabled={reactivateMutation.isPending}
+            className="inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-primary text-white text-sm font-semibold hover:bg-teal-700 transition-colors">
+            {reactivateMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : "Reactivate Account"}
+          </button>
+        )}
       </div>
 
-      {/* KPIs */}
-      <div className="kpi-grid">
-        <div className="kpi-card">
-          <div className="kpi-label">Total Orders</div>
-          <div className="kpi-value">{orders.length}</div>
+      {/* Profile + KPIs */}
+      <div className="grid lg:grid-cols-[1.4fr_minmax(0,1fr)] gap-4 mb-5">
+        {/* Profile */}
+        <div className="bg-surface rounded-2xl shadow-[var(--shadow-sm)] p-5">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="size-14 rounded-2xl bg-primary text-white flex items-center justify-center text-2xl font-bold shrink-0">
+              {customer.name[0]?.toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <div className="font-bold text-lg leading-tight">{customer.name}</div>
+              {customer.company_name && <div className="text-sm text-ink-3 flex items-center gap-1.5"><Building2 size={13} /> {customer.company_name}</div>}
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-3 text-sm">
+            <InfoRow icon={<Phone size={14} />} label="Phone" value={<span className="font-mono">{customer.phone_number}</span>} />
+            <InfoRow icon={<MapPin size={14} />} label="Location" value={[customer.city, customer.state].filter(Boolean).join(", ") || "—"} />
+            <InfoRow icon={<Calendar size={14} />} label="Registered" value={new Date(customer.created_at).toLocaleDateString("en-US", { dateStyle: "medium" })} />
+            <InfoRow icon={<Wallet size={14} />} label="Account" value={customer.is_credit_account ? "Credit account" : "Cash account"} />
+          </div>
         </div>
-        <div className="kpi-card green">
-          <div className="kpi-label">Active</div>
-          <div className="kpi-value">{activeOrders.length}</div>
-        </div>
-        <div className="kpi-card blue">
-          <div className="kpi-label">Total Spent</div>
-          <div className="kpi-value" style={{ fontSize: 18 }}>${totalSpent.toLocaleString("en-US", { maximumFractionDigits: 0 })}</div>
+        {/* KPIs */}
+        <div className="grid grid-cols-3 lg:grid-cols-1 gap-3">
+          <MiniKpi icon={<Package className="size-4" />} label="Total Orders" value={orders.length} />
+          <MiniKpi icon={<Activity className="size-4" />} label="Active" value={activeOrders.length} />
+          <MiniKpi icon={<Wallet className="size-4" />} label="Total Spent" value={`$${totalSpent.toLocaleString("en-US", { maximumFractionDigits: 0 })}`} />
         </div>
       </div>
 
       {/* Delivery Locations */}
-      <div className="card" style={{ padding: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <div style={{ fontWeight: 700, fontSize: 14 }}>Delivery Locations</div>
+      <div className="bg-surface rounded-2xl shadow-[var(--shadow-sm)] p-5 mb-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold flex items-center gap-2"><MapPin size={17} className="text-primary" /> Delivery Locations</h3>
           {canEdit && !addingLoc && (
-            <button
-              className="btn btn-secondary"
-              style={{ fontSize: 13, padding: "6px 12px" }}
-              onClick={() => { setAddingLoc(true); setLocError(""); }}
-            >
-              + Add
+            <button onClick={() => { setAddingLoc(true); setLocError(""); }}
+              className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full border border-border text-[13px] font-medium text-ink-2 hover:border-primary hover:text-primary transition-colors">
+              <Plus size={14} /> Add
             </button>
           )}
         </div>
 
-        {locError && <div className="alert alert-error" style={{ marginBottom: 10 }}>{locError}</div>}
+        {locError && <div className="rounded-xl bg-red-50 border border-red-100 px-3.5 py-2.5 mb-3 text-[13px] text-red-700">{locError}</div>}
 
-        {/* Primary address from customer record */}
+        {/* Main address */}
         {(customer.address || customer.city || customer.state) && (
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", paddingBottom: 10, marginBottom: 10, borderBottom: "1px solid var(--border)" }}>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ fontWeight: 600, fontSize: 14 }}>Main Address</span>
-                <span className="badge badge-blue" style={{ fontSize: 11 }}>Primary</span>
-              </div>
-              {customer.address && <div style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 2 }}>{customer.address}</div>}
-              {(customer.city || customer.state) && (
-                <div style={{ fontSize: 13, color: "var(--ink-3)" }}>
-                  {[customer.city, customer.state].filter(Boolean).join(", ")}
-                </div>
-              )}
+          <div className="flex items-start gap-3 pb-3 mb-3 border-b border-border">
+            <span className="flex size-9 items-center justify-center rounded-lg bg-teal-50 text-primary shrink-0"><MapPin size={16} /></span>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2"><span className="font-semibold text-sm">Main Address</span><span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Primary</span></div>
+              <div className="text-[13px] text-ink-3 mt-0.5">{[customer.address, customer.city, customer.state].filter(Boolean).join(", ")}</div>
             </div>
           </div>
         )}
 
-        {/* Additional locations */}
         {locsLoading ? (
-          <div style={{ textAlign: "center", padding: "8px 0" }}><span className="spinner spinner-dark" /></div>
-        ) : (
-          locations.map(loc => (
-            <div key={loc.id} style={{ paddingBottom: 10, marginBottom: 10, borderBottom: "1px solid var(--border)" }}>
-              {editingId === loc.id ? (
-                <div>
-                  <div className="form-group" style={{ marginBottom: 8 }}>
-                    <label>Location name</label>
-                    <input className="input" value={editLoc.label} onChange={e => setEditLoc(p => ({ ...p, label: e.target.value }))} placeholder="e.g. Factory A" />
-                  </div>
-                  <div className="form-group" style={{ marginBottom: 8 }}>
-                    <label>Address</label>
-                    <input className="input" value={editLoc.address} onChange={e => setEditLoc(p => ({ ...p, address: e.target.value }))} placeholder="Plot 12, MIDC Industrial Area" />
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label>City</label>
-                      <input className="input" value={editLoc.city} onChange={e => setEditLoc(p => ({ ...p, city: e.target.value }))} placeholder="Mumbai" />
-                    </div>
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label>State</label>
-                      <input className="input" value={editLoc.state} onChange={e => setEditLoc(p => ({ ...p, state: e.target.value }))} placeholder="Maharashtra" />
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button className="btn btn-primary" style={{ flex: 1, fontSize: 13 }}
-                      onClick={() => editLocMutation.mutate({ locId: loc.id, body: editLoc })}
-                      disabled={editLocMutation.isPending}>
-                      {editLocMutation.isPending ? <span className="spinner" /> : "Save"}
-                    </button>
-                    <button className="btn btn-secondary" style={{ flex: 1, fontSize: 13 }} onClick={() => setEditingId(null)}>Cancel</button>
-                  </div>
+          <div className="text-center py-4"><Loader2 className="size-5 animate-spin text-ink-4 inline" /></div>
+        ) : locations.map((loc) => (
+          <div key={loc.id} className="pb-3 mb-3 border-b border-border last:border-0 last:mb-0 last:pb-0">
+            {editingId === loc.id ? (
+              <div className="space-y-2.5">
+                <input className={inputCls} value={editLoc.label} onChange={(e) => setEditLoc((p) => ({ ...p, label: e.target.value }))} placeholder="Location name" />
+                <input className={inputCls} value={editLoc.address} onChange={(e) => setEditLoc((p) => ({ ...p, address: e.target.value }))} placeholder="Address" />
+                <div className="grid grid-cols-2 gap-2.5">
+                  <input className={inputCls} value={editLoc.city} onChange={(e) => setEditLoc((p) => ({ ...p, city: e.target.value }))} placeholder="City" />
+                  <input className={inputCls} value={editLoc.state} onChange={(e) => setEditLoc((p) => ({ ...p, state: e.target.value }))} placeholder="State" />
                 </div>
-              ) : (
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: 14 }}>{loc.label}</div>
-                    {loc.address && <div style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 2 }}>{loc.address}</div>}
-                    {(loc.city || loc.state) && (
-                      <div style={{ fontSize: 13, color: "var(--ink-3)" }}>{[loc.city, loc.state].filter(Boolean).join(", ")}</div>
-                    )}
-                  </div>
-                  {canEdit && (
-                    <div style={{ display: "flex", gap: 8, flexShrink: 0, marginLeft: 8 }}>
-                      <button style={{ background: "none", border: "none", color: "var(--blue)", fontSize: 13, cursor: "pointer", fontWeight: 600 }} onClick={() => startEdit(loc)}>Edit</button>
-                      <button style={{ background: "none", border: "none", color: "var(--red,#ef4444)", fontSize: 13, cursor: "pointer", fontWeight: 600 }}
-                        onClick={() => deleteLocMutation.mutate(loc.id)} disabled={deleteLocMutation.isPending}>Delete</button>
-                    </div>
-                  )}
+                <div className="flex gap-2">
+                  <button onClick={() => editLocMutation.mutate({ locId: loc.id, body: editLoc })} disabled={editLocMutation.isPending}
+                    className="flex-1 h-10 rounded-full bg-primary text-white text-sm font-semibold flex items-center justify-center disabled:opacity-60">
+                    {editLocMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : "Save"}
+                  </button>
+                  <button onClick={() => setEditingId(null)} className="flex-1 h-10 rounded-full border border-border text-sm font-semibold text-ink-2">Cancel</button>
                 </div>
-              )}
-            </div>
-          ))
-        )}
+              </div>
+            ) : (
+              <div className="flex items-start gap-3">
+                <span className="flex size-9 items-center justify-center rounded-lg bg-canvas text-ink-4 shrink-0"><MapPin size={16} /></span>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-sm">{loc.label}</div>
+                  <div className="text-[13px] text-ink-3">{[loc.address, loc.city, loc.state].filter(Boolean).join(", ") || "—"}</div>
+                </div>
+                {canEdit && (
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button onClick={() => startEdit(loc)} className="size-8 rounded-full border border-border flex items-center justify-center text-ink-4 hover:border-primary hover:text-primary transition-colors"><Pencil size={13} /></button>
+                    <button onClick={() => deleteLocMutation.mutate(loc.id)} disabled={deleteLocMutation.isPending} className="size-8 rounded-full border border-border flex items-center justify-center text-ink-4 hover:border-red-300 hover:text-red-600 transition-colors"><Trash2 size={13} /></button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
 
         {!customer.address && !customer.city && !customer.state && locations.length === 0 && !addingLoc && (
-          <p style={{ fontSize: 13, color: "var(--ink-4)", textAlign: "center", padding: "4px 0" }}>No delivery locations on file</p>
+          <p className="text-sm text-ink-4 text-center py-2">No delivery locations on file</p>
         )}
 
-        {/* Add new location form */}
+        {/* Add new location */}
         {addingLoc && (
-          <div style={{ borderTop: (customer.address || locations.length > 0) ? "1px solid var(--border)" : "none", paddingTop: (customer.address || locations.length > 0) ? 12 : 0 }}>
-            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 10, color: "var(--ink-2)" }}>New Location</div>
-            <div className="form-group" style={{ marginBottom: 8 }}>
-              <label>Location name</label>
-              <input className="input" value={newLoc.label} onChange={e => setNewLoc(p => ({ ...p, label: e.target.value }))} placeholder="e.g. Factory A, Warehouse North" />
+          <div className={`${(customer.address || locations.length > 0) ? "border-t border-border pt-3" : ""} space-y-2.5`}>
+            <div className="text-[13px] font-semibold text-ink-2">New Location</div>
+            <input className={inputCls} value={newLoc.label} onChange={(e) => setNewLoc((p) => ({ ...p, label: e.target.value }))} placeholder="Location name (e.g. Factory A)" />
+            <input className={inputCls} value={newLoc.address} onChange={(e) => setNewLoc((p) => ({ ...p, address: e.target.value }))} placeholder="Address" />
+            <div className="grid grid-cols-2 gap-2.5">
+              <input className={inputCls} value={newLoc.city} onChange={(e) => setNewLoc((p) => ({ ...p, city: e.target.value }))} placeholder="City" />
+              <input className={inputCls} value={newLoc.state} onChange={(e) => setNewLoc((p) => ({ ...p, state: e.target.value }))} placeholder="State" />
             </div>
-            <div className="form-group" style={{ marginBottom: 8 }}>
-              <label>Address</label>
-              <input className="input" value={newLoc.address} onChange={e => setNewLoc(p => ({ ...p, address: e.target.value }))} placeholder="Plot 12, MIDC Industrial Area" />
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label>City</label>
-                <input className="input" value={newLoc.city} onChange={e => setNewLoc(p => ({ ...p, city: e.target.value }))} placeholder="Mumbai" />
-              </div>
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label>State</label>
-                <input className="input" value={newLoc.state} onChange={e => setNewLoc(p => ({ ...p, state: e.target.value }))} placeholder="Maharashtra" />
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button className="btn btn-primary" style={{ flex: 1, fontSize: 13 }}
-                onClick={() => addLocMutation.mutate(newLoc)} disabled={addLocMutation.isPending}>
-                {addLocMutation.isPending ? <span className="spinner" /> : "Save location"}
+            <div className="flex gap-2">
+              <button onClick={() => addLocMutation.mutate(newLoc)} disabled={addLocMutation.isPending}
+                className="flex-1 h-10 rounded-full bg-primary text-white text-sm font-semibold flex items-center justify-center disabled:opacity-60">
+                {addLocMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : "Save location"}
               </button>
-              <button className="btn btn-secondary" style={{ flex: 1, fontSize: 13 }} onClick={() => { setAddingLoc(false); setNewLoc(emptyLocForm()); }}>Cancel</button>
+              <button onClick={() => { setAddingLoc(false); setNewLoc(emptyLocForm()); }} className="flex-1 h-10 rounded-full border border-border text-sm font-semibold text-ink-2 inline-flex items-center justify-center gap-1.5"><X size={14} /> Cancel</button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Actions */}
-      {canEdit && customer.status !== "rejected" && (
-        <div className="card" style={{ padding: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-3)", marginBottom: 10 }}>ACCOUNT ACTIONS</div>
-          <div style={{ display: "flex", gap: 8 }}>
-            {customer.status === "active" && (
-              <button
-                className="btn btn-secondary btn-full"
-                style={{ color: "var(--red,#ef4444)" }}
-                onClick={() => suspendMutation.mutate()}
-                disabled={suspendMutation.isPending}
-              >
-                Suspend Account
-              </button>
-            )}
-            {customer.status === "suspended" && (
-              <button
-                className="btn btn-primary btn-full"
-                onClick={() => reactivateMutation.mutate()}
-                disabled={reactivateMutation.isPending}
-              >
-                Reactivate Account
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Order history */}
-      <div className="card" style={{ padding: 0 }}>
-        <div style={{ padding: "14px 16px 0", fontWeight: 700, fontSize: 14 }}>
-          Order History
-          <span style={{ fontWeight: 400, fontSize: 12, color: "var(--ink-3)", marginLeft: 6 }}>({orders.length})</span>
-        </div>
-
+      {/* Order History */}
+      <div className="bg-surface rounded-2xl shadow-[var(--shadow-sm)] overflow-hidden">
+        <div className="px-5 pt-5 pb-2 font-bold">Order History <span className="text-ink-4 font-normal text-sm">({orders.length})</span></div>
         {orders.length === 0 ? (
-          <div className="empty-state" style={{ padding: "24px 16px" }}>
-            <div className="empty-icon"><ClipboardList size={28} /></div>
-            <p>No orders yet</p>
+          <div className="px-5 py-10 text-center">
+            <div className="size-12 rounded-full bg-canvas flex items-center justify-center mx-auto mb-2"><ClipboardList className="size-6 text-ink-4" /></div>
+            <p className="text-sm text-ink-4">No orders yet</p>
           </div>
         ) : (
           orders.map((order: any) => (
-            <Link
-              key={order.id}
-              to={`/staff/orders/${order.id}`}
-              className="list-item"
-              style={{ display: "flex", textDecoration: "none" }}
-            >
-              <div className="list-item-icon"><ClipboardList size={18} /></div>
-              <div className="list-item-body">
-                <div className="list-item-title">{order.order_number}</div>
-                <div className="list-item-sub" style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-                  <span className={`badge ${STATUS_BADGE[order.status] || "badge-gray"}`}>
-                    {STATUS_LABEL[order.status] || order.status}
-                  </span>
-                  <span>·</span>
-                  <span>{new Date(order.created_at).toLocaleDateString("en-US", { dateStyle: "short" })}</span>
-                </div>
+            <Link key={order.id} to={`/staff/orders/${order.id}`} className="flex items-center gap-3 px-5 py-3 border-t border-border hover:bg-canvas transition-colors">
+              <div className="size-10 rounded-xl bg-teal-50 flex items-center justify-center shrink-0"><ClipboardList className="size-5 text-primary" /></div>
+              <div className="flex-1 min-w-0">
+                <div className="font-mono font-semibold text-sm">{order.order_number}</div>
+                <div className="flex items-center gap-2 mt-0.5"><StatusPill status={order.status} /><span className="text-xs text-ink-4">{new Date(order.created_at).toLocaleDateString("en-US", { dateStyle: "short" })}</span></div>
               </div>
-              <div className="list-item-right">
-                <div className="list-item-amount">${order.total_amount?.toFixed(2)}</div>
-              </div>
+              <div className="font-bold text-sm shrink-0">${order.total_amount?.toFixed(2)}</div>
+              <ChevronRight className="size-4 text-ink-4 shrink-0" />
             </Link>
           ))
         )}
@@ -394,3 +268,28 @@ export default function CustomerDetail() {
     </>
   );
 }
+
+function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2.5">
+      <span className="flex size-8 items-center justify-center rounded-lg bg-canvas text-ink-4 shrink-0">{icon}</span>
+      <div className="min-w-0">
+        <div className="text-[11px] text-ink-4 uppercase tracking-wide font-semibold">{label}</div>
+        <div className="text-[13px] font-medium text-ink truncate">{value}</div>
+      </div>
+    </div>
+  );
+}
+
+function MiniKpi({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+  return (
+    <div className="bg-surface rounded-2xl shadow-[var(--shadow-sm)] p-4">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[11px] text-ink-3 font-medium uppercase tracking-wide">{label}</span>
+        <span className="flex size-7 items-center justify-center rounded-lg bg-teal-50 text-primary">{icon}</span>
+      </div>
+      <div className="text-2xl font-bold text-ink">{value}</div>
+    </div>
+  );
+}
+

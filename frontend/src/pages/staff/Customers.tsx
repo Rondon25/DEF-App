@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { staffApi } from "../../api";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { SkeletonList } from "@/components/Skeleton";
-import { Check, X, UserPlus, ChevronRight, Trash2, CreditCard, Loader2, FileDown, FileSpreadsheet, FileText, Plus } from "lucide-react";
+import { Check, X, UserPlus, ChevronRight, Trash2, CreditCard, Loader2, FileDown, FileSpreadsheet, FileText, Plus, Search, Eye } from "lucide-react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -26,6 +26,7 @@ export default function Customers() {
   const [showAdd, setShowAdd] = useState(false);
   const [addForm, setAddForm] = useState({ name: "", phone_number: "", company_name: "", address: "", city: "", state: "" });
   const [addErr, setAddErr] = useState("");
+  const [search, setSearch] = useState("");
   const today = new Date().toISOString().split("T")[0];
 
   const { data: pending = [] } = useQuery({
@@ -56,7 +57,13 @@ export default function Customers() {
     onError: (e: any) => setAddErr(e.response?.data?.detail || "Failed to create customer"),
   });
 
-  const list = tab === "pending" ? pending : all;
+  const baseList = tab === "pending" ? pending : all;
+  const list = search.trim()
+    ? baseList.filter((c: any) => {
+        const q = search.toLowerCase();
+        return c.name?.toLowerCase().includes(q) || c.company_name?.toLowerCase().includes(q) || c.phone_number?.includes(q);
+      })
+    : baseList;
 
   const exportExcel = () => {
     const data = all.map((c: any) => ({ Name: c.name, Company: c.company_name || "", Phone: c.phone_number, City: c.city || "", State: c.state || "", Status: c.status, Credit: c.is_credit_account ? "Yes" : "No", Registered: new Date(c.created_at).toLocaleDateString("en-US") }));
@@ -86,32 +93,9 @@ export default function Customers() {
 
   return (
     <>
-      <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold text-ink">Customers</h1>
-          <p className="text-sm text-ink-3">Manage customer accounts and approvals</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <button onClick={() => setShowExport((v) => !v)} disabled={all.length === 0}
-              className="inline-flex items-center gap-1.5 h-10 px-4 rounded-full border border-border bg-surface text-sm font-medium text-ink-2 hover:border-primary hover:text-primary transition-colors disabled:opacity-50">
-              <FileDown size={16} /> Export
-            </button>
-            {showExport && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowExport(false)} />
-                <div className="absolute right-0 top-12 z-20 w-44 bg-surface rounded-xl shadow-[var(--shadow-lg)] border border-border overflow-hidden">
-                  <button onClick={exportExcel} className="w-full flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-canvas text-left"><FileSpreadsheet size={16} className="text-green-600" /> Excel</button>
-                  <button onClick={exportPDF} className="w-full flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-canvas text-left border-t border-border"><FileText size={16} className="text-red-600" /> PDF</button>
-                </div>
-              </>
-            )}
-          </div>
-          <button onClick={() => { setShowAdd(true); setAddErr(""); }}
-            className="inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-primary text-white text-sm font-semibold hover:bg-teal-700 transition-colors">
-            <Plus size={16} /> Add Customer
-          </button>
-        </div>
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold text-ink">Customers</h1>
+        <p className="text-sm text-ink-3">Manage customer accounts and approvals</p>
       </div>
 
       {/* Approval alert */}
@@ -127,17 +111,47 @@ export default function Customers() {
         </button>
       )}
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-4">
-        <button onClick={() => setTab("all")}
-          className={`px-4 py-1.5 rounded-full text-[13px] font-semibold border-2 transition-colors ${tab === "all" ? "bg-primary border-primary text-white" : "bg-surface border-border text-ink-2 hover:border-primary"}`}>
-          All Customers
-        </button>
-        <button onClick={() => setTab("pending")}
-          className={`px-4 py-1.5 rounded-full text-[13px] font-semibold border-2 transition-colors flex items-center gap-1.5 ${tab === "pending" ? "bg-primary border-primary text-white" : "bg-surface border-border text-ink-2 hover:border-primary"}`}>
-          Pending Approval
-          {pending.length > 0 && <span className="flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-[11px] font-bold">{pending.length}</span>}
-        </button>
+      {/* Search */}
+      <div className="relative mb-3 max-w-lg">
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-ink-4" />
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name, company, phone..."
+          className="w-full h-11 rounded-full border border-input bg-surface pl-10 pr-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-ink-4" />
+      </div>
+
+      {/* Tabs + actions */}
+      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+        <div className="flex gap-2">
+          <button onClick={() => setTab("all")}
+            className={`px-4 py-1.5 rounded-full text-[13px] font-semibold border-2 transition-colors ${tab === "all" ? "bg-primary border-primary text-white" : "bg-surface border-border text-ink-2 hover:border-primary"}`}>
+            All Customers
+          </button>
+          <button onClick={() => setTab("pending")}
+            className={`px-4 py-1.5 rounded-full text-[13px] font-semibold border-2 transition-colors flex items-center gap-1.5 ${tab === "pending" ? "bg-primary border-primary text-white" : "bg-surface border-border text-ink-2 hover:border-primary"}`}>
+            Pending Approval
+            {pending.length > 0 && <span className="flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-[11px] font-bold">{pending.length}</span>}
+          </button>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <button onClick={() => setShowExport((v) => !v)} disabled={all.length === 0}
+              className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full border border-border bg-surface text-[13px] font-medium text-ink-2 hover:border-primary hover:text-primary transition-colors disabled:opacity-50">
+              <FileDown size={15} /> Export
+            </button>
+            {showExport && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowExport(false)} />
+                <div className="absolute right-0 top-11 z-20 w-44 bg-surface rounded-xl shadow-[var(--shadow-lg)] border border-border overflow-hidden">
+                  <button onClick={exportExcel} className="w-full flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-canvas text-left"><FileSpreadsheet size={16} className="text-green-600" /> Excel</button>
+                  <button onClick={exportPDF} className="w-full flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-canvas text-left border-t border-border"><FileText size={16} className="text-red-600" /> PDF</button>
+                </div>
+              </>
+            )}
+          </div>
+          <button onClick={() => { setShowAdd(true); setAddErr(""); }}
+            className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-primary text-white text-[13px] font-semibold hover:bg-teal-700 transition-colors">
+            <Plus size={15} /> Add Customer
+          </button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -190,8 +204,9 @@ export default function Customers() {
                           </>
                         ) : (
                           <>
-                            <Link to={`/staff/customers/${c.id}`} className="inline-flex items-center justify-center size-8 rounded-full border border-border text-ink-4 hover:border-primary hover:text-primary transition-colors">
-                              <ChevronRight size={15} />
+                            <Link to={`/staff/customers/${c.id}`}
+                              className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full border border-border text-[12px] font-medium text-ink-2 hover:border-primary hover:text-primary transition-colors">
+                              <Eye size={14} /> View
                             </Link>
                             <button onClick={() => setDelCustomer(c)} title="Archive customer"
                               className="inline-flex items-center justify-center size-8 rounded-full border border-border text-ink-4 hover:border-red-300 hover:text-red-600 transition-colors">
