@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { staffApi } from "../../api";
-import { Pencil, DollarSign, X, Plus, Droplet, Power, PowerOff, Upload, FileDown, FileSpreadsheet, FileText, Trash2 } from "lucide-react";
+import { Pencil, DollarSign, X, Plus, Droplet, Power, PowerOff, Upload, FileDown, FileSpreadsheet, FileText, Trash2, Search } from "lucide-react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -28,6 +28,7 @@ export default function CatalogueManagement() {
   const [showBulk,    setShowBulk]    = useState(false);
   const [showExport,  setShowExport]  = useState(false);
   const [importing,   setImporting]   = useState(false);
+  const [search,      setSearch]      = useState("");
   const [editSku,     setEditSku]     = useState<SKU | null>(null);
   const [priceSku,    setPriceSku]    = useState<SKU | null>(null);
   const [delSku,      setDelSku]      = useState<SKU | null>(null);
@@ -148,19 +149,33 @@ export default function CatalogueManagement() {
     setShowExport(false);
   };
 
+  const filtered = search.trim()
+    ? skus.filter((s) => {
+        const q = search.toLowerCase();
+        return s.name.toLowerCase().includes(q) || s.sku_code.toLowerCase().includes(q) || (s.description || "").toLowerCase().includes(q);
+      })
+    : skus;
+
   return (
     <>
-      <div className="flex items-start justify-between gap-3 mb-5 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold text-ink">Catalogue</h1>
-          <p className="text-sm text-ink-3">{skus.length} products</p>
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold text-ink">Catalogue</h1>
+        <p className="text-sm text-ink-3">{filtered.length} of {skus.length} products</p>
+      </div>
+
+      {/* Search + actions */}
+      <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
+        <div className="relative flex-1 min-w-[200px] max-w-lg">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-ink-4" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name, code, description..."
+            className="w-full h-11 rounded-full border border-input bg-surface pl-10 pr-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-ink-4" />
         </div>
         <div className="flex items-center gap-2">
           {/* Export dropdown */}
           <div className="relative">
             <button
               onClick={() => setShowExport((v) => !v)}
-              className="inline-flex items-center gap-1.5 h-10 px-4 rounded-full border border-border bg-surface text-sm font-medium text-ink-2 hover:border-primary hover:text-primary transition-colors"
+              className="inline-flex items-center gap-1.5 h-11 px-4 rounded-full border border-border bg-surface text-sm font-medium text-ink-2 hover:border-primary hover:text-primary transition-colors"
             >
               <FileDown size={16} /> Export
             </button>
@@ -180,13 +195,13 @@ export default function CatalogueManagement() {
           </div>
           <button
             onClick={() => setShowBulk(true)}
-            className="inline-flex items-center gap-1.5 h-10 px-4 rounded-full border border-border bg-surface text-sm font-medium text-ink-2 hover:border-primary hover:text-primary transition-colors"
+            className="inline-flex items-center gap-1.5 h-11 px-4 rounded-full border border-border bg-surface text-sm font-medium text-ink-2 hover:border-primary hover:text-primary transition-colors"
           >
             <Upload size={16} /> Bulk Add
           </button>
           <button
             onClick={() => { setShowAdd(true); setError(""); }}
-            className="inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-primary text-white text-sm font-semibold hover:bg-teal-700 transition-colors"
+            className="inline-flex items-center gap-1.5 h-11 px-5 rounded-full bg-primary text-white text-sm font-semibold hover:bg-teal-700 transition-colors"
           >
             <Plus size={16} /> Add SKU
           </button>
@@ -209,7 +224,7 @@ export default function CatalogueManagement() {
                 </tr>
               </thead>
               <tbody>
-                {skus.map((sku) => (
+                {filtered.map((sku) => (
                   <tr key={sku.id} className={`border-b border-border last:border-0 hover:bg-canvas ${sku.is_active ? "" : "opacity-60"}`}>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
@@ -246,7 +261,7 @@ export default function CatalogueManagement() {
                     </td>
                   </tr>
                 ))}
-                {skus.length === 0 && <tr><td colSpan={5} className="px-5 py-10 text-center text-ink-4">No products yet</td></tr>}
+                {filtered.length === 0 && <tr><td colSpan={5} className="px-5 py-10 text-center text-ink-4">{search ? "No products match your search" : "No products yet"}</td></tr>}
               </tbody>
             </table>
           </div>
