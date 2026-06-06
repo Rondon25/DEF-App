@@ -111,77 +111,121 @@ export default function DashboardLab() {
           </div>
         </header>
 
-        <div className="flex-1 min-h-0 overflow-y-auto grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px]">
-          {/* Center column */}
-          <div className="p-6 space-y-5 min-w-0">
-            {/* KPI row */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="flex-1 min-h-0 overflow-y-auto p-6">
+          <div className="grid gap-5 xl:[grid-template-columns:minmax(0,1fr)_minmax(0,1fr)_300px]">
+            {/* KPI row — cols 1-2, row 1 */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 xl:col-span-2 xl:col-start-1 xl:row-start-1">
               <Kpi label="Total Products" value={stock?.total_products ?? "—"} delta="+3.2%" up spark={[3,5,4,6,5,7,8]} />
               <Kpi label="Available Stock" value={stock ? Math.round(stock.total_units).toLocaleString() : "—"} delta="+1.8%" up spark={[6,5,7,6,8,7,9]} />
               <Kpi label="In Transit" value={inTransit} delta="-0.5%" spark={[5,6,4,5,3,4,3]} />
               <Kpi label="Reorder Signals" value={reorder} delta={reorder>0?"Action":"Clear"} up={reorder===0} spark={[2,3,2,4,3,5,reorder>0?6:2]} />
             </div>
 
-            {/* Profit by category + Order summary */}
-            <div className="grid lg:grid-cols-2 gap-5">
-              <Card title="Profit by Product Category">
-                <div className="flex items-center gap-5">
-                  <Donut segments={(topSkus.length?topSkus:[{total_revenue:1}]).map((s:any,i:number)=>({ value:s.total_revenue||1, color:SERIES[i%SERIES.length] }))}
-                    centerTop={`$${Number(anal?.total_revenue||0).toLocaleString()}`} centerSub="Revenue" />
-                  <div className="flex-1 space-y-2.5 min-w-0">
-                    {(topSkus.length?topSkus:[]).map((s:any,i:number)=>(
-                      <div key={s.sku_id} className="flex items-center gap-2 text-[13px]">
-                        <span className="size-2.5 rounded-full shrink-0" style={{ background: SERIES[i%SERIES.length] }} />
-                        <span className="truncate flex-1" style={{ color: C.sub }}>{s.name}</span>
-                        <span className="font-semibold">${Number(s.total_revenue).toLocaleString()}</span>
+            {/* Plant Production — col 3, spans rows 1-2 */}
+            <div className="hidden xl:flex xl:flex-col rounded-2xl p-4 xl:col-start-3 xl:row-start-1 xl:row-span-2 xl:h-full" style={{ background: "#fff", boxShadow: "0 1px 2px rgba(16,16,28,.04), 0 1px 3px rgba(16,16,28,.06)" }}>
+              <div className="flex items-center justify-between mb-1 shrink-0"><h3 className="font-bold text-sm">Plant Production</h3><span style={{color:C.sub}}>···</span></div>
+              <div className="flex-1 flex flex-col justify-around divide-y" style={{ borderColor: C.border }}>
+                {(mfg?.plant_utilization ?? []).map((p:any,i:number)=>{
+                  const util=Math.round(p.utilization||0); const t=trendFor(util,i+1); const col=t.up?C.lime2:RED;
+                  return (
+                    <div key={p.plant_name} className="py-3 first:pt-1">
+                      <div className="text-[12px] mb-0.5" style={{color:C.sub}}>{p.plant_name}</div>
+                      <div className="flex items-end justify-between gap-2">
+                        <div>
+                          <div className="text-xl font-bold leading-none">{util}%</div>
+                          <div className="text-[11px] mt-1" style={{color:C.sub}}>Last week: {t.prev}%</div>
+                        </div>
+                        <Sparkline data={t.pts} color={col} w={84} h={34} fill />
                       </div>
-                    ))}
-                    {topSkus.length===0 && <div className="text-[13px]" style={{color:C.sub}}>No sales yet</div>}
-                  </div>
-                </div>
-              </Card>
-
-              <Card title="Order Summary" right={<span className="text-2xl font-bold">${Number(anal?.total_revenue||0).toLocaleString()}</span>}>
-                <AreaChart data={rev.map((d:any)=>d.revenue)} />
-                <div className="flex justify-between text-[11px] mt-2" style={{ color: C.sub }}>
-                  <span>{rev[0]?.date}</span><span>{rev[rev.length-1]?.date}</span>
-                </div>
-              </Card>
+                    </div>
+                  );
+                })}
+                {(!mfg || mfg.plant_utilization.length===0) && <div className="text-[13px] py-3" style={{color:C.sub}}>No production today</div>}
+              </div>
             </div>
 
-            {/* Stock level + Upcoming restock */}
-            <div className="grid lg:grid-cols-2 gap-5">
-              <Card title="Stock Level" right={<span className="text-xl font-bold">{stock?.total_products ?? 0}<span className="text-[12px] font-normal" style={{color:C.sub}}> SKUs</span></span>}>
-                <div className="space-y-3 mt-1">
-                  {(stock?.top_products ?? []).slice(0,5).map((p:any,i:number)=>{
-                    const max = stock.top_products[0]?.qty || 1;
-                    return (
-                      <div key={i}>
-                        <div className="flex justify-between text-[13px] mb-1"><span className="truncate pr-2">{p.name}</span><span className="font-semibold shrink-0">{Math.round(p.qty).toLocaleString()}</span></div>
-                        <div className="h-2 rounded-full" style={{ background: C.canvas }}><div className="h-2 rounded-full" style={{ width: `${Math.max(4,(p.qty/max)*100)}%`, background: i===0?C.lime:C.lime2 }} /></div>
-                      </div>
-                    );
-                  })}
-                  {(!stock || stock.top_products.length===0) && <div className="text-[13px]" style={{color:C.sub}}>No stock data</div>}
-                </div>
-              </Card>
-
-              <Card title="Upcoming Restock">
-                <div className="divide-y" style={{ borderColor: C.border }}>
-                  {pos.filter(p=>["draft","pending","ordered"].includes(p.status)).slice(0,5).map(p=>(
-                    <div key={p.id} className="flex items-center gap-3 py-2.5">
-                      <span className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: C.limeSoft, color: C.lime2 }}><Boxes className="size-4" /></span>
-                      <div className="flex-1 min-w-0"><div className="text-[13px] font-semibold truncate">{p.material_name}</div><div className="text-[11px]" style={{color:C.sub}}>{p.plant_name} · {Math.round(p.order_qty).toLocaleString()} {p.unit}</div></div>
-                      <span className="text-[12px] font-medium shrink-0" style={{color:C.sub}}>{p.expected_arrival || "—"}</span>
+            {/* Profit by category — col 1, row 2 */}
+            <Card title="Profit by Product Category" className="xl:col-start-1 xl:row-start-2">
+              <div className="flex items-center gap-5">
+                <Donut segments={(topSkus.length?topSkus:[{total_revenue:1}]).map((s:any,i:number)=>({ value:s.total_revenue||1, color:SERIES[i%SERIES.length] }))}
+                  centerTop={`$${Number(anal?.total_revenue||0).toLocaleString()}`} centerSub="Revenue" />
+                <div className="flex-1 space-y-2.5 min-w-0">
+                  {(topSkus.length?topSkus:[]).map((s:any,i:number)=>(
+                    <div key={s.sku_id} className="flex items-center gap-2 text-[13px]">
+                      <span className="size-2.5 rounded-full shrink-0" style={{ background: SERIES[i%SERIES.length] }} />
+                      <span className="truncate flex-1" style={{ color: C.sub }}>{s.name}</span>
+                      <span className="font-semibold">${Number(s.total_revenue).toLocaleString()}</span>
                     </div>
                   ))}
-                  {pos.filter(p=>["draft","pending","ordered"].includes(p.status)).length===0 && <div className="text-[13px] py-3" style={{color:C.sub}}>No open purchase orders</div>}
+                  {topSkus.length===0 && <div className="text-[13px]" style={{color:C.sub}}>No sales yet</div>}
                 </div>
-              </Card>
+              </div>
+            </Card>
+
+            {/* Order Summary — col 2, row 2 */}
+            <Card title="Order Summary" className="xl:col-start-2 xl:row-start-2" right={<span className="text-2xl font-bold">${Number(anal?.total_revenue||0).toLocaleString()}</span>}>
+              <AreaChart data={rev.map((d:any)=>d.revenue)} />
+              <div className="flex justify-between text-[11px] mt-2" style={{ color: C.sub }}>
+                <span>{rev[0]?.date}</span><span>{rev[rev.length-1]?.date}</span>
+              </div>
+            </Card>
+
+            {/* Stock Level — col 1, row 3 */}
+            <Card title="Stock Level" className="xl:col-start-1 xl:row-start-3" right={<span className="text-xl font-bold">{stock?.total_products ?? 0}<span className="text-[12px] font-normal" style={{color:C.sub}}> SKUs</span></span>}>
+              <div className="space-y-3 mt-1">
+                {(stock?.top_products ?? []).slice(0,5).map((p:any,i:number)=>{
+                  const max = stock.top_products[0]?.qty || 1;
+                  return (
+                    <div key={i}>
+                      <div className="flex justify-between text-[13px] mb-1"><span className="truncate pr-2">{p.name}</span><span className="font-semibold shrink-0">{Math.round(p.qty).toLocaleString()}</span></div>
+                      <div className="h-2 rounded-full" style={{ background: C.canvas }}><div className="h-2 rounded-full" style={{ width: `${Math.max(4,(p.qty/max)*100)}%`, background: i===0?C.lime:C.lime2 }} /></div>
+                    </div>
+                  );
+                })}
+                {(!stock || stock.top_products.length===0) && <div className="text-[13px]" style={{color:C.sub}}>No stock data</div>}
+              </div>
+            </Card>
+
+            {/* Upcoming Restock — col 2, row 3 */}
+            <Card title="Upcoming Restock" className="xl:col-start-2 xl:row-start-3">
+              <div className="divide-y" style={{ borderColor: C.border }}>
+                {pos.filter(p=>["draft","pending","ordered"].includes(p.status)).slice(0,5).map(p=>(
+                  <div key={p.id} className="flex items-center gap-3 py-2.5">
+                    <span className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: C.limeSoft, color: C.lime2 }}><Boxes className="size-4" /></span>
+                    <div className="flex-1 min-w-0"><div className="text-[13px] font-semibold truncate">{p.material_name}</div><div className="text-[11px]" style={{color:C.sub}}>{p.plant_name} · {Math.round(p.order_qty).toLocaleString()} {p.unit}</div></div>
+                    <span className="text-[12px] font-medium shrink-0" style={{color:C.sub}}>{p.expected_arrival || "—"}</span>
+                  </div>
+                ))}
+                {pos.filter(p=>["draft","pending","ordered"].includes(p.status)).length===0 && <div className="text-[13px] py-3" style={{color:C.sub}}>No open purchase orders</div>}
+              </div>
+            </Card>
+
+            {/* Recent Activity — col 3, spans rows 3-4 */}
+            <div className="hidden xl:flex xl:flex-col rounded-2xl p-4 xl:col-start-3 xl:row-start-3 xl:row-span-2 xl:h-full overflow-hidden" style={{ background: "#fff", boxShadow: "0 1px 2px rgba(16,16,28,.04), 0 1px 3px rgba(16,16,28,.06)" }}>
+              <div className="flex items-center justify-between mb-3 shrink-0"><h3 className="font-bold text-sm">Recent Activity</h3><span style={{color:C.sub}}>···</span></div>
+              <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+                {buildActivity(orders).map(group => (
+                  <div key={group.label} className="mb-4 last:mb-0">
+                    <div className="text-[11px] font-bold uppercase tracking-wide mb-2.5" style={{color:C.sub}}>{group.label}</div>
+                    <div className="space-y-3.5">
+                      {group.items.map((a:any)=>(
+                        <div key={a.id} className="flex gap-2.5">
+                          <div className="size-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style={{ background: C.lime, color: C.ink }}>{a.initial}</div>
+                          <div className="min-w-0">
+                            <div className="text-[12px] leading-snug"><span className="font-semibold">{a.name}</span> {a.text}</div>
+                            <div className="text-[11px] mt-0.5" style={{color:C.sub}}>{a.time}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                {orders.length===0 && <div className="text-[13px]" style={{color:C.sub}}>No recent activity</div>}
+              </div>
             </div>
 
-            {/* Product table */}
-            <Card title="Products">
+            {/* Products — cols 1-2, row 4 */}
+            <Card title="Products" className="xl:col-span-2 xl:col-start-1 xl:row-start-4">
               <div className="overflow-x-auto -mx-1">
                 <table className="w-full min-w-[560px] text-[13px]">
                   <thead><tr style={{ color: C.sub }} className="text-left text-[11px] uppercase tracking-wide">
@@ -203,54 +247,6 @@ export default function DashboardLab() {
               </div>
             </Card>
           </div>
-
-          {/* Right rail */}
-          <aside className="border-l p-5 space-y-5 hidden xl:block" style={{ borderColor: C.border, background: C.canvas }}>
-            {/* Plant Production — stacked %-blocks with trend sparklines */}
-            <div className="rounded-2xl p-4" style={{ background: "#fff", boxShadow: "0 1px 2px rgba(16,16,28,.04), 0 1px 3px rgba(16,16,28,.06)" }}>
-              <div className="flex items-center justify-between mb-1"><h3 className="font-bold text-sm">Plant Production</h3><span style={{color:C.sub}}>···</span></div>
-              <div className="divide-y" style={{ borderColor: C.border }}>
-                {(mfg?.plant_utilization ?? []).map((p:any,i:number)=>{
-                  const util=Math.round(p.utilization||0); const t=trendFor(util,i+1); const col=t.up?C.lime2:RED;
-                  return (
-                    <div key={p.plant_name} className="py-3">
-                      <div className="text-[12px] mb-0.5" style={{color:C.sub}}>{p.plant_name}</div>
-                      <div className="flex items-end justify-between gap-2">
-                        <div>
-                          <div className="text-xl font-bold leading-none">{util}%</div>
-                          <div className="text-[11px] mt-1" style={{color:C.sub}}>Last week: {t.prev}%</div>
-                        </div>
-                        <Sparkline data={t.pts} color={col} w={84} h={34} fill />
-                      </div>
-                    </div>
-                  );
-                })}
-                {(!mfg || mfg.plant_utilization.length===0) && <div className="text-[13px] py-3" style={{color:C.sub}}>No production today</div>}
-              </div>
-            </div>
-
-            {/* Recent Activity — grouped by day, lime avatars */}
-            <div className="rounded-2xl p-4" style={{ background: "#fff", boxShadow: "0 1px 2px rgba(16,16,28,.04), 0 1px 3px rgba(16,16,28,.06)" }}>
-              <div className="flex items-center justify-between mb-3"><h3 className="font-bold text-sm">Recent Activity</h3><span style={{color:C.sub}}>···</span></div>
-              {buildActivity(orders).map(group => (
-                <div key={group.label} className="mb-4 last:mb-0">
-                  <div className="text-[11px] font-bold uppercase tracking-wide mb-2.5" style={{color:C.sub}}>{group.label}</div>
-                  <div className="space-y-3.5">
-                    {group.items.map((a:any)=>(
-                      <div key={a.id} className="flex gap-2.5">
-                        <div className="size-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style={{ background: C.lime, color: C.ink }}>{a.initial}</div>
-                        <div className="min-w-0">
-                          <div className="text-[12px] leading-snug"><span className="font-semibold">{a.name}</span> {a.text}</div>
-                          <div className="text-[11px] mt-0.5" style={{color:C.sub}}>{a.time}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-              {orders.length===0 && <div className="text-[13px]" style={{color:C.sub}}>No recent activity</div>}
-            </div>
-          </aside>
         </div>
       </div>
     </div>
@@ -258,9 +254,9 @@ export default function DashboardLab() {
 }
 
 /* ── pieces ─────────────────────────────────────────────────────────────────── */
-function Card({ title, right, children }: { title: string; right?: React.ReactNode; children: React.ReactNode }) {
+function Card({ title, right, children, className = "" }: { title: string; right?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
-    <div className="rounded-2xl p-5" style={{ background: "#fff", boxShadow: "0 1px 2px rgba(16,16,28,.04), 0 1px 3px rgba(16,16,28,.06)" }}>
+    <div className={`rounded-2xl p-5 ${className}`} style={{ background: "#fff", boxShadow: "0 1px 2px rgba(16,16,28,.04), 0 1px 3px rgba(16,16,28,.06)" }}>
       <div className="flex items-center justify-between mb-4"><h3 className="font-bold text-sm">{title}</h3>{right}</div>
       {children}
     </div>
