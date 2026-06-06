@@ -369,6 +369,33 @@ class PurchaseOrder(Base):
     vendor   = relationship("Vendor")
 
 
+class ProductionStatus(str, enum.Enum):
+    planned   = "planned"
+    completed = "completed"
+    cancelled = "cancelled"
+
+
+class ProductionRun(Base):
+    """A planned/executed batch: produces FG and (on completion) consumes RM via BOM."""
+    __tablename__ = "production_runs"
+
+    id             = Column(Integer, primary_key=True, index=True)
+    plant_id       = Column(Integer, ForeignKey("plants.id"), nullable=False)
+    sku_id         = Column(Integer, ForeignKey("skus.id"), nullable=False)
+    run_date       = Column(Date, nullable=False)
+    planned_units  = Column(Float, default=0.0)
+    produced_units = Column(Float, default=0.0)
+    hours_required = Column(Float, default=0.0)
+    status         = Column(SAEnum(ProductionStatus), default=ProductionStatus.planned)
+    note           = Column(Text, nullable=True)
+    created_by     = Column(Integer, ForeignKey("staff_users.id"), nullable=True)
+    created_at     = Column(DateTime, default=datetime.utcnow)
+    completed_at   = Column(DateTime, nullable=True)
+
+    plant = relationship("Plant")
+    sku   = relationship("SKU")
+
+
 class SKUPriceHistory(Base):
     __tablename__ = "sku_price_history"
 

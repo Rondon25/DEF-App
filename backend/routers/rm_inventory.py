@@ -147,19 +147,28 @@ class RmMovementIn(BaseModel):
     movement_date: date | None = None
 
 
+def post_rm_movement(db: Session, plant_id: int, material_id: int, *, qty_in: float = 0.0,
+                     qty_out: float = 0.0, reason: str = "adjustment", note: str | None = None,
+                     staff_id: int | None = None, movement_date=None):
+    """Post a raw-material StockMovement and update stock. Shared by manual entry + production runs."""
+    st = _upsert_stock(db, plant_id, material_id)
+    opening = st.quantity or 0
+    closing = opening + qty_in - qty_out
+    db.add(models.StockMovement(
+        entity=models.StockEntity.raw_material, plant_id=plant_id, material_id=material_id,
+        movement_date=movement_date or date.today(), opening=opening, qty_in=qty_in,
+        qty_out=qty_out, closing=closing, reason=reason, note=note, staff_id=staff_id,
+    ))
+    st.quantity = closing
+    db.flush()
+    return st
+
+
 @router.post("/admin/rm-stock/movement")
 def record_movement(payload: RmMovementIn, db: Session = Depends(get_db), user=Depends(require_role(*EDIT_ROLES))):
-    st = _upsert_stock(db, payload.plant_id, payload.material_id)
-    opening = st.quantity or 0
-    closing = opening + payload.qty_in - payload.qty_out
-    mv = models.StockMovement(
-        entity=models.StockEntity.raw_material, plant_id=payload.plant_id, material_id=payload.material_id,
-        movement_date=payload.movement_date or date.today(),
-        opening=opening, qty_in=payload.qty_in, qty_out=payload.qty_out, closing=closing,
-        reason=payload.reason, note=payload.note, staff_id=getattr(user, "id", None),
-    )
-    db.add(mv)
-    st.quantity = closing
+    st = post_rm_movement(db, payload.plant_id, payload.material_id, qty_in=payload.qty_in,
+                          qty_out=payload.qty_out, reason=payload.reason, note=payload.note,
+                          staff_id=getattr(user, "id", None), movement_date=payload.movement_date)
     db.commit()
     return _rm_row(db, st)
 

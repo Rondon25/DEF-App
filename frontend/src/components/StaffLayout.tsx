@@ -5,7 +5,7 @@ import { clearStaffAuth, getStaffUser } from "../hooks/useAuth";
 import { staffApi } from "../api";
 import {
   LayoutDashboard, Users, ClipboardList, Layers,
-  Package, BarChart3, Droplet, Menu, X, LogOut, Bell, Factory, Settings2, Boxes, ShoppingCart, PackageCheck,
+  Package, BarChart3, Droplet, Menu, X, LogOut, Bell, Factory, Settings2, Boxes, ShoppingCart, PackageCheck, Cog,
 } from "lucide-react";
 
 type NavItem = { to: string; icon: any; label: string };
@@ -20,6 +20,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { to: "/staff/finished-goods", icon: PackageCheck, label: "Finished Goods" },
     { to: "/staff/raw-materials", icon: Boxes,       label: "Raw Materials" },
     { to: "/staff/procurement",   icon: ShoppingCart, label: "Procurement" },
+    { to: "/staff/production",     icon: Cog,         label: "Production" },
     { to: "/staff/plants",    icon: Factory,         label: "Plants" },
     { to: "/staff/config",    icon: Settings2,       label: "Configuration" },
     { to: "/staff/analytics", icon: BarChart3,       label: "Analytics" },
@@ -32,6 +33,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { to: "/staff/finished-goods", icon: PackageCheck, label: "Finished Goods" },
     { to: "/staff/raw-materials", icon: Boxes,       label: "Raw Materials" },
     { to: "/staff/procurement",   icon: ShoppingCart, label: "Procurement" },
+    { to: "/staff/production",     icon: Cog,         label: "Production" },
     { to: "/staff/plants",    icon: Factory,         label: "Plants" },
     { to: "/staff/config",    icon: Settings2,       label: "Configuration" },
     { to: "/staff/analytics", icon: BarChart3,       label: "Analytics" },
@@ -47,6 +49,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { to: "/staff/finished-goods", icon: PackageCheck, label: "Finished Goods" },
     { to: "/staff/raw-materials", icon: Boxes,       label: "Raw Materials" },
     { to: "/staff/procurement",   icon: ShoppingCart, label: "Procurement" },
+    { to: "/staff/production",     icon: Cog,         label: "Production" },
     { to: "/staff/plants", icon: Factory,         label: "Plants" },
     { to: "/staff/config", icon: Settings2,       label: "Configuration" },
   ],

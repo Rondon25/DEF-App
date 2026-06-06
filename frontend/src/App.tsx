@@ -28,6 +28,7 @@ import Configuration        from "./pages/staff/Configuration";
 import RawMaterials         from "./pages/staff/RawMaterials";
 import Procurement          from "./pages/staff/Procurement";
 import FinishedGoods         from "./pages/staff/FinishedGoods";
+import Production            from "./pages/staff/Production";
 import DesignPreview        from "./pages/DesignPreview";
 
 
@@ -62,6 +63,7 @@ export default function App() {
       <Route path="/staff/raw-materials" element={<RequireStaff roles={["admin","central_team","operations"]}><StaffLayout><RawMaterials /></StaffLayout></RequireStaff>} />
       <Route path="/staff/procurement"   element={<RequireStaff roles={["admin","central_team","operations"]}><StaffLayout><Procurement /></StaffLayout></RequireStaff>} />
       <Route path="/staff/finished-goods" element={<RequireStaff roles={["admin","central_team","operations"]}><StaffLayout><FinishedGoods /></StaffLayout></RequireStaff>} />
+      <Route path="/staff/production"     element={<RequireStaff roles={["admin","central_team","operations"]}><StaffLayout><Production /></StaffLayout></RequireStaff>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
