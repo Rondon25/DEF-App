@@ -5,9 +5,10 @@ import { clearStaffAuth, getStaffUser } from "../hooks/useAuth";
 import { staffApi } from "../api";
 import {
   LayoutDashboard, Users, ClipboardList, Layers,
-  Package, Menu, X, LogOut, Bell, Factory, Settings2, Boxes, ShoppingCart, PackageCheck, Cog, TrendingUp,
+  Package, Menu, X, LogOut, Factory, Settings2, Boxes, ShoppingCart, PackageCheck, Cog, TrendingUp,
 } from "lucide-react";
 import logoMark from "../assets/logo-mark.svg";
+import NotificationBell from "./NotificationBell";
 
 type NavItem = { to: string; icon: any; label: string; roles: string[] };
 type NavSection = { title: string; items: NavItem[] };
@@ -183,20 +184,7 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
             {user?.name ? `Welcome, ${user.name.split(" ")[0]}` : "Staff Portal"}
           </div>
           <div className="flex items-center gap-3 ml-auto">
-            {canSeeCustomers && (
-              <button
-                onClick={() => navigate("/staff/customers")}
-                className="relative text-ink-3 hover:text-ink transition-colors"
-                title={pendingCount > 0 ? `${pendingCount} customer(s) awaiting approval` : "No new approvals"}
-              >
-                <Bell className="size-5" />
-                {pendingCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold">
-                    {pendingCount}
-                  </span>
-                )}
-              </button>
-            )}
+            <NotificationBell role={user?.role || "sales"} />
             <div className="flex items-center gap-2 bg-sidebar text-white pl-1.5 pr-4 py-1.5 rounded-full text-[13px]">
               <div className="size-7 rounded-full bg-accent text-sidebar flex items-center justify-center text-xs font-bold">
                 {user?.name?.[0]?.toUpperCase()}
