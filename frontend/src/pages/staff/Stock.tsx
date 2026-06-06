@@ -3,6 +3,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { staffApi } from "../../api";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { SkeletonList } from "@/components/Skeleton";
+import StatCard from "@/components/ui/StatCard";
+import LabCard from "@/components/ui/LabCard";
+import BarChart from "@/components/charts/BarChart";
 import {
   Boxes, Package, AlertTriangle, Factory, Plus, Pencil, Trash2, X, Loader2,
   FileDown, FileSpreadsheet, FileText, ChevronDown,
@@ -86,8 +89,6 @@ export default function Stock() {
   // Charts
   const topProducts = summary?.top_products || [];
   const byPlant = summary?.by_plant || [];
-  const maxProd = Math.max(...topProducts.map((p: any) => p.qty), 1);
-  const maxPlant = Math.max(...byPlant.map((p: any) => p.qty), 1);
 
   // Export
   const exportExcel = () => {
@@ -153,16 +154,20 @@ export default function Stock() {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <Kpi featured label="Total Units" value={summary?.total_units ?? "—"} icon={<Boxes className="size-4" />} />
-        <Kpi label="Products Tracked" value={summary?.total_products ?? "—"} icon={<Package className="size-4" />} />
-        <Kpi label="Low Stock" value={summary?.low_stock ?? "—"} warn={(summary?.low_stock ?? 0) > 0} icon={<AlertTriangle className="size-4" />} />
-        <Kpi label="Plants" value={summary?.plant_count ?? "—"} icon={<Factory className="size-4" />} />
+        <StatCard label="Total Units" value={summary?.total_units ?? "—"} icon={<Boxes className="size-4" />} />
+        <StatCard label="Products Tracked" value={summary?.total_products ?? "—"} icon={<Package className="size-4" />} />
+        <StatCard label="Low Stock" value={summary?.low_stock ?? "—"} warn={(summary?.low_stock ?? 0) > 0} icon={<AlertTriangle className="size-4" />} />
+        <StatCard label="Plants" value={summary?.plant_count ?? "—"} icon={<Factory className="size-4" />} />
       </div>
 
       {/* Charts */}
       <div className="grid lg:grid-cols-2 gap-5 mb-5">
-        <BarPanel title="Top Products by Stock" rows={topProducts.map((p: any) => ({ label: p.name, value: p.qty }))} max={maxProd} color="var(--color-teal-600)" />
-        <BarPanel title="Stock by Plant" rows={byPlant.map((p: any) => ({ label: p.name, value: p.qty }))} max={maxPlant} color="var(--color-lime-400)" />
+        <LabCard title="Top Products by Stock">
+          <BarChart data={topProducts.map((p: any) => ({ label: p.name, value: p.qty }))} />
+        </LabCard>
+        <LabCard title="Stock by Plant">
+          <BarChart data={byPlant.map((p: any) => ({ label: p.name, value: p.qty }))} />
+        </LabCard>
       </div>
 
       {/* Plant filter */}
@@ -290,39 +295,3 @@ export default function Stock() {
   );
 }
 
-function Kpi({ featured, warn, label, value, icon }: { featured?: boolean; warn?: boolean; label: string; value: React.ReactNode; icon: React.ReactNode }) {
-  return (
-    <div className={`rounded-2xl p-5 ${featured ? "bg-sidebar text-white" : "bg-surface shadow-[var(--shadow-sm)]"}`}>
-      <div className="flex items-center justify-between mb-4">
-        <span className={`text-[13px] font-medium ${featured ? "text-white/60" : "text-ink-3"}`}>{label}</span>
-        <span className={`flex size-7 items-center justify-center rounded-lg ${featured ? "bg-white/10 text-accent" : warn ? "bg-amber-100 text-amber-600" : "bg-teal-50 text-primary"}`}>{icon}</span>
-      </div>
-      <div className="text-3xl font-bold">{value}</div>
-    </div>
-  );
-}
-
-function BarPanel({ title, rows, max, color }: { title: string; rows: { label: string; value: number }[]; max: number; color: string }) {
-  return (
-    <div className="bg-surface rounded-2xl p-6 shadow-[var(--shadow-sm)]">
-      <h3 className="font-bold mb-4">{title}</h3>
-      {rows.length === 0 ? (
-        <div className="text-sm text-ink-4 py-8 text-center">No stock data yet</div>
-      ) : (
-        <div className="space-y-3">
-          {rows.map((r, i) => (
-            <div key={i}>
-              <div className="flex justify-between text-[13px] mb-1">
-                <span className="text-ink-2 font-medium truncate">{r.label}</span>
-                <span className="text-ink font-bold ml-2">{r.value}</span>
-              </div>
-              <div className="h-2 rounded-full bg-canvas overflow-hidden">
-                <div className="h-2 rounded-full transition-all" style={{ width: `${Math.max(2, (r.value / max) * 100)}%`, background: color }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}

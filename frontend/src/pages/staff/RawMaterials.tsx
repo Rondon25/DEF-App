@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { staffApi } from "../../api";
 import { SkeletonList } from "@/components/Skeleton";
+import StatCard from "@/components/ui/StatCard";
 import {
   Boxes, AlertTriangle, ShoppingCart, DollarSign, Search, X, Loader2,
   FileDown, FileSpreadsheet, FileText, Pencil, History, Plus, Minus, ClipboardCheck,
@@ -74,10 +75,10 @@ export default function RawMaterials() {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <Kpi featured label="Stock Lines" value={summary?.total_lines ?? "—"} icon={<Boxes className="size-4" />} />
-        <Kpi label="Critical (below ROP)" value={summary?.critical ?? "—"} icon={<AlertTriangle className="size-4" />} danger={(summary?.critical ?? 0) > 0} />
-        <Kpi label="Reorder Signals" value={summary?.order_lines ?? "—"} icon={<ShoppingCart className="size-4" />} />
-        <Kpi label="Inventory Value" value={summary ? `$${Number(summary.inventory_value).toLocaleString()}` : "—"} icon={<DollarSign className="size-4" />} />
+        <StatCard label="Stock Lines" value={summary?.total_lines ?? "—"} icon={<Boxes className="size-4" />} />
+        <StatCard label="Critical (below ROP)" value={summary?.critical ?? "—"} icon={<AlertTriangle className="size-4" />} warn={(summary?.critical ?? 0) > 0} />
+        <StatCard label="Reorder Signals" value={summary?.order_lines ?? "—"} icon={<ShoppingCart className="size-4" />} />
+        <StatCard label="Inventory Value" value={summary ? `$${Number(summary.inventory_value).toLocaleString()}` : "—"} icon={<DollarSign className="size-4" />} />
       </div>
 
       {/* Search + plant filter + export */}
@@ -250,15 +251,4 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 function SaveBtn({ onClick, saving, disabled, label = "Save" }: { onClick: () => void; saving: boolean; disabled?: boolean; label?: string }) {
   return <button onClick={onClick} disabled={saving || disabled} className="w-full h-12 rounded-full bg-primary text-white font-semibold flex items-center justify-center gap-1.5 hover:bg-teal-700 transition-colors disabled:opacity-60 mt-2">{saving ? <Loader2 className="size-5 animate-spin" /> : label}</button>;
-}
-function Kpi({ featured, label, value, icon, danger }: { featured?: boolean; label: string; value: React.ReactNode; icon: React.ReactNode; danger?: boolean }) {
-  return (
-    <div className={`rounded-2xl p-5 ${featured ? "bg-sidebar text-white" : "bg-surface shadow-[var(--shadow-sm)]"}`}>
-      <div className="flex items-center justify-between mb-4">
-        <span className={`text-[13px] font-medium ${featured ? "text-white/60" : "text-ink-3"}`}>{label}</span>
-        <span className={`flex size-7 items-center justify-center rounded-lg ${featured ? "bg-white/10 text-accent" : danger ? "bg-red-50 text-red-600" : "bg-teal-50 text-primary"}`}>{icon}</span>
-      </div>
-      <div className={`text-3xl font-bold ${danger && !featured ? "text-red-600" : ""}`}>{value}</div>
-    </div>
-  );
 }

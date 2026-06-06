@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { staffApi } from "../../api";
 import { SkeletonList } from "@/components/Skeleton";
+import StatCard from "@/components/ui/StatCard";
 import {
   Factory, Truck, DollarSign, TrendingUp, X, Loader2, Plus, Minus,
   FileDown, FileSpreadsheet, FileText, History,
@@ -61,10 +62,10 @@ export default function FinishedGoods() {
 
       {/* Economics KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <Kpi featured label={`Produced (${days}d)`} value={summary ? Number(summary.produced).toLocaleString() : "—"} icon={<Factory className="size-4" />} />
-        <Kpi label={`Dispatched (${days}d)`} value={summary ? Number(summary.dispatched).toLocaleString() : "—"} icon={<Truck className="size-4" />} />
-        <Kpi label={`Revenue (${days}d)`} value={summary ? `$${Number(summary.revenue).toLocaleString()}` : "—"} icon={<DollarSign className="size-4" />} />
-        <Kpi label="Gross Margin" value={summary ? `$${Number(summary.gross_margin).toLocaleString()}` : "—"} icon={<TrendingUp className="size-4" />} />
+        <StatCard label={`Produced (${days}d)`} value={summary ? Number(summary.produced).toLocaleString() : "—"} icon={<Factory className="size-4" />} />
+        <StatCard label={`Dispatched (${days}d)`} value={summary ? Number(summary.dispatched).toLocaleString() : "—"} icon={<Truck className="size-4" />} />
+        <StatCard label={`Revenue (${days}d)`} value={summary ? `$${Number(summary.revenue).toLocaleString()}` : "—"} icon={<DollarSign className="size-4" />} />
+        <StatCard label="Gross Margin" value={summary ? `$${Number(summary.gross_margin).toLocaleString()}` : "—"} icon={<TrendingUp className="size-4" />} />
       </div>
 
       {/* actions */}
@@ -186,15 +187,4 @@ function LedgerModal({ onClose }: { onClose: () => void }) {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return <div><label className="text-[13px] font-semibold text-ink-2 mb-1.5 block">{label}</label>{children}</div>;
-}
-function Kpi({ featured, label, value, icon }: { featured?: boolean; label: string; value: React.ReactNode; icon: React.ReactNode }) {
-  return (
-    <div className={`rounded-2xl p-5 ${featured ? "bg-sidebar text-white" : "bg-surface shadow-[var(--shadow-sm)]"}`}>
-      <div className="flex items-center justify-between mb-4">
-        <span className={`text-[13px] font-medium ${featured ? "text-white/60" : "text-ink-3"}`}>{label}</span>
-        <span className={`flex size-7 items-center justify-center rounded-lg ${featured ? "bg-white/10 text-accent" : "bg-teal-50 text-primary"}`}>{icon}</span>
-      </div>
-      <div className="text-3xl font-bold">{value}</div>
-    </div>
-  );
 }
