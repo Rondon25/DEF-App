@@ -84,7 +84,7 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
   const Sidebar = (
     <div className="h-full flex flex-col p-5">
       {/* Logo */}
-      <div className="flex items-center gap-2.5 mb-8 px-1">
+      <div className="flex items-center gap-2.5 mb-5 px-1">
         <div className="size-9 rounded-xl bg-white flex items-center justify-center shrink-0">
           <img src={logoMark} alt="" className="size-6" />
         </div>
@@ -95,10 +95,10 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto -mx-1 px-1">
+      <nav className="flex-1 min-h-0">
         {sections.map((section) => (
-          <div key={section.title} className="mb-4 last:mb-0">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-white/30 px-3 mb-2">{section.title}</div>
+          <div key={section.title} className="mb-2.5 last:mb-0">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-white/30 px-3 mb-1">{section.title}</div>
             {section.items.map((n) => {
               const Icon = n.icon;
               const showBadge = n.to === "/staff/customers" && pendingCount > 0;
@@ -109,7 +109,7 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
                   end={n.to === "/staff"}
                   onClick={() => setOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 rounded-full px-4 py-2.5 mb-1 text-sm transition-colors ${
+                    `flex items-center gap-3 rounded-full px-4 py-2 mb-0.5 text-sm transition-colors ${
                       isActive
                         ? "bg-accent text-sidebar font-semibold"
                         : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-white font-medium"
