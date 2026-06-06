@@ -9,59 +9,55 @@ import {
 } from "lucide-react";
 import logoMark from "../assets/logo-mark.svg";
 
-type NavItem = { to: string; icon: any; label: string };
+type NavItem = { to: string; icon: any; label: string; roles: string[] };
+type NavSection = { title: string; items: NavItem[] };
 
-const NAV_BY_ROLE: Record<string, NavItem[]> = {
-  admin: [
-    { to: "/staff",           icon: LayoutDashboard, label: "Dashboard" },
-    { to: "/staff/customers", icon: Users,           label: "Customers" },
-    { to: "/staff/orders",    icon: ClipboardList,   label: "Orders" },
-    { to: "/staff/catalog",   icon: Layers,          label: "Catalogue" },
-    { to: "/staff/stock",     icon: Package,         label: "Stock" },
-    { to: "/staff/finished-goods", icon: PackageCheck, label: "Finished Goods" },
-    { to: "/staff/raw-materials", icon: Boxes,       label: "Raw Materials" },
-    { to: "/staff/procurement",   icon: ShoppingCart, label: "Procurement" },
-    { to: "/staff/production",     icon: Cog,         label: "Production" },
-    { to: "/staff/forecast",       icon: TrendingUp,  label: "Forecast" },
-    { to: "/staff/plants",    icon: Factory,         label: "Plants" },
-    { to: "/staff/config",    icon: Settings2,       label: "Configuration" },
-  ],
-  central_team: [
-    { to: "/staff",           icon: LayoutDashboard, label: "Dashboard" },
-    { to: "/staff/customers", icon: Users,           label: "Customers" },
-    { to: "/staff/orders",    icon: ClipboardList,   label: "Orders" },
-    { to: "/staff/catalog",   icon: Layers,          label: "Catalogue" },
-    { to: "/staff/finished-goods", icon: PackageCheck, label: "Finished Goods" },
-    { to: "/staff/raw-materials", icon: Boxes,       label: "Raw Materials" },
-    { to: "/staff/procurement",   icon: ShoppingCart, label: "Procurement" },
-    { to: "/staff/production",     icon: Cog,         label: "Production" },
-    { to: "/staff/forecast",       icon: TrendingUp,  label: "Forecast" },
-    { to: "/staff/plants",    icon: Factory,         label: "Plants" },
-    { to: "/staff/config",    icon: Settings2,       label: "Configuration" },
-  ],
-  finance: [
-    { to: "/staff",        icon: LayoutDashboard, label: "Dashboard" },
-    { to: "/staff/orders", icon: ClipboardList,   label: "Orders" },
-  ],
-  operations: [
-    { to: "/staff",        icon: LayoutDashboard, label: "Dashboard" },
-    { to: "/staff/orders", icon: ClipboardList,   label: "Orders" },
-    { to: "/staff/stock",  icon: Package,         label: "Stock" },
-    { to: "/staff/finished-goods", icon: PackageCheck, label: "Finished Goods" },
-    { to: "/staff/raw-materials", icon: Boxes,       label: "Raw Materials" },
-    { to: "/staff/procurement",   icon: ShoppingCart, label: "Procurement" },
-    { to: "/staff/production",     icon: Cog,         label: "Production" },
-    { to: "/staff/forecast",       icon: TrendingUp,  label: "Forecast" },
-    { to: "/staff/plants", icon: Factory,         label: "Plants" },
-    { to: "/staff/config", icon: Settings2,       label: "Configuration" },
-  ],
-  sales: [
-    { to: "/staff",           icon: LayoutDashboard, label: "Dashboard" },
-    { to: "/staff/customers", icon: Users,           label: "Customers" },
-    { to: "/staff/orders",    icon: ClipboardList,   label: "Orders" },
-    { to: "/staff/forecast",  icon: TrendingUp,      label: "Forecast" },
-  ],
-};
+// Single source of truth — each item lists the roles allowed to see it.
+const NAV_SECTIONS: NavSection[] = [
+  {
+    title: "Overview",
+    items: [
+      { to: "/staff", icon: LayoutDashboard, label: "Dashboard", roles: ["admin","central_team","finance","operations","sales"] },
+    ],
+  },
+  {
+    title: "Sales",
+    items: [
+      { to: "/staff/customers", icon: Users,         label: "Customers", roles: ["admin","central_team","sales"] },
+      { to: "/staff/orders",    icon: ClipboardList, label: "Orders",    roles: ["admin","central_team","finance","operations","sales"] },
+      { to: "/staff/catalog",   icon: Layers,        label: "Catalogue", roles: ["admin","central_team"] },
+    ],
+  },
+  {
+    title: "Inventory",
+    items: [
+      { to: "/staff/stock",          icon: Package,      label: "Stock",          roles: ["admin","operations"] },
+      { to: "/staff/finished-goods", icon: PackageCheck, label: "Finished Goods", roles: ["admin","central_team","operations"] },
+      { to: "/staff/raw-materials",  icon: Boxes,        label: "Raw Materials",  roles: ["admin","central_team","operations"] },
+    ],
+  },
+  {
+    title: "Supply Chain",
+    items: [
+      { to: "/staff/procurement", icon: ShoppingCart, label: "Procurement", roles: ["admin","central_team","operations"] },
+      { to: "/staff/production",   icon: Cog,          label: "Production",   roles: ["admin","central_team","operations"] },
+      { to: "/staff/forecast",     icon: TrendingUp,   label: "Forecast",     roles: ["admin","central_team","operations","sales"] },
+    ],
+  },
+  {
+    title: "Setup",
+    items: [
+      { to: "/staff/plants", icon: Factory,    label: "Plants",        roles: ["admin","central_team","operations"] },
+      { to: "/staff/config", icon: Settings2,  label: "Configuration", roles: ["admin","central_team","operations"] },
+    ],
+  },
+];
+
+function sectionsForRole(role: string): NavSection[] {
+  return NAV_SECTIONS
+    .map((s) => ({ ...s, items: s.items.filter((i) => i.roles.includes(role)) }))
+    .filter((s) => s.items.length > 0);
+}
 
 const ROLE_COLOR: Record<string, string> = {
   admin: "#a78bfa", central_team: "#5eead4", finance: "#86efac",
@@ -71,8 +67,8 @@ const ROLE_COLOR: Record<string, string> = {
 export default function StaffLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const user = getStaffUser();
-  const nav = NAV_BY_ROLE[user?.role || "sales"] || NAV_BY_ROLE.sales;
   const roleColor = ROLE_COLOR[user?.role || "sales"] || "#5eead4";
+  const sections = sectionsForRole(user?.role || "sales");
   const [open, setOpen] = useState(false);
 
   // Live count of customers awaiting approval (for the nav badge)
@@ -99,35 +95,39 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
       </div>
 
       {/* Nav */}
-      <nav className="flex-1">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-white/30 px-3 mb-3">Navigation</div>
-        {nav.map((n) => {
-          const Icon = n.icon;
-          const showBadge = n.to === "/staff/customers" && pendingCount > 0;
-          return (
-            <NavLink
-              key={n.to}
-              to={n.to}
-              end={n.to === "/staff"}
-              onClick={() => setOpen(false)}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-full px-4 py-2.5 mb-1 text-sm transition-colors ${
-                  isActive
-                    ? "bg-accent text-sidebar font-semibold"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-white font-medium"
-                }`
-              }
-            >
-              <Icon className="size-[18px] shrink-0" />
-              <span className="flex-1">{n.label}</span>
-              {showBadge && (
-                <span className="flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold">
-                  {pendingCount}
-                </span>
-              )}
-            </NavLink>
-          );
-        })}
+      <nav className="flex-1 overflow-y-auto -mx-1 px-1">
+        {sections.map((section) => (
+          <div key={section.title} className="mb-4 last:mb-0">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-white/30 px-3 mb-2">{section.title}</div>
+            {section.items.map((n) => {
+              const Icon = n.icon;
+              const showBadge = n.to === "/staff/customers" && pendingCount > 0;
+              return (
+                <NavLink
+                  key={n.to}
+                  to={n.to}
+                  end={n.to === "/staff"}
+                  onClick={() => setOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 rounded-full px-4 py-2.5 mb-1 text-sm transition-colors ${
+                      isActive
+                        ? "bg-accent text-sidebar font-semibold"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-white font-medium"
+                    }`
+                  }
+                >
+                  <Icon className="size-[18px] shrink-0" />
+                  <span className="flex-1">{n.label}</span>
+                  {showBadge && (
+                    <span className="flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold">
+                      {pendingCount}
+                    </span>
+                  )}
+                </NavLink>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
       {/* User card */}
