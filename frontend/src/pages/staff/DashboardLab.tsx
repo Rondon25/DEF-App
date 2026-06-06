@@ -1,26 +1,28 @@
 /* ─────────────────────────────────────────────────────────────────────────────
-   DASHBOARD LAB — experimental recreation of the Figma "Inventory Management DEF"
-   dashboard, wired to our real data. Standalone full-screen layout (own sidebar +
-   right rail). Self-contained inline-SVG charts. Route: /staff/dashboard-lab
+   DASHBOARD LAB — recreation of the Figma "Inventory Management DEF" dashboard,
+   wired to real data. Now built on the shared lab toolkit (theme/lab + charts/ui).
+   Route: /staff/dashboard-lab
    ───────────────────────────────────────────────────────────────────────────── */
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { staffApi } from "../../api";
 import { getStaffUser, clearStaffAuth } from "../../hooks/useAuth";
+import { LAB as C, SERIES } from "../../theme/lab";
+import LabCard from "../../components/ui/LabCard";
+import StatCard from "../../components/ui/StatCard";
+import SectionLabel from "../../components/ui/SectionLabel";
+import Donut from "../../components/charts/Donut";
+import AreaChart from "../../components/charts/AreaChart";
+import BarChart from "../../components/charts/BarChart";
+import Sparkline from "../../components/charts/Sparkline";
 import {
   LayoutDashboard, Package, Boxes, ShoppingCart, Factory, ClipboardList,
-  Search, Bell, Settings2, LogOut, TrendingUp, TrendingDown, Layers, Cog,
-  Users, PackageCheck,
+  Search, Bell, Settings2, LogOut, Layers, Cog, Users, PackageCheck,
 } from "lucide-react";
 import logoMark from "../../assets/logo-mark.svg";
 
-const C = {
-  sidebar: "#15151B", sidebar2: "#1F1F27", canvas: "#F3F3F2",
-  lime: "#E4F060", lime2: "#B4CC3C", limeSoft: "#FAFCE0",
-  ink: "#16161C", sub: "#8A8A93", border: "#ECECEA",
-};
-const SERIES = [C.lime, "#16161C", "#B4CC3C", "#C9CDD4", "#6B6B73"];
+const RED = C.red;
+const CARD = { background: C.card, boxShadow: "0 1px 2px rgba(16,16,28,.04), 0 1px 3px rgba(16,16,28,.06)" };
 
 export default function DashboardLab() {
   const navigate = useNavigate();
@@ -37,28 +39,26 @@ export default function DashboardLab() {
 
   const inTransit = orders.filter(o => o.status === "shipped").length;
   const reorder = mfg?.kpis?.active_reorder_signals ?? 0;
+  const openPos = pos.filter(p => ["draft", "pending", "ordered"].includes(p.status));
 
   const navSections = [
-    { title: "Overview", items: [
-      { icon: LayoutDashboard, label: "Dashboard", to: "/staff/dashboard-lab", active: true },
-    ]},
+    { title: "Overview", items: [{ icon: LayoutDashboard, label: "Dashboard", to: "/staff/dashboard-lab", active: true }] },
     { title: "Sales", items: [
-      { icon: Users,         label: "Customers", to: "/staff/customers" },
-      { icon: ClipboardList, label: "Orders",    to: "/staff/orders" },
-      { icon: Layers,        label: "Catalogue", to: "/staff/catalog" },
+      { icon: Users, label: "Customers", to: "/staff/customers" },
+      { icon: ClipboardList, label: "Orders", to: "/staff/orders" },
+      { icon: Layers, label: "Catalogue", to: "/staff/catalog" },
     ]},
     { title: "Inventory", items: [
-      { icon: Package,      label: "Stock",          to: "/staff/stock" },
+      { icon: Package, label: "Stock", to: "/staff/stock" },
       { icon: PackageCheck, label: "Finished Goods", to: "/staff/finished-goods" },
-      { icon: Boxes,        label: "Raw Materials",  to: "/staff/raw-materials" },
+      { icon: Boxes, label: "Raw Materials", to: "/staff/raw-materials" },
     ]},
     { title: "Supply Chain", items: [
       { icon: ShoppingCart, label: "Procurement", to: "/staff/procurement" },
-      { icon: Cog,          label: "Production",   to: "/staff/production" },
-      { icon: TrendingUp,   label: "Forecast",     to: "/staff/forecast" },
+      { icon: Cog, label: "Production", to: "/staff/production" },
     ]},
     { title: "Setup", items: [
-      { icon: Factory,   label: "Plants",        to: "/staff/plants" },
+      { icon: Factory, label: "Plants", to: "/staff/plants" },
       { icon: Settings2, label: "Configuration", to: "/staff/config" },
     ]},
   ];
@@ -69,18 +69,18 @@ export default function DashboardLab() {
       <aside className="w-[230px] shrink-0 flex-col p-5 hidden lg:flex" style={{ background: C.sidebar, color: "#fff" }}>
         <div className="flex items-center gap-2.5 mb-8 px-1">
           <div className="size-9 rounded-xl bg-white flex items-center justify-center"><img src={logoMark} alt="" className="size-6" /></div>
-          <span className="font-bold text-[15px]" style={{ color: C.lime }}>Rohan Energy</span>
+          <span className="font-bold text-[15px]" style={{ color: C.accent }}>Rohan Energy</span>
         </div>
         <nav className="flex-1 overflow-y-auto -mx-1 px-1">
           {navSections.map(sec => (
             <div key={sec.title} className="mb-3 last:mb-0">
-              <div className="text-[10px] font-bold uppercase tracking-wider px-3.5 mb-1.5" style={{ color: "#6b6b73" }}>{sec.title}</div>
+              <SectionLabel className="px-3.5 mb-1.5" color="#6b6b73">{sec.title}</SectionLabel>
               {sec.items.map(n => {
                 const Icon = n.icon;
                 return (
                   <Link key={n.label} to={n.to}
                     className="flex items-center gap-3 rounded-xl px-3.5 py-2 mb-0.5 text-[13px] font-medium transition-colors"
-                    style={(n as any).active ? { background: C.lime, color: C.ink } : { color: "#9c9ca6" }}>
+                    style={(n as any).active ? { background: C.accent, color: C.ink } : { color: "#9c9ca6" }}>
                     <Icon className="size-[18px]" /> {n.label}
                   </Link>
                 );
@@ -88,15 +88,13 @@ export default function DashboardLab() {
             </div>
           ))}
         </nav>
-        <button onClick={() => { clearStaffAuth(); navigate("/staff/login"); }}
-          className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[13px] font-medium" style={{ color: "#9c9ca6" }}>
+        <button onClick={() => { clearStaffAuth(); navigate("/staff/login"); }} className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[13px] font-medium" style={{ color: "#9c9ca6" }}>
           <LogOut className="size-[18px]" /> Logout
         </button>
       </aside>
 
       {/* Main */}
       <div className="flex-1 min-w-0 min-h-0 flex flex-col">
-        {/* Topbar */}
         <header className="h-16 flex items-center gap-4 px-6 border-b" style={{ borderColor: C.border, background: "#fff" }}>
           <h1 className="text-lg font-bold">Dashboard</h1>
           <div className="relative ml-4 hidden md:block">
@@ -114,28 +112,25 @@ export default function DashboardLab() {
 
         <div className="flex-1 min-h-0 overflow-y-auto p-6">
           <div className="grid gap-5 xl:[grid-template-columns:minmax(0,1fr)_minmax(0,1fr)_300px]">
-            {/* KPI row — cols 1-2, row 1 */}
+            {/* KPI row */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 xl:col-span-2 xl:col-start-1 xl:row-start-1">
-              <Kpi label="Total Products" value={stock?.total_products ?? "—"} delta="+3.2%" up spark={[3,5,4,6,5,7,8]} />
-              <Kpi label="Available Stock" value={stock ? Math.round(stock.total_units).toLocaleString() : "—"} delta="+1.8%" up spark={[6,5,7,6,8,7,9]} />
-              <Kpi label="In Transit" value={inTransit} delta="-0.5%" spark={[5,6,4,5,3,4,3]} />
-              <Kpi label="Reorder Signals" value={reorder} delta={reorder>0?"Action":"Clear"} up={reorder===0} spark={[2,3,2,4,3,5,reorder>0?6:2]} />
+              <StatCard label="Total Products" value={stock?.total_products ?? "—"} delta="+3.2%" up spark={[3,5,4,6,5,7,8]} />
+              <StatCard label="Available Stock" value={stock ? Math.round(stock.total_units).toLocaleString() : "—"} delta="+1.8%" up spark={[6,5,7,6,8,7,9]} />
+              <StatCard label="In Transit" value={inTransit} delta="-0.5%" spark={[5,6,4,5,3,4,3]} />
+              <StatCard label="Reorder Signals" value={reorder} delta={reorder>0?"Action":"Clear"} up={reorder===0} spark={[2,3,2,4,3,5,reorder>0?6:2]} />
             </div>
 
-            {/* Plant Production — col 3, spans rows 1-2 */}
-            <div className="hidden xl:flex xl:flex-col rounded-2xl p-4 xl:col-start-3 xl:row-start-1 xl:row-span-2 xl:h-full" style={{ background: "#fff", boxShadow: "0 1px 2px rgba(16,16,28,.04), 0 1px 3px rgba(16,16,28,.06)" }}>
+            {/* Plant Production — col 3, rows 1-2 */}
+            <div className="hidden xl:flex xl:flex-col rounded-2xl p-4 xl:col-start-3 xl:row-start-1 xl:row-span-2 xl:h-full" style={CARD}>
               <div className="flex items-center justify-between mb-1 shrink-0"><h3 className="font-bold text-sm">Plant Production</h3><span style={{color:C.sub}}>···</span></div>
               <div className="flex-1 flex flex-col justify-around divide-y" style={{ borderColor: C.border }}>
                 {(mfg?.plant_utilization ?? []).map((p:any,i:number)=>{
-                  const util=Math.round(p.utilization||0); const t=trendFor(util,i+1); const col=t.up?C.lime2:RED;
+                  const util=Math.round(p.utilization||0); const t=trendFor(util,i+1); const col=t.up?C.chart:RED;
                   return (
                     <div key={p.plant_name} className="py-3 first:pt-1">
                       <div className="text-[12px] mb-0.5" style={{color:C.sub}}>{p.plant_name}</div>
                       <div className="flex items-end justify-between gap-2">
-                        <div>
-                          <div className="text-xl font-bold leading-none">{util}%</div>
-                          <div className="text-[11px] mt-1" style={{color:C.sub}}>Last week: {t.prev}%</div>
-                        </div>
+                        <div><div className="text-xl font-bold leading-none">{util}%</div><div className="text-[11px] mt-1" style={{color:C.sub}}>Last week: {t.prev}%</div></div>
                         <Sparkline data={t.pts} color={col} w={84} h={34} fill hover suffix="%" />
                       </div>
                     </div>
@@ -145,8 +140,8 @@ export default function DashboardLab() {
               </div>
             </div>
 
-            {/* Profit by category — col 1, row 2 */}
-            <Card title="Profit by Product Category" className="xl:col-start-1 xl:row-start-2">
+            {/* Profit by category */}
+            <LabCard title="Profit by Product Category" className="xl:col-start-1 xl:row-start-2">
               <div className="flex items-center gap-5">
                 <Donut segments={(topSkus.length?topSkus:[{total_revenue:1,name:"—"}]).map((s:any,i:number)=>({ value:s.total_revenue||1, color:SERIES[i%SERIES.length], label:s.name||"—", display:`$${Number(s.total_revenue||0).toLocaleString()}` }))}
                   centerTop={`$${Number(anal?.total_revenue||0).toLocaleString()}`} centerSub="Revenue" />
@@ -161,54 +156,43 @@ export default function DashboardLab() {
                   {topSkus.length===0 && <div className="text-[13px]" style={{color:C.sub}}>No sales yet</div>}
                 </div>
               </div>
-            </Card>
+            </LabCard>
 
-            {/* Order Summary — col 2, row 2 */}
-            <Card title="Order Summary" className="xl:col-start-2 xl:row-start-2" right={<span className="text-2xl font-bold">${Number(anal?.total_revenue||0).toLocaleString()}</span>}>
-              <AreaChart data={rev} />
-            </Card>
+            {/* Order Summary */}
+            <LabCard title="Order Summary" className="xl:col-start-2 xl:row-start-2" right={<span className="text-2xl font-bold">${Number(anal?.total_revenue||0).toLocaleString()}</span>}>
+              <AreaChart data={rev.map((d:any)=>({ label: d.date, value: d.revenue }))} prefix="$" />
+            </LabCard>
 
-            {/* Stock Level — col 1, row 3 */}
-            <Card title="Stock Level" className="xl:col-start-1 xl:row-start-3" right={<span className="text-xl font-bold">{stock?.total_products ?? 0}<span className="text-[12px] font-normal" style={{color:C.sub}}> SKUs</span></span>}>
-              <div className="space-y-3 mt-1">
-                {(stock?.top_products ?? []).slice(0,5).map((p:any,i:number)=>{
-                  const max = stock.top_products[0]?.qty || 1;
-                  return (
-                    <div key={i}>
-                      <div className="flex justify-between text-[13px] mb-1"><span className="truncate pr-2">{p.name}</span><span className="font-semibold shrink-0">{Math.round(p.qty).toLocaleString()}</span></div>
-                      <div className="h-2 rounded-full" style={{ background: C.canvas }}><div className="h-2 rounded-full" style={{ width: `${Math.max(4,(p.qty/max)*100)}%`, background: i===0?C.lime:C.lime2 }} /></div>
-                    </div>
-                  );
-                })}
-                {(!stock || stock.top_products.length===0) && <div className="text-[13px]" style={{color:C.sub}}>No stock data</div>}
-              </div>
-            </Card>
+            {/* Stock Level */}
+            <LabCard title="Stock Level" className="xl:col-start-1 xl:row-start-3" right={<span className="text-xl font-bold">{stock?.total_products ?? 0}<span className="text-[12px] font-normal" style={{color:C.sub}}> SKUs</span></span>}>
+              <BarChart data={(stock?.top_products ?? []).slice(0,5).map((p:any)=>({ label: p.name, value: p.qty }))} />
+            </LabCard>
 
-            {/* Upcoming Restock — col 2, row 3 */}
-            <Card title="Upcoming Restock" className="xl:col-start-2 xl:row-start-3">
+            {/* Upcoming Restock */}
+            <LabCard title="Upcoming Restock" className="xl:col-start-2 xl:row-start-3">
               <div className="divide-y" style={{ borderColor: C.border }}>
-                {pos.filter(p=>["draft","pending","ordered"].includes(p.status)).slice(0,5).map(p=>(
+                {openPos.slice(0,5).map(p=>(
                   <div key={p.id} className="flex items-center gap-3 py-2.5">
-                    <span className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: C.limeSoft, color: C.lime2 }}><Boxes className="size-4" /></span>
+                    <span className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: C.limeSoft, color: C.chart }}><Boxes className="size-4" /></span>
                     <div className="flex-1 min-w-0"><div className="text-[13px] font-semibold truncate">{p.material_name}</div><div className="text-[11px]" style={{color:C.sub}}>{p.plant_name} · {Math.round(p.order_qty).toLocaleString()} {p.unit}</div></div>
                     <span className="text-[12px] font-medium shrink-0" style={{color:C.sub}}>{p.expected_arrival || "—"}</span>
                   </div>
                 ))}
-                {pos.filter(p=>["draft","pending","ordered"].includes(p.status)).length===0 && <div className="text-[13px] py-3" style={{color:C.sub}}>No open purchase orders</div>}
+                {openPos.length===0 && <div className="text-[13px] py-3" style={{color:C.sub}}>No open purchase orders</div>}
               </div>
-            </Card>
+            </LabCard>
 
-            {/* Recent Activity — col 3, spans rows 3-4 */}
-            <div className="hidden xl:flex xl:flex-col rounded-2xl p-4 xl:col-start-3 xl:row-start-3 xl:row-span-2 xl:h-full overflow-hidden" style={{ background: "#fff", boxShadow: "0 1px 2px rgba(16,16,28,.04), 0 1px 3px rgba(16,16,28,.06)" }}>
+            {/* Recent Activity — col 3, rows 3-4 */}
+            <div className="hidden xl:flex xl:flex-col rounded-2xl p-4 xl:col-start-3 xl:row-start-3 xl:row-span-2 xl:h-full overflow-hidden" style={CARD}>
               <div className="flex items-center justify-between mb-3 shrink-0"><h3 className="font-bold text-sm">Recent Activity</h3><span style={{color:C.sub}}>···</span></div>
               <div className="flex-1 min-h-0 overflow-y-auto pr-1">
                 {buildActivity(orders).map(group => (
                   <div key={group.label} className="mb-4 last:mb-0">
-                    <div className="text-[11px] font-bold uppercase tracking-wide mb-2.5" style={{color:C.sub}}>{group.label}</div>
+                    <SectionLabel className="mb-2.5" color={C.sub}>{group.label}</SectionLabel>
                     <div className="space-y-3.5">
                       {group.items.map((a:any)=>(
                         <div key={a.id} className="flex gap-2.5">
-                          <div className="size-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style={{ background: C.lime, color: C.ink }}>{a.initial}</div>
+                          <div className="size-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style={{ background: C.accent, color: C.ink }}>{a.initial}</div>
                           <div className="min-w-0">
                             <div className="text-[12px] leading-snug"><span className="font-semibold">{a.name}</span> {a.text}</div>
                             <div className="text-[11px] mt-0.5" style={{color:C.sub}}>{a.time}</div>
@@ -222,8 +206,8 @@ export default function DashboardLab() {
               </div>
             </div>
 
-            {/* Products — cols 1-2, row 4 */}
-            <Card title="Products" className="xl:col-span-2 xl:col-start-1 xl:row-start-4">
+            {/* Products */}
+            <LabCard title="Products" className="xl:col-span-2 xl:col-start-1 xl:row-start-4">
               <div className="overflow-x-auto -mx-1">
                 <table className="w-full min-w-[560px] text-[13px]">
                   <thead><tr style={{ color: C.sub }} className="text-left text-[11px] uppercase tracking-wide">
@@ -235,15 +219,13 @@ export default function DashboardLab() {
                         <td className="py-2.5 px-2 font-medium">{r.name}</td>
                         <td className="py-2.5 px-2 font-mono" style={{color:C.sub}}>{r.sku_code}</td>
                         <td className="py-2.5 px-2 font-semibold">{Math.round(r.total_qty).toLocaleString()} <span className="font-normal" style={{color:C.sub}}>{r.unit}</span></td>
-                        <td className="py-2.5 px-2">
-                          <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full" style={ r.status==="low" ? { background:"#FEE2E2", color:"#B91C1C" } : { background:C.limeSoft, color:C.lime2 } }>{r.status==="low"?"Low":"In stock"}</span>
-                        </td>
+                        <td className="py-2.5 px-2"><span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full" style={ r.status==="low" ? { background:"#FEE2E2", color:"#B91C1C" } : { background:C.limeSoft, color:C.chart } }>{r.status==="low"?"Low":"In stock"}</span></td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            </Card>
+            </LabCard>
           </div>
         </div>
       </div>
@@ -251,65 +233,7 @@ export default function DashboardLab() {
   );
 }
 
-/* ── pieces ─────────────────────────────────────────────────────────────────── */
-function Card({ title, right, children, className = "" }: { title: string; right?: React.ReactNode; children: React.ReactNode; className?: string }) {
-  return (
-    <div className={`rounded-2xl p-5 ${className}`} style={{ background: "#fff", boxShadow: "0 1px 2px rgba(16,16,28,.04), 0 1px 3px rgba(16,16,28,.06)" }}>
-      <div className="flex items-center justify-between mb-4"><h3 className="font-bold text-sm">{title}</h3>{right}</div>
-      {children}
-    </div>
-  );
-}
-
-function Kpi({ label, value, delta, up, spark }: { label: string; value: React.ReactNode; delta: string; up?: boolean; spark: number[] }) {
-  return (
-    <div className="rounded-2xl p-4" style={{ background: "#fff", boxShadow: "0 1px 2px rgba(16,16,28,.04), 0 1px 3px rgba(16,16,28,.06)" }}>
-      <div className="flex items-start justify-between">
-        <span className="text-[12px]" style={{ color: C.sub }}>{label}</span>
-        <span className="text-[11px] font-semibold inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full" style={ up ? { background: C.limeSoft, color: C.lime2 } : { background: "#FEE2E2", color: "#B91C1C" } }>
-          {up ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />} {delta}
-        </span>
-      </div>
-      <div className="flex items-end justify-between mt-2">
-        <span className="text-2xl font-bold">{value}</span>
-        <Sparkline data={spark} />
-      </div>
-    </div>
-  );
-}
-
-function Sparkline({ data, color = C.lime2, w = 60, h = 24, fill = false, hover = false, suffix = "" }: { data: number[]; color?: string; w?: number; h?: number; fill?: boolean; hover?: boolean; suffix?: string }) {
-  const [hi, setHi] = useState<number | null>(null);
-  const max=Math.max(...data),min=Math.min(...data),rng=max-min||1;
-  const X=(i:number)=>(i/(data.length-1))*w, Y=(v:number)=>h-((v-min)/rng)*(h-4)-2;
-  const line=data.map((v,i)=>`${X(i)},${Y(v)}`).join(" ");
-  const gid=`sp-${color.replace("#","")}-${w}`;
-  const svg = (
-    <svg width={w} height={h} className="block">
-      {fill && (<>
-        <defs><linearGradient id={gid} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={color} stopOpacity="0.35" /><stop offset="100%" stopColor={color} stopOpacity="0" /></linearGradient></defs>
-        <polygon points={`0,${h} ${line} ${w},${h}`} fill={`url(#${gid})`} />
-      </>)}
-      <polyline points={line} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      {hover && hi!=null && <circle cx={X(hi)} cy={Y(data[hi])} r="3" fill={color} stroke="#fff" strokeWidth="1.5" />}
-    </svg>
-  );
-  if (!hover) return svg;
-  return (
-    <div className="relative" style={{ width: w }}
-      onMouseMove={(e)=>{ const r=e.currentTarget.getBoundingClientRect(); setHi(Math.round(Math.min(1,Math.max(0,(e.clientX-r.left)/r.width))*(data.length-1))); }}
-      onMouseLeave={()=>setHi(null)}>
-      {svg}
-      {hi!=null && (
-        <div className="absolute -translate-x-1/2 -top-6 pointer-events-none z-10" style={{ left: `${(hi/(data.length-1))*100}%` }}>
-          <div className="rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-white whitespace-nowrap" style={{ background: C.ink }}>{Math.round(data[hi])}{suffix}</div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// deterministic mini-trend from a value (no weekly history stored yet)
+/* deterministic mini-trend from a value (no weekly history stored yet) */
 function trendFor(value: number, seed: number) {
   const pts = Array.from({ length: 7 }, (_, i) => {
     const wiggle = Math.sin((i + seed) * 1.3) * 6 + Math.cos((i + seed) * 0.7) * 4;
@@ -317,67 +241,6 @@ function trendFor(value: number, seed: number) {
   });
   const prev = Math.max(0, Math.round(value - (Math.sin(seed) * 4)));
   return { pts, prev, up: value >= prev };
-}
-
-const RED = "#E5484D";
-
-function Donut({ segments, centerTop, centerSub }: { segments: { value: number; color: string; label?: string; display?: string }[]; centerTop: string; centerSub: string }) {
-  const [hi, setHi] = useState<number | null>(null);
-  const total=segments.reduce((s,x)=>s+x.value,0)||1;
-  const r=52, c=2*Math.PI*r; let off=0;
-  const h = hi!=null ? segments[hi] : null;
-  return (
-    <div className="relative shrink-0" style={{ width: 132, height: 132 }}>
-      <svg width="132" height="132" viewBox="0 0 132 132">
-        <circle cx="66" cy="66" r={r} fill="none" stroke={C.canvas} strokeWidth="16" />
-        {segments.map((s,i)=>{ const len=(s.value/total)*c; const el=(
-          <circle key={i} cx="66" cy="66" r={r} fill="none" stroke={s.color} strokeWidth={hi===i?21:16}
-            strokeDasharray={`${len} ${c-len}`} strokeDashoffset={-off} transform="rotate(-90 66 66)" strokeLinecap="butt"
-            style={{ cursor: "pointer", transition: "stroke-width .15s", opacity: hi==null||hi===i?1:0.45 }}
-            onMouseEnter={()=>setHi(i)} onMouseLeave={()=>setHi(null)} />
-        ); off+=len; return el; })}
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-3">
-        {h ? (<><span className="text-[10px] truncate max-w-[92px]" style={{color:C.sub}}>{h.label}</span><span className="text-[14px] font-bold">{h.display}</span></>)
-           : (<><span className="text-[15px] font-bold">{centerTop}</span><span className="text-[10px]" style={{color:C.sub}}>{centerSub}</span></>)}
-      </div>
-    </div>
-  );
-}
-
-function AreaChart({ data }: { data: { date: string; revenue: number }[] }) {
-  const [hi, setHi] = useState<number | null>(null);
-  const w=440,h=120;
-  if(!data.length) return <div className="h-[120px] flex items-center justify-center text-[13px]" style={{color:C.sub}}>No data</div>;
-  const vals=data.map(d=>d.revenue);
-  const max=Math.max(...vals,1),min=Math.min(...vals,0),rng=max-min||1;
-  const X=(i:number)=>(i/(data.length-1))*w, Y=(v:number)=>h-((v-min)/rng)*(h-10)-5;
-  const line=vals.map((v,i)=>`${X(i)},${Y(v)}`).join(" ");
-  const area=`0,${h} ${line} ${w},${h}`;
-  const frac = hi!=null ? hi/(data.length-1) : 0;
-  return (
-    <div className="relative" onMouseLeave={()=>setHi(null)}
-      onMouseMove={(e)=>{ const r=e.currentTarget.getBoundingClientRect(); setHi(Math.round(Math.min(1,Math.max(0,(e.clientX-r.left)/r.width))*(data.length-1))); }}>
-      <svg width="100%" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="block" style={{ height: 120 }}>
-        <defs><linearGradient id="lab-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={C.lime} stopOpacity="0.55" /><stop offset="100%" stopColor={C.lime} stopOpacity="0" /></linearGradient></defs>
-        <polygon points={area} fill="url(#lab-area)" />
-        <polyline points={line} fill="none" stroke={C.lime2} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-        {hi!=null && <line x1={X(hi)} y1="0" x2={X(hi)} y2={h} stroke={C.lime2} strokeWidth="1" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />}
-      </svg>
-      {hi!=null && (
-        <>
-          {/* marker dot in screen space (so it isn't distorted by preserveAspectRatio) */}
-          <div className="absolute size-2.5 rounded-full pointer-events-none" style={{ left: `${frac*100}%`, top: Y(vals[hi]), background: C.lime2, border: "2px solid #fff", transform: "translate(-50%,-50%)" }} />
-          <div className="absolute -translate-x-1/2 pointer-events-none z-10" style={{ left: `${frac*100}%`, top: -6 }}>
-            <div className="rounded-lg px-2 py-1 text-[11px] font-semibold text-white whitespace-nowrap text-center" style={{ background: C.ink }}>
-              ${Number(vals[hi]).toLocaleString()}<div className="font-normal opacity-70 text-[10px]">{data[hi].date}</div>
-            </div>
-          </div>
-        </>
-      )}
-      <div className="flex justify-between text-[11px] mt-2" style={{ color: C.sub }}><span>{data[0]?.date}</span><span>{data[data.length-1]?.date}</span></div>
-    </div>
-  );
 }
 
 const VERB: Record<string, string> = {
@@ -402,8 +265,7 @@ function buildActivity(orders: any[]) {
     .map((o) => {
       const d = new Date(o.updated_at || o.created_at);
       return {
-        id: o.id, group: dayLabel(d),
-        initial: (o.customer_name || "?")[0]?.toUpperCase(),
+        id: o.id, group: dayLabel(d), initial: (o.customer_name || "?")[0]?.toUpperCase(),
         name: o.customer_name || "Customer",
         text: `${VERB[o.status] || "updated order"} ${o.order_number} ($${o.total_amount?.toFixed(0)})`,
         time: d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
@@ -411,14 +273,7 @@ function buildActivity(orders: any[]) {
     });
   const order = ["Today", "Yesterday"];
   const groups: { label: string; items: any[] }[] = [];
-  items.forEach((it) => {
-    let g = groups.find((x) => x.label === it.group);
-    if (!g) { g = { label: it.group, items: [] }; groups.push(g); }
-    g.items.push(it);
-  });
-  groups.sort((a, b) => {
-    const ai = order.indexOf(a.label), bi = order.indexOf(b.label);
-    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
-  });
+  items.forEach((it) => { let g = groups.find(x => x.label === it.group); if (!g) { g = { label: it.group, items: [] }; groups.push(g); } g.items.push(it); });
+  groups.sort((a, b) => { const ai = order.indexOf(a.label), bi = order.indexOf(b.label); return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi); });
   return groups;
 }
