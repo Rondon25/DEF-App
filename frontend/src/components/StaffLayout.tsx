@@ -5,9 +5,9 @@ import { clearStaffAuth, getStaffUser } from "../hooks/useAuth";
 import { staffApi } from "../api";
 import {
   LayoutDashboard, Users, ClipboardList, Layers,
-  Package, Droplet, Menu, X, LogOut, Bell, Factory, Settings2, Boxes, ShoppingCart, PackageCheck, Cog, TrendingUp,
+  Package, Menu, X, LogOut, Bell, Factory, Settings2, Boxes, ShoppingCart, PackageCheck, Cog, TrendingUp,
 } from "lucide-react";
-import logoFull from "../assets/logo-full.svg";
+import logoMark from "../assets/logo-mark.svg";
 
 type NavItem = { to: string; icon: any; label: string };
 
@@ -89,8 +89,8 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
     <div className="h-full flex flex-col p-5">
       {/* Logo */}
       <div className="flex items-center gap-2.5 mb-8 px-1">
-        <div className="size-9 rounded-xl bg-accent flex items-center justify-center text-sidebar shrink-0">
-          <Droplet className="size-5" fill="currentColor" />
+        <div className="size-9 rounded-xl bg-white flex items-center justify-center shrink-0">
+          <img src={logoMark} alt="" className="size-6" />
         </div>
         <div className="leading-tight">
           <div className="font-bold text-accent text-[15px]">Rohan Energy</div>
@@ -183,7 +183,6 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
             {user?.name ? `Welcome, ${user.name.split(" ")[0]}` : "Staff Portal"}
           </div>
           <div className="flex items-center gap-3 ml-auto">
-            <img src={logoFull} alt="Rohan Energy Solutions" className="h-9 w-auto" />
             {canSeeCustomers && (
               <button
                 onClick={() => navigate("/staff/customers")}
