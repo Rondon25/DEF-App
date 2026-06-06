@@ -16,6 +16,13 @@ from routers.stock import fg_summary
 router = APIRouter(tags=["dashboard"])
 
 MFG_ROLES = ("admin", "central_team", "operations")
+ALL_STAFF = ("admin", "central_team", "operations", "finance", "sales")
+
+
+@router.get("/admin/metrics/trends")
+def metrics_trends(days: int = 30, db: Session = Depends(get_db), _=Depends(require_role(*ALL_STAFF))):
+    from services.metrics import trends
+    return trends(db, days)
 
 
 @router.get("/admin/dashboard/manufacturing")

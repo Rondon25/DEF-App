@@ -10,7 +10,7 @@ import AreaChart from "@/components/charts/AreaChart";
 import BarChart from "@/components/charts/BarChart";
 import Ring from "@/components/charts/Ring";
 import {
-  Activity, UserPlus, CreditCard, Truck, ClipboardList, ChevronRight,
+  UserPlus, CreditCard, Truck, ClipboardList, ChevronRight,
   DollarSign, TrendingUp, Users, Boxes, ShoppingCart, AlertTriangle, Gauge, Factory, Download,
 } from "lucide-react";
 
@@ -60,6 +60,8 @@ function OperationsTab({ role }: { role: string }) {
   const { data: orders = [], isLoading } = useQuery({ queryKey: ["staff-orders"], queryFn: () => staffApi.get("/staff/orders").then((r) => r.data), refetchInterval: 20_000 });
   const { data: pending = [] } = useQuery({ queryKey: ["pending-customers"], queryFn: () => staffApi.get("/customers/pending").then((r) => r.data), refetchInterval: 30_000, enabled: isCentral });
   const { data: payments = [] } = useQuery({ queryKey: ["pending-payments"], queryFn: () => staffApi.get("/finance/payments").then((r) => r.data), refetchInterval: 20_000, enabled: isFinance });
+  const { data: trends } = useQuery<any>({ queryKey: ["metric-trends"], queryFn: () => staffApi.get("/admin/metrics/trends?days=30").then((r) => r.data) });
+  const tm = (k: string) => deltaProps(trends?.metrics?.[k]);
 
   const active   = orders.filter((o: any) => !["closed", "cancelled"].includes(o.status));
   const awaiting = orders.filter((o: any) => ["proforma_sent", "payment_uploaded"].includes(o.status));
@@ -74,10 +76,10 @@ function OperationsTab({ role }: { role: string }) {
   return (
     <>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Active Orders" value={active.length} icon={<Activity className="size-4" />} />
+        <StatCard label="Active Orders" value={active.length} {...tm("active_orders")} />
         {isCentral && <StatCard label="Pending Approval" value={pending.length} warn={pending.length > 0} icon={<UserPlus className="size-4" />} />}
         {isFinance && <StatCard label="Payments to Verify" value={payments.length} warn={payments.length > 0} icon={<CreditCard className="size-4" />} />}
-        <StatCard label="In Transit" value={shipped.length} icon={<Truck className="size-4" />} />
+        <StatCard label="In Transit" value={shipped.length} {...tm("in_transit")} />
       </div>
 
       <div className="grid lg:grid-cols-[2fr_minmax(0,1fr)] gap-5 mb-5">
@@ -146,6 +148,8 @@ function PerformanceTab() {
   const { data: topCustomers = [] } = useQuery({ queryKey: ["analytics-customers", days], queryFn: () => staffApi.get(`/admin/analytics/top-customers?days=${days}&limit=8`).then((r) => r.data) });
   const { data: topSkus = [] } = useQuery({ queryKey: ["analytics-skus", days], queryFn: () => staffApi.get(`/admin/analytics/top-skus?days=${days}&limit=6`).then((r) => r.data) });
   const { data: revenueData = [] } = useQuery({ queryKey: ["analytics-revenue", days], queryFn: () => staffApi.get(`/admin/analytics/revenue-over-time?days=${days}`).then((r) => r.data) });
+  const { data: trends } = useQuery<any>({ queryKey: ["metric-trends"], queryFn: () => staffApi.get("/admin/metrics/trends?days=30").then((r) => r.data) });
+  const tm = (k: string) => deltaProps(trends?.metrics?.[k]);
 
   const handleExport = (type: string) => {
     staffApi.get(`/admin/export/${type}?days=${days}`, { responseType: "blob" }).then((r) => {
@@ -165,9 +169,9 @@ function PerformanceTab() {
       {summary && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
           <StatCard label="Total Orders" value={summary.total_orders} icon={<ClipboardList className="size-4" />} />
-          <StatCard label="Revenue (Closed)" value={`₹${summary.total_revenue.toLocaleString("en-IN")}`} icon={<DollarSign className="size-4" />} />
+          <StatCard label="Revenue (Closed)" value={`₹${summary.total_revenue.toLocaleString("en-IN")}`} {...tm("revenue")} />
           <StatCard label="Pipeline" value={`₹${summary.pending_revenue.toLocaleString("en-IN")}`} icon={<TrendingUp className="size-4" />} />
-          <StatCard label="Active Orders" value={summary.active_orders} icon={<Activity className="size-4" />} />
+          <StatCard label="Active Orders" value={summary.active_orders} {...tm("active_orders")} />
         </div>
       )}
 
@@ -274,6 +278,11 @@ function ManufacturingTab() {
 }
 
 // ── shared ────────────────────────────────────────────────────────────────────
+function deltaProps(m: any): { delta?: string; up?: boolean; spark?: number[] } {
+  if (!m) return {};
+  return { delta: `${m.delta_pct >= 0 ? "+" : ""}${m.delta_pct}%`, up: m.up, spark: m.series };
+}
+
 function MiniStat({ label, value, icon }: { label: string; value: React.ReactNode; icon: React.ReactNode }) {
   return (
     <div className="rounded-2xl bg-surface shadow-[var(--shadow-sm)] p-4 flex items-center gap-3">

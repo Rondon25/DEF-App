@@ -396,6 +396,26 @@ class ProductionRun(Base):
     sku   = relationship("SKU")
 
 
+class MetricSnapshot(Base):
+    """Daily KPI snapshot (long format) for real deltas + trend series."""
+    __tablename__ = "metric_snapshots"
+
+    id            = Column(Integer, primary_key=True, index=True)
+    snapshot_date = Column(Date, nullable=False, index=True)
+    metric        = Column(String(50), nullable=False, index=True)
+    value         = Column(Float, default=0.0)
+
+
+class PlantUtilSnapshot(Base):
+    """Daily per-plant utilization snapshot for plant-production trends."""
+    __tablename__ = "plant_util_snapshots"
+
+    id            = Column(Integer, primary_key=True, index=True)
+    snapshot_date = Column(Date, nullable=False, index=True)
+    plant_id      = Column(Integer, ForeignKey("plants.id"), nullable=False)
+    utilization   = Column(Float, default=0.0)
+
+
 class SalesForecast(Base):
     """Daily expected sales orders per SKU per plant (SALES_FORECAST sheet)."""
     __tablename__ = "sales_forecasts"

@@ -85,10 +85,24 @@ def check_overdue_grns():
         db.close()
 
 
+def record_daily_snapshot():
+    """Snapshot KPIs + plant utilization once per day for real deltas/trends."""
+    db = SessionLocal()
+    try:
+        from services.metrics import snapshot_day
+        snapshot_day(db)
+        print("[Scheduler] KPI snapshot recorded")
+    except Exception as e:
+        print(f"[Scheduler] Snapshot error: {e}")
+    finally:
+        db.close()
+
+
 def start_scheduler():
     scheduler = BackgroundScheduler()
     scheduler.add_job(check_overdue_payments, IntervalTrigger(hours=6), id="payment_reminders", replace_existing=True)
     scheduler.add_job(check_overdue_grns,     IntervalTrigger(hours=6), id="grn_reminders",     replace_existing=True)
+    scheduler.add_job(record_daily_snapshot,  IntervalTrigger(hours=12), id="kpi_snapshot",     replace_existing=True)
     scheduler.start()
-    print("[Scheduler] ✅ Background jobs started (payment reminders every 6h, GRN reminders every 6h)")
+    print("[Scheduler] ✅ Background jobs started (reminders 6h, KPI snapshot 12h)")
     return scheduler
