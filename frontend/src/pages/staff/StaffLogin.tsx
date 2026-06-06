@@ -74,10 +74,7 @@ export default function StaffLogin() {
             <Info className="size-4 shrink-0 mt-px" />
             <div className="font-mono leading-relaxed">
               <div className="font-sans font-semibold mb-1">Dev credentials</div>
-              admin@def.com / admin123<br />
-              central@def.com / central123<br />
-              finance@def.com / finance123<br />
-              ops@def.com / ops123
+              admin@def.com / admin123
             </div>
           </div>
         </div>
