@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
 import { staffApi } from "../../api";
 import { SkeletonList } from "@/components/Skeleton";
 import ErrorScreen from "@/components/ErrorScreen";
 import { StatusPill, statusLabel } from "@/components/StatusPill";
-import { Search, ClipboardList, X, FileDown, FileSpreadsheet, FileText } from "lucide-react";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import { Search, ClipboardList, X, FileDown, FileSpreadsheet, FileText, Trash2 } from "lucide-react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -24,12 +25,19 @@ export default function StaffOrders() {
   const [filter, setFilter] = useState(searchParams.get("filter") || "");
   const [search, setSearch] = useState("");
   const [showExport, setShowExport] = useState(false);
+  const [delOrder, setDelOrder] = useState<any>(null);
   const today = new Date().toISOString().split("T")[0];
+  const qc = useQueryClient();
 
   const { data: orders = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["staff-orders-all"],
     queryFn: () => staffApi.get("/staff/orders").then((r) => r.data),
     refetchInterval: 20_000,
+  });
+
+  const archiveMutation = useMutation({
+    mutationFn: (id: number) => staffApi.post(`/staff/orders/${id}/archive`, {}).then((r) => r.data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["staff-orders-all"] }); setDelOrder(null); },
   });
 
   const filtered = useMemo(() => {
@@ -175,6 +183,7 @@ export default function StaffOrders() {
                   <th className="px-5 py-3">Status</th>
                   <th className="px-5 py-3">Date</th>
                   <th className="px-5 py-3 text-right">Amount</th>
+                  <th className="px-5 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -190,6 +199,14 @@ export default function StaffOrders() {
                     <td className="px-5 py-3.5"><StatusPill status={o.status} /></td>
                     <td className="px-5 py-3.5 text-sm text-ink-3">{new Date(o.created_at).toLocaleDateString("en-US", { dateStyle: "short" })}</td>
                     <td className="px-5 py-3.5 text-right font-semibold text-sm">${o.total_amount?.toFixed(2)}</td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex justify-end">
+                        <button onClick={() => setDelOrder(o)} title="Archive order"
+                          className="inline-flex items-center justify-center size-8 rounded-full border border-border text-ink-4 hover:border-red-300 hover:text-red-600 transition-colors">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -218,6 +235,17 @@ export default function StaffOrders() {
             ))}
           </div>
         </div>
+      )}
+
+      {delOrder && (
+        <ConfirmDialog
+          title="Archive order?"
+          message={<>This removes <strong className="font-mono">{delOrder.order_number}</strong> from the active list. Its history is kept and it can be restored from the database.</>}
+          confirmLabel="Archive"
+          loading={archiveMutation.isPending}
+          onConfirm={() => archiveMutation.mutate(delOrder.id)}
+          onCancel={() => setDelOrder(null)}
+        />
       )}
     </>
   );
