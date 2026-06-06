@@ -13,7 +13,7 @@ from slowapi.errors import RateLimitExceeded
 
 from database import engine, Base, SessionLocal
 import models
-from routers import auth, staff_auth, catalog, customers, orders, payments, delivery, notes, audit, analytics, export, stock, config, rm_inventory, production
+from routers import auth, staff_auth, catalog, customers, orders, payments, delivery, notes, audit, analytics, export, stock, config, rm_inventory, production, forecast
 from services.whatsapp import get_status as wa_status
 from services.rls import apply_rls_policies
 from services.scheduler import start_scheduler
@@ -59,6 +59,7 @@ app.include_router(stock.router)
 app.include_router(config.router)
 app.include_router(rm_inventory.router)
 app.include_router(production.router)
+app.include_router(forecast.router)
 
 
 # ── Health & WhatsApp status ──────────────────────────────────────────────────

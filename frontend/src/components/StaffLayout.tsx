@@ -5,7 +5,7 @@ import { clearStaffAuth, getStaffUser } from "../hooks/useAuth";
 import { staffApi } from "../api";
 import {
   LayoutDashboard, Users, ClipboardList, Layers,
-  Package, BarChart3, Droplet, Menu, X, LogOut, Bell, Factory, Settings2, Boxes, ShoppingCart, PackageCheck, Cog,
+  Package, BarChart3, Droplet, Menu, X, LogOut, Bell, Factory, Settings2, Boxes, ShoppingCart, PackageCheck, Cog, TrendingUp,
 } from "lucide-react";
 
 type NavItem = { to: string; icon: any; label: string };
@@ -21,6 +21,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { to: "/staff/raw-materials", icon: Boxes,       label: "Raw Materials" },
     { to: "/staff/procurement",   icon: ShoppingCart, label: "Procurement" },
     { to: "/staff/production",     icon: Cog,         label: "Production" },
+    { to: "/staff/forecast",       icon: TrendingUp,  label: "Forecast" },
     { to: "/staff/plants",    icon: Factory,         label: "Plants" },
     { to: "/staff/config",    icon: Settings2,       label: "Configuration" },
     { to: "/staff/analytics", icon: BarChart3,       label: "Analytics" },
@@ -34,6 +35,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { to: "/staff/raw-materials", icon: Boxes,       label: "Raw Materials" },
     { to: "/staff/procurement",   icon: ShoppingCart, label: "Procurement" },
     { to: "/staff/production",     icon: Cog,         label: "Production" },
+    { to: "/staff/forecast",       icon: TrendingUp,  label: "Forecast" },
     { to: "/staff/plants",    icon: Factory,         label: "Plants" },
     { to: "/staff/config",    icon: Settings2,       label: "Configuration" },
     { to: "/staff/analytics", icon: BarChart3,       label: "Analytics" },
@@ -50,6 +52,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { to: "/staff/raw-materials", icon: Boxes,       label: "Raw Materials" },
     { to: "/staff/procurement",   icon: ShoppingCart, label: "Procurement" },
     { to: "/staff/production",     icon: Cog,         label: "Production" },
+    { to: "/staff/forecast",       icon: TrendingUp,  label: "Forecast" },
     { to: "/staff/plants", icon: Factory,         label: "Plants" },
     { to: "/staff/config", icon: Settings2,       label: "Configuration" },
   ],
@@ -57,6 +60,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { to: "/staff",           icon: LayoutDashboard, label: "Dashboard" },
     { to: "/staff/customers", icon: Users,           label: "Customers" },
     { to: "/staff/orders",    icon: ClipboardList,   label: "Orders" },
+    { to: "/staff/forecast",  icon: TrendingUp,      label: "Forecast" },
     { to: "/staff/analytics", icon: BarChart3,       label: "Analytics" },
   ],
 };

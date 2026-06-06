@@ -396,6 +396,21 @@ class ProductionRun(Base):
     sku   = relationship("SKU")
 
 
+class SalesForecast(Base):
+    """Daily expected sales orders per SKU per plant (SALES_FORECAST sheet)."""
+    __tablename__ = "sales_forecasts"
+
+    id             = Column(Integer, primary_key=True, index=True)
+    plant_id       = Column(Integer, ForeignKey("plants.id"), nullable=False)
+    sku_id         = Column(Integer, ForeignKey("skus.id"), nullable=False)
+    forecast_date  = Column(Date, nullable=False)
+    forecast_units = Column(Float, default=0.0)
+    updated_at     = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    plant = relationship("Plant")
+    sku   = relationship("SKU")
+
+
 class SKUPriceHistory(Base):
     __tablename__ = "sku_price_history"
 
