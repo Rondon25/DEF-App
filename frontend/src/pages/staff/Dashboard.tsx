@@ -5,8 +5,7 @@ import { getStaffUser } from "../../hooks/useAuth";
 import { StatusPill } from "@/components/StatusPill";
 import { SkeletonList } from "@/components/Skeleton";
 import {
-  Package, Activity, UserPlus, CreditCard, Truck, ClipboardList,
-  ChevronRight, AlertTriangle,
+  Activity, UserPlus, CreditCard, Truck, ClipboardList, ChevronRight,
 } from "lucide-react";
 
 export default function StaffDashboard() {
@@ -56,8 +55,7 @@ export default function StaffDashboard() {
 
       {/* KPI row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <Kpi featured label="Total Orders" value={orders.length} icon={<Package className="size-4" />} />
-        <Kpi label="Active Orders" value={active.length} icon={<Activity className="size-4" />} />
+        <Kpi featured label="Active Orders" value={active.length} icon={<Activity className="size-4" />} />
         {isCentral && (
           <Kpi label="Pending Approval" value={pending.length} warn={pending.length > 0} icon={<UserPlus className="size-4" />} />
         )}
