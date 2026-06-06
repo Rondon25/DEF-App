@@ -20,7 +20,6 @@ import CustomerDetail       from "./pages/staff/CustomerDetail";
 import StaffOrders          from "./pages/staff/Orders";
 import StaffOrderDetail     from "./pages/staff/OrderDetail";
 import CatalogueManagement  from "./pages/staff/CatalogueManagement";
-import Analytics            from "./pages/staff/Analytics";
 import Stock                from "./pages/staff/Stock";
 import Plants               from "./pages/staff/Plants";
 import PlantDetail          from "./pages/staff/PlantDetail";
@@ -56,7 +55,6 @@ export default function App() {
       <Route path="/staff/orders"        element={<RequireStaff><StaffLayout><StaffOrders /></StaffLayout></RequireStaff>} />
       <Route path="/staff/orders/:id"    element={<RequireStaff><StaffLayout><StaffOrderDetail /></StaffLayout></RequireStaff>} />
       <Route path="/staff/catalog"       element={<RequireStaff roles={["admin","central_team"]}><StaffLayout><CatalogueManagement /></StaffLayout></RequireStaff>} />
-      <Route path="/staff/analytics"    element={<RequireStaff roles={["admin","central_team","sales"]}><StaffLayout><Analytics /></StaffLayout></RequireStaff>} />
       <Route path="/staff/stock"        element={<RequireStaff roles={["admin","central_team","operations"]}><StaffLayout><Stock /></StaffLayout></RequireStaff>} />
       <Route path="/staff/plants"       element={<RequireStaff roles={["admin","central_team","operations"]}><StaffLayout><Plants /></StaffLayout></RequireStaff>} />
       <Route path="/staff/plants/:id"   element={<RequireStaff roles={["admin","central_team","operations"]}><StaffLayout><PlantDetail /></StaffLayout></RequireStaff>} />
