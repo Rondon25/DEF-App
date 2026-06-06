@@ -61,7 +61,7 @@ export default function RawMaterials() {
     doc.setFontSize(10); doc.setTextColor(120); doc.text(`Generated ${new Date().toLocaleDateString("en-US", { dateStyle: "long" })}`, 14, 22);
     autoTable(doc, { startY: 28,
       head: [["Plant", "Material", "Stock", "ADU", "Lead", "ROP", "Cover", "Status", "Order", "Sugg."]],
-      body: filtered.map((r) => [r.plant_name, r.material_name, r.quantity, r.avg_daily_usage, r.lead_time_days, r.reorder_point, r.days_of_cover ?? "—", STATUS[r.status].label, r.order_required ? "YES" : "", r.suggested_qty || ""]),
+      body: filtered.map((r) => [r.plant_name, r.material_name, r.quantity, r.avg_daily_usage, r.lead_time_days, r.reorder_point, r.days_of_cover ?? "-", STATUS[r.status].label, r.order_required ? "YES" : "", r.suggested_qty || ""]),
       headStyles: { fillColor: [30, 30, 45], textColor: 255, fontStyle: "bold" }, alternateRowStyles: { fillColor: [248, 249, 250] }, styles: { fontSize: 8, cellPadding: 2 } });
     doc.save(`raw_materials_${today}.pdf`); setShowExport(false);
   };
@@ -78,7 +78,7 @@ export default function RawMaterials() {
         <StatCard label="Stock Lines" value={summary?.total_lines ?? "—"} icon={<Boxes className="size-4" />} />
         <StatCard label="Critical (below ROP)" value={summary?.critical ?? "—"} icon={<AlertTriangle className="size-4" />} warn={(summary?.critical ?? 0) > 0} />
         <StatCard label="Reorder Signals" value={summary?.order_lines ?? "—"} icon={<ShoppingCart className="size-4" />} />
-        <StatCard label="Inventory Value" value={summary ? `₹${Number(summary.inventory_value).toLocaleString()}` : "—"} icon={<DollarSign className="size-4" />} />
+        <StatCard label="Inventory Value" value={summary ? `₹${Number(summary.inventory_value).toLocaleString("en-IN")}` : "—"} icon={<DollarSign className="size-4" />} />
       </div>
 
       {/* Search + plant filter + export */}
@@ -135,8 +135,8 @@ export default function RawMaterials() {
                     <tr key={r.id} className="border-b border-border last:border-0 hover:bg-canvas">
                       <td className="px-4 py-3"><div className="font-semibold text-sm">{r.material_name}</div><div className="text-[12px] text-ink-4">{r.vendor_name || "No vendor"}</div></td>
                       <td className="px-4 py-3 text-sm text-ink-2">{r.plant_name}</td>
-                      <td className="px-4 py-3 text-sm font-semibold">{r.quantity.toLocaleString()} <span className="text-ink-4 font-normal text-xs">{r.unit}</span></td>
-                      <td className="px-4 py-3 text-sm text-ink-3">{r.reorder_point.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-sm font-semibold">{r.quantity.toLocaleString("en-IN")} <span className="text-ink-4 font-normal text-xs">{r.unit}</span></td>
+                      <td className="px-4 py-3 text-sm text-ink-3">{r.reorder_point.toLocaleString("en-IN")}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-2 rounded-full bg-canvas overflow-hidden"><div className={`h-2 rounded-full ${s.dot}`} style={{ width: `${Math.max(4, coverPct)}%` }} /></div>
@@ -144,7 +144,7 @@ export default function RawMaterials() {
                         </div>
                       </td>
                       <td className="px-4 py-3"><span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${s.bg} ${s.text}`}><span className={`size-1.5 rounded-full ${s.dot}`} /> {s.label}</span></td>
-                      <td className="px-4 py-3 text-sm">{r.order_required ? <span className="font-semibold text-red-600">+{r.suggested_qty.toLocaleString()}</span> : <span className="text-ink-4">—</span>}</td>
+                      <td className="px-4 py-3 text-sm">{r.order_required ? <span className="font-semibold text-red-600">+{r.suggested_qty.toLocaleString("en-IN")}</span> : <span className="text-ink-4">—</span>}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-1.5">
                           <button onClick={() => setLedgerRow(r)} title="Ledger" className="size-8 rounded-full border border-border flex items-center justify-center text-ink-4 hover:border-primary hover:text-primary transition-colors"><History size={14} /></button>
@@ -196,7 +196,7 @@ function MovementModal({ row, onClose, onSaved }: { row: RmRow; onClose: () => v
     onSuccess: onSaved,
   });
   return (
-    <Shell title={`Record Movement — ${row.material_name}`} sub={`${row.plant_name} · current ${row.quantity.toLocaleString()} ${row.unit}`} onClose={onClose}>
+    <Shell title={`Record Movement — ${row.material_name}`} sub={`${row.plant_name} · current ${row.quantity.toLocaleString("en-IN")} ${row.unit}`} onClose={onClose}>
       <div className="grid grid-cols-2 gap-2">
         <button onClick={() => { setDir("in"); setReason("receipt"); }} className={`h-11 rounded-xl border text-sm font-semibold flex items-center justify-center gap-1.5 ${dir === "in" ? "border-primary bg-teal-50 text-primary" : "border-border text-ink-3"}`}><Plus size={15} /> Receipt (in)</button>
         <button onClick={() => { setDir("out"); setReason("usage"); }} className={`h-11 rounded-xl border text-sm font-semibold flex items-center justify-center gap-1.5 ${dir === "out" ? "border-red-300 bg-red-50 text-red-600" : "border-border text-ink-3"}`}><Minus size={15} /> Usage (out)</button>
@@ -220,10 +220,10 @@ function LedgerDrawer({ row, onClose }: { row: RmRow; onClose: () => void }) {
               <tbody>
                 {data.map((m) => (
                   <tr key={m.id} className="border-b border-border last:border-0">
-                    <td className="py-2 px-1 text-ink-3">{m.date}</td><td className="py-2 px-1">{m.opening.toLocaleString()}</td>
-                    <td className="py-2 px-1 text-green-600">{m.qty_in ? `+${m.qty_in.toLocaleString()}` : ""}</td>
-                    <td className="py-2 px-1 text-red-600">{m.qty_out ? `-${m.qty_out.toLocaleString()}` : ""}</td>
-                    <td className="py-2 px-1 font-semibold">{m.closing.toLocaleString()}</td>
+                    <td className="py-2 px-1 text-ink-3">{m.date}</td><td className="py-2 px-1">{m.opening.toLocaleString("en-IN")}</td>
+                    <td className="py-2 px-1 text-green-600">{m.qty_in ? `+${m.qty_in.toLocaleString("en-IN")}` : ""}</td>
+                    <td className="py-2 px-1 text-red-600">{m.qty_out ? `-${m.qty_out.toLocaleString("en-IN")}` : ""}</td>
+                    <td className="py-2 px-1 font-semibold">{m.closing.toLocaleString("en-IN")}</td>
                     <td className="py-2 px-1"><span className="text-[11px] px-2 py-0.5 rounded-full bg-canvas capitalize">{m.reason}</span></td>
                   </tr>
                 ))}

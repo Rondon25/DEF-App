@@ -10,7 +10,7 @@ export default function BarChart({
   const [hi, setHi] = useState<number | null>(null);
   if (!data.length) return <div className="text-[13px]" style={{ color: LAB.sub }}>No data</div>;
   const top = max ?? Math.max(...data.map(d => d.value), 1);
-  const fmt = (v: number) => valueFmt ? valueFmt(v) : Math.round(v).toLocaleString();
+  const fmt = (v: number) => valueFmt ? valueFmt(v) : Math.round(v).toLocaleString("en-IN");
   return (
     <div className="space-y-3">
       {data.map((d, i) => (

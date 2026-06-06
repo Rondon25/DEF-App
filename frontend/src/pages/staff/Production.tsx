@@ -75,7 +75,7 @@ export default function Production() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2 mb-0.5"><span className="font-semibold text-sm truncate">{p.plant_name}</span>{p.over_capacity && <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-700 flex items-center gap-1 shrink-0"><AlertTriangle size={11} /> Over</span>}</div>
                   <div className="text-lg font-bold leading-tight">{p.used_hours}<span className="text-ink-4 text-[13px] font-normal"> / {p.capacity_hours} hrs</span></div>
-                  <div className="text-[12px] text-ink-4 mt-0.5">{p.run_count} run(s) · {p.planned_units.toLocaleString()} units</div>
+                  <div className="text-[12px] text-ink-4 mt-0.5">{p.run_count} run(s) · {p.planned_units.toLocaleString("en-IN")} units</div>
                 </div>
               </div>
             );
@@ -122,7 +122,7 @@ export default function Production() {
                     <td className="px-4 py-3 text-sm text-ink-3">{r.run_date}</td>
                     <td className="px-4 py-3"><div className="font-semibold text-sm">{r.sku_name}</div><div className="text-[12px] font-mono text-ink-4">{r.sku_code}</div></td>
                     <td className="px-4 py-3 text-sm text-ink-2">{r.plant_name}</td>
-                    <td className="px-4 py-3 text-sm font-semibold">{r.status === "completed" ? r.produced_units.toLocaleString() : r.planned_units.toLocaleString()} <span className="text-ink-4 font-normal text-xs">{r.unit}</span></td>
+                    <td className="px-4 py-3 text-sm font-semibold">{r.status === "completed" ? r.produced_units.toLocaleString("en-IN") : r.planned_units.toLocaleString("en-IN")} <span className="text-ink-4 font-normal text-xs">{r.unit}</span></td>
                     <td className="px-4 py-3 text-sm"><span className="inline-flex items-center gap-1"><Clock size={12} className="text-ink-4" /> {r.hours_required}</span></td>
                     <td className="px-4 py-3"><span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full capitalize ${STATUS_STYLE[r.status]}`}>{r.status}</span></td>
                     <td className="px-4 py-3">
@@ -199,7 +199,7 @@ function CompleteModal({ run, onClose, onSaved }: { run: Run; onClose: () => voi
               {reqs.map((r: any) => (
                 <div key={r.material_id} className="flex justify-between text-[13px]">
                   <span className="text-ink-3">{r.material_name}</span>
-                  <span className={r.sufficient ? "" : "text-red-600 font-medium"}>{r.needed.toLocaleString()} / {r.available.toLocaleString()} {r.unit}{!r.sufficient && ` (short ${r.shortfall.toLocaleString()})`}</span>
+                  <span className={r.sufficient ? "" : "text-red-600 font-medium"}>{r.needed.toLocaleString("en-IN")} / {r.available.toLocaleString("en-IN")} {r.unit}{!r.sufficient && ` (short ${r.shortfall.toLocaleString("en-IN")})`}</span>
                 </div>
               ))}
             </div>

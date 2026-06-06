@@ -91,13 +91,13 @@ export default function Plants() {
   const exportPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(16); doc.setTextColor(13, 148, 136);
-    doc.text("Rohan Energy Solutions — Plants", 14, 18);
+    doc.text("Rohan Energy Solutions - Plants", 14, 18);
     doc.setFontSize(10); doc.setTextColor(120);
     doc.text(`Generated ${new Date().toLocaleDateString("en-US", { dateStyle: "long" })} · ${plants.length} plants`, 14, 25);
     autoTable(doc, {
       startY: 31,
       head: [["Plant", "Location", "Manager", "Capacity", "Holding", "Util %"]],
-      body: plants.map((p) => [p.name, p.location || "", p.manager_name || "", p.max_capacity ?? "—", p.current_holding, p.utilization != null ? `${p.utilization}%` : "—"]),
+      body: plants.map((p) => [p.name, p.location || "", p.manager_name || "", p.max_capacity ?? "-", p.current_holding, p.utilization != null ? `${p.utilization}%` : "-"]),
       headStyles: { fillColor: [30, 30, 45], textColor: 255, fontStyle: "bold" },
       alternateRowStyles: { fillColor: [248, 249, 250] },
       styles: { fontSize: 9, cellPadding: 3 },
@@ -118,8 +118,8 @@ export default function Plants() {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <StatCard label="Plants" value={kpi.count} icon={<Factory className="size-4" />} />
-        <StatCard label="Total Capacity" value={kpi.capacity.toLocaleString()} icon={<Boxes className="size-4" />} />
-        <StatCard label="Total Holding" value={kpi.holding.toLocaleString()} icon={<Package className="size-4" />} />
+        <StatCard label="Total Capacity" value={kpi.capacity.toLocaleString("en-IN")} icon={<Boxes className="size-4" />} />
+        <StatCard label="Total Holding" value={kpi.holding.toLocaleString("en-IN")} icon={<Package className="size-4" />} />
         <StatCard label="Utilization" value={`${kpi.util}%`} icon={<Gauge className="size-4" />} />
       </div>
 
@@ -184,7 +184,7 @@ export default function Plants() {
                       {p.max_capacity ? (
                         <div>
                           <div className="flex justify-between text-[12px] mb-1">
-                            <span className="text-ink-3">{p.current_holding.toLocaleString()} / {p.max_capacity.toLocaleString()}</span>
+                            <span className="text-ink-3">{p.current_holding.toLocaleString("en-IN")} / {p.max_capacity.toLocaleString("en-IN")}</span>
                             <span className="font-bold">{p.utilization}%</span>
                           </div>
                           <div className="h-2 rounded-full bg-canvas overflow-hidden">

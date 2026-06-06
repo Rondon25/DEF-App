@@ -40,9 +40,9 @@ export default function PlantDetail() {
   const exportPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(16); doc.setTextColor(13, 148, 136);
-    doc.text(`${plant.name} — Stock`, 14, 18);
+    doc.text(`${plant.name} - Stock`, 14, 18);
     doc.setFontSize(10); doc.setTextColor(120);
-    doc.text(`${plant.location || ""} · Holding ${plant.current_holding} / ${plant.max_capacity ?? "—"} (${util}%)`, 14, 25);
+    doc.text(`${plant.location || ""} · Holding ${plant.current_holding} / ${plant.max_capacity ?? "-"} (${util}%)`, 14, 25);
     autoTable(doc, {
       startY: 31,
       head: [["Code", "Product", "Unit", "Quantity", "Status"]],
@@ -90,8 +90,8 @@ export default function PlantDetail() {
           <h3 className="font-bold mb-4 flex items-center gap-2"><Gauge size={17} className="text-primary" /> Capacity Utilization</h3>
           <div className="flex items-end justify-between mb-2">
             <div>
-              <span className="text-3xl font-bold">{plant.current_holding.toLocaleString()}</span>
-              <span className="text-ink-3"> / {plant.max_capacity ? plant.max_capacity.toLocaleString() : "—"} units</span>
+              <span className="text-3xl font-bold">{plant.current_holding.toLocaleString("en-IN")}</span>
+              <span className="text-ink-3"> / {plant.max_capacity ? plant.max_capacity.toLocaleString("en-IN") : "—"} units</span>
             </div>
             <span className="text-2xl font-bold" style={{ color: utilColor }}>{util}%</span>
           </div>
@@ -100,7 +100,7 @@ export default function PlantDetail() {
           </div>
           <div className="grid grid-cols-3 gap-3 mt-5">
             <Mini label="Products" value={plant.product_count} icon={<Package size={15} />} />
-            <Mini label="Holding" value={plant.current_holding.toLocaleString()} icon={<Boxes size={15} />} />
+            <Mini label="Holding" value={plant.current_holding.toLocaleString("en-IN")} icon={<Boxes size={15} />} />
             <Mini label="Low stock" value={plant.low_stock ?? 0} warn={(plant.low_stock ?? 0) > 0} icon={<AlertTriangle size={15} />} />
           </div>
         </div>

@@ -132,7 +132,7 @@ export default function CatalogueManagement() {
     const doc = new jsPDF();
     doc.setFontSize(16);
     doc.setTextColor(13, 148, 136);
-    doc.text("Rohan Energy Solutions — Catalogue", 14, 18);
+    doc.text("Rohan Energy Solutions - Catalogue", 14, 18);
     doc.setFontSize(10);
     doc.setTextColor(120);
     doc.text(`Generated ${new Date().toLocaleDateString("en-US", { dateStyle: "long" })} · ${skus.length} products`, 14, 25);
@@ -140,7 +140,7 @@ export default function CatalogueManagement() {
       startY: 31,
       head: [["Code", "Name", "Unit", "Volume (L)", "Price (INR)", "Status"]],
       body: skus.map((s) => [
-        s.sku_code, s.name, s.unit, s.volume_liters || "—",
+        s.sku_code, s.name, s.unit, s.volume_liters || "-",
         `Rs ${s.current_price.toFixed(2)}`, s.is_active ? "Active" : "Inactive",
       ]),
       headStyles: { fillColor: [30, 30, 45], textColor: 255, fontStyle: "bold" },

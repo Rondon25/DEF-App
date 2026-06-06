@@ -151,7 +151,7 @@ export default function CustomerDetail() {
         <div className="grid grid-cols-3 lg:grid-cols-1 gap-3">
           <MiniKpi icon={<Package className="size-4" />} label="Total Orders" value={orders.length} />
           <MiniKpi icon={<Activity className="size-4" />} label="Active" value={activeOrders.length} />
-          <MiniKpi icon={<Wallet className="size-4" />} label="Total Spent" value={`₹${totalSpent.toLocaleString("en-US", { maximumFractionDigits: 0 })}`} />
+          <MiniKpi icon={<Wallet className="size-4" />} label="Total Spent" value={`₹${totalSpent.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`} />
         </div>
       </div>
 

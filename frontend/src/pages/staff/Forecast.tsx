@@ -51,7 +51,7 @@ export default function Forecast() {
   };
   const exportPDF = () => {
     const doc = new jsPDF();
-    doc.setFontSize(16); doc.setTextColor(13, 148, 136); doc.text(`Sales Forecast — ${month}`, 14, 18);
+    doc.setFontSize(16); doc.setTextColor(13, 148, 136); doc.text(`Sales Forecast - ${month}`, 14, 18);
     doc.setFontSize(10); doc.setTextColor(120); doc.text(`Total ${summary?.total_units ?? 0} units · ${summary?.working_days ?? 0} working days`, 14, 25);
     autoTable(doc, { startY: 31, head: [["SKU", "Product", "Monthly Units", "Avg Daily"]],
       body: (summary?.by_sku ?? []).map((r: any) => [r.sku_code, r.name, r.units, r.avg_daily]),
@@ -70,9 +70,9 @@ export default function Forecast() {
 
       {/* Monthly KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label={`Forecast (${month})`} value={summary ? Number(summary.total_units).toLocaleString() : "—"} icon={<TrendingUp className="size-4" />} />
+        <StatCard label={`Forecast (${month})`} value={summary ? Number(summary.total_units).toLocaleString("en-IN") : "—"} icon={<TrendingUp className="size-4" />} />
         <StatCard label="Working Days" value={summary?.working_days ?? "—"} icon={<CalendarDays className="size-4" />} />
-        <StatCard label="Avg Daily" value={summary && summary.working_days ? Math.round(summary.total_units / summary.working_days).toLocaleString() : "—"} icon={<BarChart3 className="size-4" />} />
+        <StatCard label="Avg Daily" value={summary && summary.working_days ? Math.round(summary.total_units / summary.working_days).toLocaleString("en-IN") : "—"} icon={<BarChart3 className="size-4" />} />
         <StatCard label="Top SKU" value={summary?.by_sku?.[0]?.sku_code ?? "—"} icon={<Zap className="size-4" />} />
       </div>
 
@@ -132,7 +132,7 @@ export default function Forecast() {
                         <Cell key={`${s.id}-${d}-${values[s.id]?.[d] ?? 0}`} value={values[s.id]?.[d] ?? 0} onSave={(v) => save.mutate({ plant_id: activePlant, sku_id: s.id, forecast_date: d, forecast_units: v })} />
                       </td>
                     ))}
-                    <td className="px-3 py-2 text-center font-bold text-sm">{rowTotal.toLocaleString()}</td>
+                    <td className="px-3 py-2 text-center font-bold text-sm">{rowTotal.toLocaleString("en-IN")}</td>
                   </tr>
                 );
               })}
@@ -153,8 +153,8 @@ export default function Forecast() {
               return (
                 <tr key={r.sku_id} className="border-b border-border last:border-0">
                   <td className="px-5 py-3"><div className="font-semibold text-sm">{r.name}</div><div className="text-[12px] font-mono text-ink-4">{r.sku_code}</div></td>
-                  <td className="px-5 py-3"><div className="flex items-center gap-2"><div className="flex-1 h-2 rounded-full bg-canvas overflow-hidden"><div className="h-2 rounded-full bg-primary" style={{ width: `${Math.max(3, (r.units / max) * 100)}%` }} /></div><span className="text-sm font-semibold w-16 text-right">{r.units.toLocaleString()}</span></div></td>
-                  <td className="px-5 py-3 text-sm">{r.avg_daily.toLocaleString()}</td>
+                  <td className="px-5 py-3"><div className="flex items-center gap-2"><div className="flex-1 h-2 rounded-full bg-canvas overflow-hidden"><div className="h-2 rounded-full bg-primary" style={{ width: `${Math.max(3, (r.units / max) * 100)}%` }} /></div><span className="text-sm font-semibold w-16 text-right">{r.units.toLocaleString("en-IN")}</span></div></td>
+                  <td className="px-5 py-3 text-sm">{r.avg_daily.toLocaleString("en-IN")}</td>
                 </tr>
               );
             })}

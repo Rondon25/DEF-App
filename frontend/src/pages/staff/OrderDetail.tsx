@@ -180,7 +180,7 @@ export default function StaffOrderDetail() {
           <div className="text-[13px] space-y-0.5 mb-3">
             <div><span className="text-ink-3">Method:</span> <span className="font-semibold capitalize">{payment.method?.replace("_", " ")}</span></div>
             <div><span className="text-ink-3">Amount:</span> <span className="font-semibold">₹{payment.amount?.toFixed(2)}</span></div>
-            <div><span className="text-ink-3">Uploaded:</span> {new Date(payment.uploaded_at).toLocaleString()}</div>
+            <div><span className="text-ink-3">Uploaded:</span> {new Date(payment.uploaded_at).toLocaleString("en-IN")}</div>
           </div>
           {payment.proof_file_url && (
             <div className="mb-3">
@@ -303,7 +303,7 @@ export default function StaffOrderDetail() {
           <div key={note.id} className="rounded-xl bg-canvas px-3 py-2.5 mb-2">
             <div className="text-[13px]">{note.content}</div>
             <div className="flex justify-between items-center mt-1.5">
-              <span className="text-[11px] text-ink-4">{note.staff_name} · {new Date(note.created_at).toLocaleString()}</span>
+              <span className="text-[11px] text-ink-4">{note.staff_name} · {new Date(note.created_at).toLocaleString("en-IN")}</span>
               <button onClick={() => deleteNoteMutation.mutate(note.id)} className="text-[11px] text-red-500 hover:text-red-600 inline-flex items-center gap-1"><Trash2 className="size-3" /> Delete</button>
             </div>
           </div>

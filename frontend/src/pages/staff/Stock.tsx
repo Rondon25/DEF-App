@@ -102,7 +102,7 @@ export default function Stock() {
   const exportPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(16); doc.setTextColor(13, 148, 136);
-    doc.text("Rohan Energy Solutions — Stock", 14, 18);
+    doc.text("Rohan Energy Solutions - Stock", 14, 18);
     doc.setFontSize(10); doc.setTextColor(120);
     const scope = plantFilter ? plants.find((p) => p.id === plantFilter)?.name : "All plants";
     doc.text(`Generated ${new Date().toLocaleDateString("en-US", { dateStyle: "long" })} · ${scope}`, 14, 25);

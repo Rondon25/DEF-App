@@ -77,7 +77,7 @@ export default function Customers() {
   const exportPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(16); doc.setTextColor(13, 148, 136);
-    doc.text("Rohan Energy Solutions — Customers", 14, 18);
+    doc.text("Rohan Energy Solutions - Customers", 14, 18);
     doc.setFontSize(10); doc.setTextColor(120);
     doc.text(`Generated ${new Date().toLocaleDateString("en-US", { dateStyle: "long" })} · ${all.length} customers`, 14, 25);
     autoTable(doc, {

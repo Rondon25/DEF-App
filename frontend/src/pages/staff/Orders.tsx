@@ -90,7 +90,7 @@ export default function StaffOrders() {
     const doc = new jsPDF();
     doc.setFontSize(16);
     doc.setTextColor(13, 148, 136);
-    doc.text("Rohan Energy Solutions — Orders", 14, 18);
+    doc.text("Rohan Energy Solutions - Orders", 14, 18);
     doc.setFontSize(10);
     doc.setTextColor(120);
     doc.text(`Generated ${new Date().toLocaleDateString("en-US", { dateStyle: "long" })} · ${filtered.length} orders`, 14, 25);

@@ -165,8 +165,8 @@ function PerformanceTab() {
       {summary && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
           <StatCard label="Total Orders" value={summary.total_orders} icon={<ClipboardList className="size-4" />} />
-          <StatCard label="Revenue (Closed)" value={`₹${summary.total_revenue.toLocaleString()}`} icon={<DollarSign className="size-4" />} />
-          <StatCard label="Pipeline" value={`₹${summary.pending_revenue.toLocaleString()}`} icon={<TrendingUp className="size-4" />} />
+          <StatCard label="Revenue (Closed)" value={`₹${summary.total_revenue.toLocaleString("en-IN")}`} icon={<DollarSign className="size-4" />} />
+          <StatCard label="Pipeline" value={`₹${summary.pending_revenue.toLocaleString("en-IN")}`} icon={<TrendingUp className="size-4" />} />
           <StatCard label="Active Orders" value={summary.active_orders} icon={<Activity className="size-4" />} />
         </div>
       )}
@@ -202,7 +202,7 @@ function ManufacturingTab() {
   return (
     <>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label={`Forecast (${data.month})`} value={Number(k.monthly_forecast_units).toLocaleString()} icon={<TrendingUp className="size-4" />} />
+        <StatCard label={`Forecast (${data.month})`} value={Number(k.monthly_forecast_units).toLocaleString("en-IN")} icon={<TrendingUp className="size-4" />} />
         <StatCard label="Reorder Signals" value={k.active_reorder_signals} warn={k.active_reorder_signals > 0} icon={<ShoppingCart className="size-4" />} />
         <StatCard label="Plants Over Capacity" value={k.plants_over_capacity} warn={k.plants_over_capacity > 0} icon={<Gauge className="size-4" />} />
         <StatCard label="RM Critical Alerts" value={k.rm_critical_alerts} warn={k.rm_critical_alerts > 0} icon={<AlertTriangle className="size-4" />} />
@@ -210,10 +210,10 @@ function ManufacturingTab() {
 
       {/* Secondary KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <MiniStat label="Produced (30d)" value={Number(k.produced_30d).toLocaleString()} icon={<Factory className="size-4" />} />
-        <MiniStat label="Dispatched (30d)" value={Number(k.dispatched_30d).toLocaleString()} icon={<Truck className="size-4" />} />
-        <MiniStat label="Revenue (30d)" value={`₹${Number(k.revenue_30d).toLocaleString()}`} icon={<DollarSign className="size-4" />} />
-        <MiniStat label="RM Inventory Value" value={`₹${Number(k.inventory_value).toLocaleString()}`} icon={<Boxes className="size-4" />} />
+        <MiniStat label="Produced (30d)" value={Number(k.produced_30d).toLocaleString("en-IN")} icon={<Factory className="size-4" />} />
+        <MiniStat label="Dispatched (30d)" value={Number(k.dispatched_30d).toLocaleString("en-IN")} icon={<Truck className="size-4" />} />
+        <MiniStat label="Revenue (30d)" value={`₹${Number(k.revenue_30d).toLocaleString("en-IN")}`} icon={<DollarSign className="size-4" />} />
+        <MiniStat label="RM Inventory Value" value={`₹${Number(k.inventory_value).toLocaleString("en-IN")}`} icon={<Boxes className="size-4" />} />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-5 mb-5">
@@ -252,7 +252,7 @@ function ManufacturingTab() {
           <h3 className="font-bold mb-3 flex items-center gap-2"><Boxes size={17} className="text-primary" /> Raw Material Totals</h3>
           <div className="space-y-2">
             {data.rm_totals.slice(0, 8).map((m: any) => (
-              <div key={m.name} className="flex justify-between text-sm border-b border-border last:border-0 py-1.5"><span className="text-ink-2">{m.name}</span><span className="font-semibold">{m.qty.toLocaleString()} <span className="text-ink-4 font-normal text-xs">{m.unit}</span></span></div>
+              <div key={m.name} className="flex justify-between text-sm border-b border-border last:border-0 py-1.5"><span className="text-ink-2">{m.name}</span><span className="font-semibold">{m.qty.toLocaleString("en-IN")} <span className="text-ink-4 font-normal text-xs">{m.unit}</span></span></div>
             ))}
           </div>
           <Link to="/staff/raw-materials" className="text-xs text-primary font-semibold flex items-center gap-0.5 mt-3">Manage raw materials <ChevronRight className="size-3.5" /></Link>
@@ -263,7 +263,7 @@ function ManufacturingTab() {
           <div className="space-y-2">
             {data.fg_status.slice(0, 8).map((r: any) => {
               const cls = r.status === "critical" ? "bg-red-100 text-red-700" : r.status === "warning" ? "bg-amber-100 text-amber-700" : "bg-green-100 text-green-700";
-              return <div key={r.sku_code} className="flex justify-between items-center text-sm border-b border-border last:border-0 py-1.5"><span className="text-ink-2">{r.name}</span><span className="flex items-center gap-2"><span className="font-semibold">{r.qty.toLocaleString()}</span><span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${cls}`}>{r.status}</span></span></div>;
+              return <div key={r.sku_code} className="flex justify-between items-center text-sm border-b border-border last:border-0 py-1.5"><span className="text-ink-2">{r.name}</span><span className="flex items-center gap-2"><span className="font-semibold">{r.qty.toLocaleString("en-IN")}</span><span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${cls}`}>{r.status}</span></span></div>;
             })}
           </div>
           <Link to="/staff/finished-goods" className="text-xs text-primary font-semibold flex items-center gap-0.5 mt-3">View finished goods <ChevronRight className="size-3.5" /></Link>
@@ -290,7 +290,7 @@ function RankPanel({ title, rows }: { title: string; rows: { key: any; title: st
         <div key={r.key} className="flex items-center gap-3 px-5 py-3 border-b border-border last:border-0">
           <span className="text-[13px] font-bold text-ink-4 w-6">#{i + 1}</span>
           <div className="flex-1 min-w-0"><div className="font-semibold text-sm truncate">{r.title}</div><div className="text-[12px] text-ink-4 truncate">{r.sub}</div></div>
-          <div className="font-semibold text-sm">₹{r.amount.toLocaleString()}</div>
+          <div className="font-semibold text-sm">₹{r.amount.toLocaleString("en-IN")}</div>
         </div>
       ))}
     </div>

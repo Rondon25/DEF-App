@@ -62,10 +62,10 @@ export default function FinishedGoods() {
 
       {/* Economics KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label={`Produced (${days}d)`} value={summary ? Number(summary.produced).toLocaleString() : "—"} icon={<Factory className="size-4" />} />
-        <StatCard label={`Dispatched (${days}d)`} value={summary ? Number(summary.dispatched).toLocaleString() : "—"} icon={<Truck className="size-4" />} />
-        <StatCard label={`Revenue (${days}d)`} value={summary ? `₹${Number(summary.revenue).toLocaleString()}` : "—"} icon={<DollarSign className="size-4" />} />
-        <StatCard label="Gross Margin" value={summary ? `₹${Number(summary.gross_margin).toLocaleString()}` : "—"} icon={<TrendingUp className="size-4" />} />
+        <StatCard label={`Produced (${days}d)`} value={summary ? Number(summary.produced).toLocaleString("en-IN") : "—"} icon={<Factory className="size-4" />} />
+        <StatCard label={`Dispatched (${days}d)`} value={summary ? Number(summary.dispatched).toLocaleString("en-IN") : "—"} icon={<Truck className="size-4" />} />
+        <StatCard label={`Revenue (${days}d)`} value={summary ? `₹${Number(summary.revenue).toLocaleString("en-IN")}` : "—"} icon={<DollarSign className="size-4" />} />
+        <StatCard label="Gross Margin" value={summary ? `₹${Number(summary.gross_margin).toLocaleString("en-IN")}` : "—"} icon={<TrendingUp className="size-4" />} />
       </div>
 
       {/* actions */}
@@ -104,8 +104,8 @@ export default function FinishedGoods() {
                   return (
                     <tr key={r.sku_code} className="border-b border-border last:border-0 hover:bg-canvas">
                       <td className="px-5 py-3.5"><div className="font-semibold text-sm">{r.name}</div><div className="text-[12px] font-mono text-ink-4">{r.sku_code}</div></td>
-                      <td className="px-5 py-3.5 text-sm font-semibold">{r.qty.toLocaleString()}</td>
-                      <td className="px-5 py-3.5 text-sm text-ink-3">{r.min_safety.toLocaleString()}</td>
+                      <td className="px-5 py-3.5 text-sm font-semibold">{r.qty.toLocaleString("en-IN")}</td>
+                      <td className="px-5 py-3.5 text-sm text-ink-3">{r.min_safety.toLocaleString("en-IN")}</td>
                       <td className="px-5 py-3.5"><span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${s.bg} ${s.text}`}><span className={`size-1.5 rounded-full ${s.dot}`} /> {s.label}</span></td>
                     </tr>
                   );
@@ -172,7 +172,7 @@ function LedgerModal({ onClose }: { onClose: () => void }) {
                       <td className="py-2 px-2 text-ink-3">{m.plant_name}</td>
                       <td className="py-2 px-2 text-green-600">{m.qty_in ? `+${m.qty_in}` : ""}</td>
                       <td className="py-2 px-2 text-red-600">{m.qty_out ? `-${m.qty_out}` : ""}</td>
-                      <td className="py-2 px-2 font-semibold">{m.closing.toLocaleString()}</td>
+                      <td className="py-2 px-2 font-semibold">{m.closing.toLocaleString("en-IN")}</td>
                       <td className="py-2 px-2"><span className="text-[11px] px-2 py-0.5 rounded-full bg-canvas capitalize">{m.reason}</span></td>
                     </tr>
                   ))}

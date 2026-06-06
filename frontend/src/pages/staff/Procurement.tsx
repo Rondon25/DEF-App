@@ -60,11 +60,11 @@ export default function Procurement() {
   };
   const exportPDF = () => {
     const doc = new jsPDF({ orientation: "landscape" });
-    doc.setFontSize(16); doc.setTextColor(13, 148, 136); doc.text("Procurement — Purchase Orders", 14, 16);
+    doc.setFontSize(16); doc.setTextColor(13, 148, 136); doc.text("Procurement - Purchase Orders", 14, 16);
     doc.setFontSize(10); doc.setTextColor(120); doc.text(`Generated ${new Date().toLocaleDateString("en-US", { dateStyle: "long" })}`, 14, 22);
     autoTable(doc, { startY: 28,
       head: [["PO", "Plant", "Material", "Vendor", "Order Qty", "Lead", "Arrival", "Total", "Status"]],
-      body: filtered.map((p) => [p.po_number, p.plant_name, p.material_name, p.vendor_name || "—", p.order_qty, `${p.lead_time_days}d`, p.expected_arrival || "—", `Rs ${p.total_cost}`, p.status]),
+      body: filtered.map((p) => [p.po_number, p.plant_name, p.material_name, p.vendor_name || "-", p.order_qty, `${p.lead_time_days}d`, p.expected_arrival || "-", `Rs ${p.total_cost}`, p.status]),
       headStyles: { fillColor: [30, 30, 45], textColor: 255, fontStyle: "bold" }, alternateRowStyles: { fillColor: [248, 249, 250] }, styles: { fontSize: 8, cellPadding: 2 } });
     doc.save(`purchase_orders_${today}.pdf`); setShowExport(false);
   };
@@ -80,7 +80,7 @@ export default function Procurement() {
         <StatCard label="Active POs" value={kpi.active} icon={<ShoppingCart className="size-4" />} />
         <StatCard label="Draft" value={kpi.draft} icon={<Clock className="size-4" />} />
         <StatCard label="Ordered" value={kpi.ordered} icon={<Truck className="size-4" />} />
-        <StatCard label="Open Value" value={`₹${kpi.value.toLocaleString()}`} icon={<CheckCircle2 className="size-4" />} />
+        <StatCard label="Open Value" value={`₹${kpi.value.toLocaleString("en-IN")}`} icon={<CheckCircle2 className="size-4" />} />
       </div>
 
       {/* status pills + actions */}
@@ -139,9 +139,9 @@ export default function Procurement() {
                     </td>
                     <td className="px-4 py-3 text-sm text-ink-2">{p.plant_name}</td>
                     <td className="px-4 py-3 text-sm">{p.vendor_name || <span className="text-ink-4">—</span>}</td>
-                    <td className="px-4 py-3 text-sm font-semibold">{p.order_qty.toLocaleString()} <span className="text-ink-4 font-normal text-xs">{p.unit}</span></td>
+                    <td className="px-4 py-3 text-sm font-semibold">{p.order_qty.toLocaleString("en-IN")} <span className="text-ink-4 font-normal text-xs">{p.unit}</span></td>
                     <td className="px-4 py-3 text-sm text-ink-3">{p.expected_arrival || "—"}</td>
-                    <td className="px-4 py-3 text-sm font-mono">₹{p.total_cost.toLocaleString()}</td>
+                    <td className="px-4 py-3 text-sm font-mono">₹{p.total_cost.toLocaleString("en-IN")}</td>
                     <td className="px-4 py-3">
                       <select value={p.status} onChange={(e) => setStatus.mutate({ id: p.id, status: e.target.value })}
                         className={`text-[12px] font-semibold px-2.5 py-1 rounded-full border-0 outline-none cursor-pointer capitalize ${STATUS_STYLE[p.status]}`}>
@@ -192,9 +192,9 @@ function NewPoModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => 
           {selected && (
             <div className="rounded-xl bg-canvas p-3 text-[13px] space-y-1">
               <div className="flex justify-between"><span className="text-ink-3">Vendor</span><span className="font-medium">{selected.vendor_name || "—"}</span></div>
-              <div className="flex justify-between"><span className="text-ink-3">Reorder point</span><span>{selected.reorder_point.toLocaleString()}</span></div>
+              <div className="flex justify-between"><span className="text-ink-3">Reorder point</span><span>{selected.reorder_point.toLocaleString("en-IN")}</span></div>
               <div className="flex justify-between"><span className="text-ink-3">Lead time</span><span>{selected.lead_time_days} days</span></div>
-              <div className="flex justify-between"><span className="text-ink-3">Suggested qty</span><span className="font-semibold text-primary">{selected.suggested_qty.toLocaleString()}</span></div>
+              <div className="flex justify-between"><span className="text-ink-3">Suggested qty</span><span className="font-semibold text-primary">{selected.suggested_qty.toLocaleString("en-IN")}</span></div>
             </div>
           )}
           <div><label className="text-[13px] font-semibold text-ink-2 mb-1.5 block">Order quantity</label><input type="number" className={inputCls} value={qty} onChange={(e) => setQty(e.target.value)} /></div>

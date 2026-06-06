@@ -53,7 +53,7 @@ export default function CustomerHome() {
       <div className="grid grid-cols-2 gap-3 mb-5">
         <StatCard icon={<Package className="size-4" />} label="Total Orders" value={orders.length} />
         <StatCard icon={<Activity className="size-4" />} label="Active" value={active.length} />
-        <StatCard icon={<Wallet className="size-4" />} label="Total Spent" value={`₹${totalSpent.toLocaleString("en-US", { maximumFractionDigits: 0 })}`} />
+        <StatCard icon={<Wallet className="size-4" />} label="Total Spent" value={`₹${totalSpent.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`} />
         <StatCard icon={<CreditCard className="size-4" />} label="Credit Account" value={customer?.is_credit_account ? "Yes" : "No"} />
       </div>
 

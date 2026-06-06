@@ -283,7 +283,7 @@ function Sourcing() {
                 <td className="px-4 py-3 text-sm text-ink-3">{s.plant_name}</td>
                 <td className="px-4 py-3 text-sm">{s.lead_time_days} d</td>
                 <td className="px-4 py-3 text-sm">{s.safety_stock_days} d</td>
-                <td className="px-4 py-3 text-sm">{s.min_order_qty.toLocaleString()}</td>
+                <td className="px-4 py-3 text-sm">{s.min_order_qty.toLocaleString("en-IN")}</td>
                 <td className="px-4 py-3 text-sm font-mono">₹{s.unit_cost}</td>
                 <td className="px-4 py-3"><RowActions onEdit={() => openEdit(s)} onDelete={() => setDel(s)} /></td>
               </tr>

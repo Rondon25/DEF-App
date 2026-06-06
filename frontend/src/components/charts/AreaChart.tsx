@@ -17,7 +17,7 @@ export default function AreaChart({
   const line = vals.map((v, i) => `${X(i)},${Y(v)}`).join(" ");
   const area = `0,${h} ${line} ${w},${h}`;
   const frac = hi != null ? hi / (data.length - 1 || 1) : 0;
-  const fmt = (v: number) => valueFmt ? valueFmt(v) : `${prefix}${Number(v).toLocaleString()}`;
+  const fmt = (v: number) => valueFmt ? valueFmt(v) : `${prefix}${Number(v).toLocaleString("en-IN")}`;
   const gid = `area-${color.replace("#", "")}`;
   return (
     <div className="relative" onMouseLeave={() => setHi(null)}
