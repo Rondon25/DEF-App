@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { clearStaffAuth, getStaffUser } from "../hooks/useAuth";
 import { staffApi } from "../api";
 import {
-  LayoutDashboard, Users, ClipboardList, CreditCard, Layers,
+  LayoutDashboard, Users, ClipboardList, Layers,
   Package, BarChart3, Droplet, Menu, X, LogOut, Bell,
 } from "lucide-react";
 
@@ -15,7 +15,6 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { to: "/staff",           icon: LayoutDashboard, label: "Dashboard" },
     { to: "/staff/customers", icon: Users,           label: "Customers" },
     { to: "/staff/orders",    icon: ClipboardList,   label: "Orders" },
-    { to: "/staff/payments",  icon: CreditCard,      label: "Payments" },
     { to: "/staff/catalog",   icon: Layers,          label: "Catalogue" },
     { to: "/staff/stock",     icon: Package,         label: "Stock" },
     { to: "/staff/analytics", icon: BarChart3,       label: "Analytics" },
@@ -24,14 +23,12 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { to: "/staff",           icon: LayoutDashboard, label: "Dashboard" },
     { to: "/staff/customers", icon: Users,           label: "Customers" },
     { to: "/staff/orders",    icon: ClipboardList,   label: "Orders" },
-    { to: "/staff/payments",  icon: CreditCard,      label: "Payments" },
     { to: "/staff/catalog",   icon: Layers,          label: "Catalogue" },
     { to: "/staff/analytics", icon: BarChart3,       label: "Analytics" },
   ],
   finance: [
-    { to: "/staff",          icon: LayoutDashboard, label: "Dashboard" },
-    { to: "/staff/payments", icon: CreditCard,      label: "Payments" },
-    { to: "/staff/orders",   icon: ClipboardList,   label: "Orders" },
+    { to: "/staff",        icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/staff/orders", icon: ClipboardList,   label: "Orders" },
   ],
   operations: [
     { to: "/staff",        icon: LayoutDashboard, label: "Dashboard" },

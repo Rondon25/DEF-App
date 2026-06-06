@@ -98,7 +98,7 @@ export default function StaffDashboard() {
                 text={`${pending.length} customer${pending.length > 1 ? "s" : ""} awaiting approval`} />
             )}
             {isFinance && payments.length > 0 && (
-              <AlertRow to="/staff/payments" tone="amber" icon={<CreditCard className="size-4" />}
+              <AlertRow to="/staff/orders?filter=payment_uploaded" tone="amber" icon={<CreditCard className="size-4" />}
                 text={`${payments.length} payment${payments.length > 1 ? "s" : ""} to verify`} />
             )}
             {awaiting.length > 0 && (

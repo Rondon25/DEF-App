@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { staffApi } from "../../api";
 import { SkeletonList } from "@/components/Skeleton";
 import ErrorScreen from "@/components/ErrorScreen";
@@ -17,7 +17,8 @@ const FILTERS = [
 ];
 
 export default function StaffOrders() {
-  const [filter, setFilter] = useState("");
+  const [searchParams] = useSearchParams();
+  const [filter, setFilter] = useState(searchParams.get("filter") || "");
   const [search, setSearch] = useState("");
 
   const { data: orders = [], isLoading, isError, refetch } = useQuery({
