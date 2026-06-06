@@ -47,15 +47,28 @@ def dispatch_order(
     db.add(delivery)
     order.status = models.OrderStatus.shipped
 
-    # Post finished-goods dispatch movements (decrement plant stock) for each line
-    from routers.stock import post_fg_movement, pick_plant_for_sku
-    for item in order.items:
-        plant_id = payload.plant_id or pick_plant_for_sku(db, item.sku_id)
-        if plant_id:
-            post_fg_movement(
-                db, plant_id, item.sku_id, qty_out=item.quantity,
-                reason="dispatch", note=f"Order {order.order_number}", staff_id=staff.id,
-            )
+    # Post finished-goods dispatch movements (decrement plant stock) for each line.
+    # Stock bookkeeping must NEVER block the order status transition, so it's
+    # isolated — any failure is logged and ignored.
+    try:
+        from routers.stock import post_fg_movement, pick_plant_for_sku
+        for item in order.items:
+            plant_id = payload.plant_id or pick_plant_for_sku(db, item.sku_id)
+            if plant_id:
+                post_fg_movement(
+                    db, plant_id, item.sku_id, qty_out=item.quantity,
+                    reason="dispatch", note=f"Order {order.order_number}", staff_id=staff.id,
+                )
+    except Exception as exc:  # noqa: BLE001
+        db.rollback()
+        order = db.query(models.Order).filter(models.Order.id == order_id).first()
+        order.status = models.OrderStatus.shipped
+        db.add(models.Delivery(
+            order_id=order.id, tracking_number=payload.tracking_number,
+            carrier=payload.carrier, shipped_at=datetime.utcnow(),
+            shipped_by=staff.id, notes=payload.notes,
+        ))
+        print(f"[dispatch] FG stock posting skipped for {order.order_number}: {exc}")
     db.commit()
 
     customer = order.customer
