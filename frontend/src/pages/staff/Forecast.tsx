@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { staffApi } from "../../api";
+import StatCard from "@/components/ui/StatCard";
 import {
   TrendingUp, CalendarDays, ChevronLeft, ChevronRight, Check, Loader2, Zap,
   FileDown, FileSpreadsheet, FileText, BarChart3,
@@ -69,10 +70,10 @@ export default function Forecast() {
 
       {/* Monthly KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <Kpi featured label={`Forecast (${month})`} value={summary ? Number(summary.total_units).toLocaleString() : "—"} icon={<TrendingUp className="size-4" />} />
-        <Kpi label="Working Days" value={summary?.working_days ?? "—"} icon={<CalendarDays className="size-4" />} />
-        <Kpi label="Avg Daily" value={summary && summary.working_days ? Math.round(summary.total_units / summary.working_days).toLocaleString() : "—"} icon={<BarChart3 className="size-4" />} />
-        <Kpi label="Top SKU" value={summary?.by_sku?.[0]?.sku_code ?? "—"} icon={<Zap className="size-4" />} />
+        <StatCard label={`Forecast (${month})`} value={summary ? Number(summary.total_units).toLocaleString() : "—"} icon={<TrendingUp className="size-4" />} />
+        <StatCard label="Working Days" value={summary?.working_days ?? "—"} icon={<CalendarDays className="size-4" />} />
+        <StatCard label="Avg Daily" value={summary && summary.working_days ? Math.round(summary.total_units / summary.working_days).toLocaleString() : "—"} icon={<BarChart3 className="size-4" />} />
+        <StatCard label="Top SKU" value={summary?.by_sku?.[0]?.sku_code ?? "—"} icon={<Zap className="size-4" />} />
       </div>
 
       {/* controls */}
@@ -178,14 +179,3 @@ function Cell({ value, onSave }: { value: number; onSave: (v: number) => void })
   );
 }
 
-function Kpi({ featured, label, value, icon }: { featured?: boolean; label: string; value: React.ReactNode; icon: React.ReactNode }) {
-  return (
-    <div className={`rounded-2xl p-5 ${featured ? "bg-sidebar text-white" : "bg-surface shadow-[var(--shadow-sm)]"}`}>
-      <div className="flex items-center justify-between mb-4">
-        <span className={`text-[13px] font-medium ${featured ? "text-white/60" : "text-ink-3"}`}>{label}</span>
-        <span className={`flex size-7 items-center justify-center rounded-lg ${featured ? "bg-white/10 text-accent" : "bg-teal-50 text-primary"}`}>{icon}</span>
-      </div>
-      <div className="text-3xl font-bold">{value}</div>
-    </div>
-  );
-}

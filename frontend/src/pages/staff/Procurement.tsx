@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { staffApi } from "../../api";
 import { SkeletonList } from "@/components/Skeleton";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import StatCard from "@/components/ui/StatCard";
 import {
   ShoppingCart, Zap, Clock, Truck, CheckCircle2, Search, X, Loader2,
   FileDown, FileSpreadsheet, FileText, Plus, Trash2,
@@ -76,10 +77,10 @@ export default function Procurement() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <Kpi featured label="Active POs" value={kpi.active} icon={<ShoppingCart className="size-4" />} />
-        <Kpi label="Draft" value={kpi.draft} icon={<Clock className="size-4" />} />
-        <Kpi label="Ordered" value={kpi.ordered} icon={<Truck className="size-4" />} />
-        <Kpi label="Open Value" value={`$${kpi.value.toLocaleString()}`} icon={<CheckCircle2 className="size-4" />} />
+        <StatCard label="Active POs" value={kpi.active} icon={<ShoppingCart className="size-4" />} />
+        <StatCard label="Draft" value={kpi.draft} icon={<Clock className="size-4" />} />
+        <StatCard label="Ordered" value={kpi.ordered} icon={<Truck className="size-4" />} />
+        <StatCard label="Open Value" value={`$${kpi.value.toLocaleString()}`} icon={<CheckCircle2 className="size-4" />} />
       </div>
 
       {/* status pills + actions */}
@@ -206,14 +207,3 @@ function NewPoModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => 
   );
 }
 
-function Kpi({ featured, label, value, icon }: { featured?: boolean; label: string; value: React.ReactNode; icon: React.ReactNode }) {
-  return (
-    <div className={`rounded-2xl p-5 ${featured ? "bg-sidebar text-white" : "bg-surface shadow-[var(--shadow-sm)]"}`}>
-      <div className="flex items-center justify-between mb-4">
-        <span className={`text-[13px] font-medium ${featured ? "text-white/60" : "text-ink-3"}`}>{label}</span>
-        <span className={`flex size-7 items-center justify-center rounded-lg ${featured ? "bg-white/10 text-accent" : "bg-teal-50 text-primary"}`}>{icon}</span>
-      </div>
-      <div className="text-3xl font-bold">{value}</div>
-    </div>
-  );
-}

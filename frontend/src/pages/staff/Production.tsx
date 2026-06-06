@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { staffApi } from "../../api";
 import { SkeletonList } from "@/components/Skeleton";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import Ring from "@/components/charts/Ring";
 import {
   Gauge, Clock, X, Loader2, Plus, CheckCircle2, AlertTriangle, FlaskConical,
   FileDown, FileSpreadsheet, FileText,
@@ -69,11 +70,13 @@ export default function Production() {
           {(cap?.plants ?? []).map((p: any) => {
             const color = p.over_capacity ? "var(--color-danger)" : p.utilization > 80 ? "var(--color-amber-500)" : "var(--color-teal-600)";
             return (
-              <div key={p.plant_id} className="rounded-xl border border-border p-4">
-                <div className="flex items-center justify-between mb-2"><span className="font-semibold text-sm">{p.plant_name}</span>{p.over_capacity && <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-700 flex items-center gap-1"><AlertTriangle size={11} /> Over</span>}</div>
-                <div className="flex items-end justify-between mb-1.5"><span className="text-2xl font-bold">{p.used_hours}<span className="text-ink-4 text-sm font-normal"> / {p.capacity_hours} hrs</span></span><span className="font-bold" style={{ color }}>{p.utilization}%</span></div>
-                <div className="h-2 rounded-full bg-canvas overflow-hidden"><div className="h-2 rounded-full" style={{ width: `${Math.min(100, p.utilization)}%`, background: color }} /></div>
-                <div className="text-[12px] text-ink-4 mt-2">{p.run_count} run(s) · {p.planned_units.toLocaleString()} units planned</div>
+              <div key={p.plant_id} className="rounded-xl border border-border p-4 flex items-center gap-4">
+                <Ring value={p.utilization} size={64} thickness={7} color={color} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2 mb-0.5"><span className="font-semibold text-sm truncate">{p.plant_name}</span>{p.over_capacity && <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-700 flex items-center gap-1 shrink-0"><AlertTriangle size={11} /> Over</span>}</div>
+                  <div className="text-lg font-bold leading-tight">{p.used_hours}<span className="text-ink-4 text-[13px] font-normal"> / {p.capacity_hours} hrs</span></div>
+                  <div className="text-[12px] text-ink-4 mt-0.5">{p.run_count} run(s) · {p.planned_units.toLocaleString()} units</div>
+                </div>
               </div>
             );
           })}
