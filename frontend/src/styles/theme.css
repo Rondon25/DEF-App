@@ -133,7 +133,19 @@
   --color-navy-700: #26262f;   /* sidebar hover */
   --color-lime-300: #e4f060;   /* vivid lime accent */
 
+  /* Re-point the whole "teal" PRIMARY scale to deep lime-green so every
+     bg-primary / bg-teal-50 / hover:bg-teal-700 / text-primary becomes green
+     (no per-component edits). Deep enough for legible white button text. */
+  --color-teal-50:  #f7fee7;
+  --color-teal-100: #ecfccb;
+  --color-teal-600: #4d7c0f;   /* primary */
+  --color-teal-700: #3f6212;   /* primary hover */
+  --blue:           #4d7c0f;   /* legacy var(--blue) used on a few pages */
+
   --background:       #f3f3f2;
+  --primary:          #4d7c0f;
+  --primary-foreground:#ffffff;
+  --ring:             #4d7c0f;
   --accent:           #e4f060;
   --accent-foreground:#15151b;
   --sidebar:                    #15151b;
