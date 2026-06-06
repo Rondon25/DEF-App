@@ -105,10 +105,10 @@ export default function CustomerLogin() {
       <div className="w-full max-w-[400px]">
         {/* Brand */}
         <div className="flex flex-col items-center mb-7">
-          <div className="flex items-center justify-center gap-4 mb-2">
-            <img src={logoFull} alt="Rohan Energy Solutions" className="h-16 w-auto" />
-            <span className="h-12 w-px bg-border" />
-            <img src={logoHpcl} alt="Hindustan Petroleum" className="h-16 w-auto" />
+          <div className="flex items-center justify-center gap-5 mb-2">
+            <img src={logoFull} alt="Rohan Energy Solutions" className="h-24 w-auto" />
+            <span className="h-16 w-px bg-border" />
+            <img src={logoHpcl} alt="Hindustan Petroleum" className="h-24 w-auto" />
           </div>
           <p className="text-sm text-ink-3">Customer Portal</p>
         </div>

@@ -5,6 +5,7 @@ import BulkLocationUpload, { type LocationRow } from "../../components/BulkLocat
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Plus, Upload, X, MapPin } from "lucide-react";
 import logoFull from "../../assets/logo-full.svg";
+import logoHpcl from "../../assets/logo-hpcl.svg";
 
 interface ExtraLocation { label: string; address: string; city: string; state: string; }
 
@@ -77,7 +78,11 @@ export default function CustomerRegister() {
       <div className="w-full max-w-[440px] mx-auto">
         {/* Brand */}
         <div className="flex flex-col items-center mb-6">
-          <img src={logoFull} alt="Rohan Energy Solutions" className="h-20 w-auto mb-2" />
+          <div className="flex items-center justify-center gap-5 mb-2">
+            <img src={logoFull} alt="Rohan Energy Solutions" className="h-24 w-auto" />
+            <span className="h-16 w-px bg-border" />
+            <img src={logoHpcl} alt="Hindustan Petroleum" className="h-24 w-auto" />
+          </div>
           <p className="text-sm text-ink-3">Customer Portal</p>
         </div>
 
