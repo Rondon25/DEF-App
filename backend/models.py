@@ -161,12 +161,16 @@ class SKU(Base):
 class Plant(Base):
     __tablename__ = "plants"
 
-    id          = Column(Integer, primary_key=True, index=True)
-    name        = Column(String(150), nullable=False)
-    location    = Column(String(200), nullable=True)
-    is_active   = Column(Boolean, default=True)
-    is_archived = Column(Boolean, default=False)
-    created_at  = Column(DateTime, default=datetime.utcnow)
+    id            = Column(Integer, primary_key=True, index=True)
+    name          = Column(String(150), nullable=False)
+    location      = Column(String(200), nullable=True)
+    manager_name  = Column(String(150), nullable=True)
+    manager_phone = Column(String(30), nullable=True)
+    manager_email = Column(String(255), nullable=True)
+    max_capacity  = Column(Float, nullable=True)   # max units the plant can hold
+    is_active     = Column(Boolean, default=True)
+    is_archived   = Column(Boolean, default=False)
+    created_at    = Column(DateTime, default=datetime.utcnow)
 
     stocks = relationship("PlantStock", back_populates="plant", cascade="all, delete-orphan")
 

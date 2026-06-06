@@ -18,42 +18,79 @@ STOCK_ROLES = ("admin", "central_team", "operations")
 class PlantIn(BaseModel):
     name: str
     location: str | None = None
+    manager_name: str | None = None
+    manager_phone: str | None = None
+    manager_email: str | None = None
+    max_capacity: float | None = None
 
 
-class PlantOut(BaseModel):
-    id: int
-    name: str
-    location: str | None
-    is_active: bool
-
-    class Config:
-        from_attributes = True
+def _plant_holding(db: Session, plant_id: int) -> float:
+    return db.query(func.coalesce(func.sum(models.PlantStock.quantity), 0)).filter(
+        models.PlantStock.plant_id == plant_id
+    ).scalar() or 0
 
 
-@router.get("/admin/plants", response_model=list[PlantOut])
+def _plant_to_dict(db: Session, p: models.Plant) -> dict:
+    holding = _plant_holding(db, p.id)
+    product_count = db.query(models.PlantStock).filter(
+        models.PlantStock.plant_id == p.id, models.PlantStock.quantity > 0
+    ).count()
+    util = round((holding / p.max_capacity) * 100, 1) if p.max_capacity else None
+    return {
+        "id": p.id, "name": p.name, "location": p.location,
+        "manager_name": p.manager_name, "manager_phone": p.manager_phone, "manager_email": p.manager_email,
+        "max_capacity": p.max_capacity, "is_active": p.is_active,
+        "current_holding": round(holding, 2), "product_count": product_count,
+        "utilization": util,
+    }
+
+
+@router.get("/admin/plants")
 def list_plants(db: Session = Depends(get_db), _: models.StaffUser = Depends(require_role(*STOCK_ROLES))):
-    return db.query(models.Plant).filter(models.Plant.is_archived == False).order_by(models.Plant.name).all()
+    plants = db.query(models.Plant).filter(models.Plant.is_archived == False).order_by(models.Plant.name).all()
+    return [_plant_to_dict(db, p) for p in plants]
 
 
-@router.post("/admin/plants", response_model=PlantOut, status_code=201)
+@router.post("/admin/plants", status_code=201)
 def create_plant(payload: PlantIn, db: Session = Depends(get_db), _: models.StaffUser = Depends(require_role("admin", "central_team"))):
-    plant = models.Plant(name=payload.name, location=payload.location)
+    plant = models.Plant(**payload.model_dump())
     db.add(plant)
     db.commit()
     db.refresh(plant)
-    return plant
+    return _plant_to_dict(db, plant)
 
 
-@router.patch("/admin/plants/{plant_id}", response_model=PlantOut)
+@router.patch("/admin/plants/{plant_id}")
 def update_plant(plant_id: int, payload: PlantIn, db: Session = Depends(get_db), _: models.StaffUser = Depends(require_role("admin", "central_team"))):
     plant = db.query(models.Plant).filter(models.Plant.id == plant_id).first()
     if not plant:
         raise HTTPException(status_code=404, detail="Plant not found")
-    plant.name = payload.name
-    plant.location = payload.location
+    for k, v in payload.model_dump().items():
+        setattr(plant, k, v)
     db.commit()
     db.refresh(plant)
-    return plant
+    return _plant_to_dict(db, plant)
+
+
+@router.get("/admin/plants/{plant_id}")
+def plant_detail(plant_id: int, db: Session = Depends(get_db), _: models.StaffUser = Depends(require_role(*STOCK_ROLES))):
+    plant = db.query(models.Plant).filter(models.Plant.id == plant_id, models.Plant.is_archived == False).first()
+    if not plant:
+        raise HTTPException(status_code=404, detail="Plant not found")
+    info = _plant_to_dict(db, plant)
+    # Products held at this plant
+    rows = db.query(models.PlantStock, models.SKU).join(models.SKU, models.SKU.id == models.PlantStock.sku_id).filter(
+        models.PlantStock.plant_id == plant_id, models.SKU.is_archived == False
+    ).all()
+    products = [{
+        "sku_id": sku.id, "sku_code": sku.code, "name": sku.name, "unit": sku.unit,
+        "quantity": round(ps.quantity, 2), "status": "low" if ps.quantity < 10 else "ok",
+    } for ps, sku in rows]
+    products.sort(key=lambda x: x["quantity"], reverse=True)
+    low_count = sum(1 for p in products if p["quantity"] < 10)
+    info["products"] = products
+    info["low_stock"] = low_count
+    return info
 
 
 @router.post("/admin/plants/{plant_id}/archive")
