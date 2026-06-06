@@ -134,7 +134,7 @@ export default function BulkSkuUpload({ onSkus, onClose }: Props) {
                   <div style={{ fontWeight: 600, fontSize: 13, display: "flex", gap: 8, alignItems: "center" }}>
                     {row.name || "—"} <span style={{ fontSize: 11, color: "var(--ink-4)", fontFamily: "monospace" }}>{row.code}</span>
                   </div>
-                  <div style={{ fontSize: 12, color: "var(--ink-3)" }}>${row.current_price.toFixed(2)} / {row.unit}{row.volume_liters ? ` · ${row.volume_liters}L` : ""}</div>
+                  <div style={{ fontSize: 12, color: "var(--ink-3)" }}>₹{row.current_price.toFixed(2)} / {row.unit}{row.volume_liters ? ` · ${row.volume_liters}L` : ""}</div>
                   {row._error && <div style={{ fontSize: 11, color: "#b45309", marginTop: 2, display: "inline-flex", alignItems: "center", gap: 4 }}><AlertTriangle size={12} /> {row._error} — will be skipped</div>}
                 </div>
               ))}

@@ -38,7 +38,7 @@ export default function FinishedGoods() {
     const doc = new jsPDF();
     doc.setFontSize(16); doc.setTextColor(13, 148, 136); doc.text("Finished Goods Inventory", 14, 18);
     doc.setFontSize(10); doc.setTextColor(120);
-    doc.text(`Last ${days}d · Produced ${summary?.produced ?? 0} · Dispatched ${summary?.dispatched ?? 0} · Revenue $${summary?.revenue ?? 0}`, 14, 25);
+    doc.text(`Last ${days}d · Produced ${summary?.produced ?? 0} · Dispatched ${summary?.dispatched ?? 0} · Revenue Rs ${summary?.revenue ?? 0}`, 14, 25);
     autoTable(doc, { startY: 31,
       head: [["SKU", "Product", "Stock", "Min Safety", "Status"]],
       body: rows.map((r: any) => [r.sku_code, r.name, r.qty, r.min_safety, STATUS[r.status as keyof typeof STATUS].label]),
@@ -64,8 +64,8 @@ export default function FinishedGoods() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <StatCard label={`Produced (${days}d)`} value={summary ? Number(summary.produced).toLocaleString() : "—"} icon={<Factory className="size-4" />} />
         <StatCard label={`Dispatched (${days}d)`} value={summary ? Number(summary.dispatched).toLocaleString() : "—"} icon={<Truck className="size-4" />} />
-        <StatCard label={`Revenue (${days}d)`} value={summary ? `$${Number(summary.revenue).toLocaleString()}` : "—"} icon={<DollarSign className="size-4" />} />
-        <StatCard label="Gross Margin" value={summary ? `$${Number(summary.gross_margin).toLocaleString()}` : "—"} icon={<TrendingUp className="size-4" />} />
+        <StatCard label={`Revenue (${days}d)`} value={summary ? `₹${Number(summary.revenue).toLocaleString()}` : "—"} icon={<DollarSign className="size-4" />} />
+        <StatCard label="Gross Margin" value={summary ? `₹${Number(summary.gross_margin).toLocaleString()}` : "—"} icon={<TrendingUp className="size-4" />} />
       </div>
 
       {/* actions */}

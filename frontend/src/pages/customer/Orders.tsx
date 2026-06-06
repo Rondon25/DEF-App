@@ -58,7 +58,7 @@ export default function Orders() {
                 </div>
               </div>
               <div className="text-right shrink-0">
-                <div className="font-bold text-sm">${order.total_amount?.toFixed(2)}</div>
+                <div className="font-bold text-sm">₹{order.total_amount?.toFixed(2)}</div>
                 <div className="text-[11px] text-ink-4 mt-0.5">{order.items?.length} item{order.items?.length !== 1 ? "s" : ""}</div>
               </div>
               <ChevronRight className="size-4 text-ink-4 shrink-0" />

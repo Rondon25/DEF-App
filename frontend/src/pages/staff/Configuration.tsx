@@ -134,8 +134,8 @@ function SkuRecipe() {
               <td className="px-4 py-3">{cell(s, "packaging_per_unit")}</td>
               <td className="px-4 py-3">{cell(s, "target_output_per_shift_hour")}</td>
               <td className="px-4 py-3">{cell(s, "min_fg_safety_stock")}</td>
-              <td className="px-4 py-3">{cell(s, "dispatch_cost_per_unit", "$")}</td>
-              <td className="px-4 py-3">{cell(s, "revenue_per_unit", "$")}</td>
+              <td className="px-4 py-3">{cell(s, "dispatch_cost_per_unit", "₹")}</td>
+              <td className="px-4 py-3">{cell(s, "revenue_per_unit", "₹")}</td>
             </tr>
           ))}
         </tbody>
@@ -284,7 +284,7 @@ function Sourcing() {
                 <td className="px-4 py-3 text-sm">{s.lead_time_days} d</td>
                 <td className="px-4 py-3 text-sm">{s.safety_stock_days} d</td>
                 <td className="px-4 py-3 text-sm">{s.min_order_qty.toLocaleString()}</td>
-                <td className="px-4 py-3 text-sm font-mono">${s.unit_cost}</td>
+                <td className="px-4 py-3 text-sm font-mono">₹{s.unit_cost}</td>
                 <td className="px-4 py-3"><RowActions onEdit={() => openEdit(s)} onDelete={() => setDel(s)} /></td>
               </tr>
             ))}
@@ -301,7 +301,7 @@ function Sourcing() {
             <Field label="Lead time (days)"><input type="number" className={inputCls} value={form.lead_time_days} onChange={(e) => setForm((f: any) => ({ ...f, lead_time_days: e.target.value }))} /></Field>
             <Field label="Safety stock (days)"><input type="number" className={inputCls} value={form.safety_stock_days} onChange={(e) => setForm((f: any) => ({ ...f, safety_stock_days: e.target.value }))} /></Field>
             <Field label="Min order qty"><input type="number" className={inputCls} value={form.min_order_qty} onChange={(e) => setForm((f: any) => ({ ...f, min_order_qty: e.target.value }))} /></Field>
-            <Field label="Unit cost ($)"><input type="number" className={inputCls} value={form.unit_cost} onChange={(e) => setForm((f: any) => ({ ...f, unit_cost: e.target.value }))} /></Field>
+            <Field label="Unit cost (₹)"><input type="number" className={inputCls} value={form.unit_cost} onChange={(e) => setForm((f: any) => ({ ...f, unit_cost: e.target.value }))} /></Field>
           </div>
         </Modal>
       )}

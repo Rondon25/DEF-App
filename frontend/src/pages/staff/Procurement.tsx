@@ -64,7 +64,7 @@ export default function Procurement() {
     doc.setFontSize(10); doc.setTextColor(120); doc.text(`Generated ${new Date().toLocaleDateString("en-US", { dateStyle: "long" })}`, 14, 22);
     autoTable(doc, { startY: 28,
       head: [["PO", "Plant", "Material", "Vendor", "Order Qty", "Lead", "Arrival", "Total", "Status"]],
-      body: filtered.map((p) => [p.po_number, p.plant_name, p.material_name, p.vendor_name || "—", p.order_qty, `${p.lead_time_days}d`, p.expected_arrival || "—", `$${p.total_cost}`, p.status]),
+      body: filtered.map((p) => [p.po_number, p.plant_name, p.material_name, p.vendor_name || "—", p.order_qty, `${p.lead_time_days}d`, p.expected_arrival || "—", `Rs ${p.total_cost}`, p.status]),
       headStyles: { fillColor: [30, 30, 45], textColor: 255, fontStyle: "bold" }, alternateRowStyles: { fillColor: [248, 249, 250] }, styles: { fontSize: 8, cellPadding: 2 } });
     doc.save(`purchase_orders_${today}.pdf`); setShowExport(false);
   };
@@ -80,7 +80,7 @@ export default function Procurement() {
         <StatCard label="Active POs" value={kpi.active} icon={<ShoppingCart className="size-4" />} />
         <StatCard label="Draft" value={kpi.draft} icon={<Clock className="size-4" />} />
         <StatCard label="Ordered" value={kpi.ordered} icon={<Truck className="size-4" />} />
-        <StatCard label="Open Value" value={`$${kpi.value.toLocaleString()}`} icon={<CheckCircle2 className="size-4" />} />
+        <StatCard label="Open Value" value={`₹${kpi.value.toLocaleString()}`} icon={<CheckCircle2 className="size-4" />} />
       </div>
 
       {/* status pills + actions */}
@@ -141,7 +141,7 @@ export default function Procurement() {
                     <td className="px-4 py-3 text-sm">{p.vendor_name || <span className="text-ink-4">—</span>}</td>
                     <td className="px-4 py-3 text-sm font-semibold">{p.order_qty.toLocaleString()} <span className="text-ink-4 font-normal text-xs">{p.unit}</span></td>
                     <td className="px-4 py-3 text-sm text-ink-3">{p.expected_arrival || "—"}</td>
-                    <td className="px-4 py-3 text-sm font-mono">${p.total_cost.toLocaleString()}</td>
+                    <td className="px-4 py-3 text-sm font-mono">₹{p.total_cost.toLocaleString()}</td>
                     <td className="px-4 py-3">
                       <select value={p.status} onChange={(e) => setStatus.mutate({ id: p.id, status: e.target.value })}
                         className={`text-[12px] font-semibold px-2.5 py-1 rounded-full border-0 outline-none cursor-pointer capitalize ${STATUS_STYLE[p.status]}`}>

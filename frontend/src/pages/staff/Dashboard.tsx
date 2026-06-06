@@ -127,7 +127,7 @@ function OperationsTab({ role }: { role: string }) {
                     <td className="px-5 py-3.5"><Link to={`/staff/orders/${o.id}`} className="font-mono font-semibold text-sm hover:text-primary">{o.order_number}</Link></td>
                     <td className="px-5 py-3.5 text-sm">{o.customer_name}</td>
                     <td className="px-5 py-3.5"><StatusPill status={o.status} /></td>
-                    <td className="px-5 py-3.5 text-right font-semibold text-sm">${o.total_amount?.toFixed(2)}</td>
+                    <td className="px-5 py-3.5 text-right font-semibold text-sm">₹{o.total_amount?.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -165,15 +165,15 @@ function PerformanceTab() {
       {summary && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
           <StatCard label="Total Orders" value={summary.total_orders} icon={<ClipboardList className="size-4" />} />
-          <StatCard label="Revenue (Closed)" value={`$${summary.total_revenue.toLocaleString()}`} icon={<DollarSign className="size-4" />} />
-          <StatCard label="Pipeline" value={`$${summary.pending_revenue.toLocaleString()}`} icon={<TrendingUp className="size-4" />} />
+          <StatCard label="Revenue (Closed)" value={`₹${summary.total_revenue.toLocaleString()}`} icon={<DollarSign className="size-4" />} />
+          <StatCard label="Pipeline" value={`₹${summary.pending_revenue.toLocaleString()}`} icon={<TrendingUp className="size-4" />} />
           <StatCard label="Active Orders" value={summary.active_orders} icon={<Activity className="size-4" />} />
         </div>
       )}
 
       <div className="bg-surface rounded-2xl shadow-[var(--shadow-sm)] p-5 mb-5">
         <h3 className="font-bold mb-4">Revenue over time</h3>
-        <AreaChart data={revenueData.map((d: any) => ({ label: d.date, value: d.revenue }))} prefix="$" />
+        <AreaChart data={revenueData.map((d: any) => ({ label: d.date, value: d.revenue }))} prefix="₹" />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-5 mb-5">
@@ -212,8 +212,8 @@ function ManufacturingTab() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <MiniStat label="Produced (30d)" value={Number(k.produced_30d).toLocaleString()} icon={<Factory className="size-4" />} />
         <MiniStat label="Dispatched (30d)" value={Number(k.dispatched_30d).toLocaleString()} icon={<Truck className="size-4" />} />
-        <MiniStat label="Revenue (30d)" value={`$${Number(k.revenue_30d).toLocaleString()}`} icon={<DollarSign className="size-4" />} />
-        <MiniStat label="RM Inventory Value" value={`$${Number(k.inventory_value).toLocaleString()}`} icon={<Boxes className="size-4" />} />
+        <MiniStat label="Revenue (30d)" value={`₹${Number(k.revenue_30d).toLocaleString()}`} icon={<DollarSign className="size-4" />} />
+        <MiniStat label="RM Inventory Value" value={`₹${Number(k.inventory_value).toLocaleString()}`} icon={<Boxes className="size-4" />} />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-5 mb-5">
@@ -290,7 +290,7 @@ function RankPanel({ title, rows }: { title: string; rows: { key: any; title: st
         <div key={r.key} className="flex items-center gap-3 px-5 py-3 border-b border-border last:border-0">
           <span className="text-[13px] font-bold text-ink-4 w-6">#{i + 1}</span>
           <div className="flex-1 min-w-0"><div className="font-semibold text-sm truncate">{r.title}</div><div className="text-[12px] text-ink-4 truncate">{r.sub}</div></div>
-          <div className="font-semibold text-sm">${r.amount.toLocaleString()}</div>
+          <div className="font-semibold text-sm">₹{r.amount.toLocaleString()}</div>
         </div>
       ))}
     </div>

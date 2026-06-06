@@ -38,7 +38,7 @@ def export_orders(
         q = q.filter(models.Order.status == status)
     orders = q.order_by(models.Order.created_at.desc()).all()
 
-    headers = ["Order Number", "Customer", "Company", "Status", "Total (USD)",
+    headers = ["Order Number", "Customer", "Company", "Status", "Total (INR)",
                "Delivery Address", "Created", "Confirmed"]
     rows = [
         [
@@ -67,7 +67,7 @@ def export_payments(
         models.Payment.uploaded_at >= since
     ).order_by(models.Payment.uploaded_at.desc()).all()
 
-    headers = ["Order Number", "Customer", "Method", "Amount (USD)", "Status", "Uploaded", "Verified"]
+    headers = ["Order Number", "Customer", "Method", "Amount (INR)", "Status", "Uploaded", "Verified"]
     rows = [
         [
             p.order.order_number if p.order else "",

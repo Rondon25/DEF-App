@@ -108,7 +108,7 @@ export default function Catalogue() {
                     <div className="text-[11px] text-ink-4 font-mono mt-0.5">{sku.sku_code}</div>
                     {sku.description && <p className="text-[13px] text-ink-3 mt-1.5 leading-snug">{sku.description}</p>}
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      <span className="font-bold text-primary">${sku.current_price.toFixed(2)}</span>
+                      <span className="font-bold text-primary">₹{sku.current_price.toFixed(2)}</span>
                       <span className="text-ink-3 text-sm">/ {sku.unit}</span>
                       {sku.min_order_qty > 1 && <span className="text-[11px] text-ink-4">Min {sku.min_order_qty}</span>}
                       {out && <Badge tone="red">Out of stock</Badge>}
@@ -143,7 +143,7 @@ export default function Catalogue() {
 
                 {qty > 0 && (
                   <div className="mt-3 rounded-xl bg-teal-50 px-3 py-1.5 text-[13px] font-semibold text-primary">
-                    Subtotal: ${(sku.current_price * qty).toFixed(2)}
+                    Subtotal: ₹{(sku.current_price * qty).toFixed(2)}
                   </div>
                 )}
               </div>
@@ -158,7 +158,7 @@ export default function Catalogue() {
           <div className="max-w-2xl mx-auto">
             <Button size="full" className="h-12 shadow-[0_6px_24px_rgba(13,148,136,.35)]" onClick={() => setShowCart(true)}>
               <ShoppingCart className="size-4" />
-              Review · {cartCount} item{cartCount !== 1 ? "s" : ""} · ${cartTotal.toFixed(2)}
+              Review · {cartCount} item{cartCount !== 1 ? "s" : ""} · ₹{cartTotal.toFixed(2)}
             </Button>
           </div>
         </div>
@@ -183,14 +183,14 @@ export default function Catalogue() {
                 <div key={c.sku.id} className="flex justify-between py-2 border-b border-border last:border-0">
                   <div>
                     <div className="font-semibold text-sm">{c.sku.name}</div>
-                    <div className="text-xs text-ink-3">{c.qty} × ${c.sku.current_price.toFixed(2)} / {c.sku.unit}</div>
+                    <div className="text-xs text-ink-3">{c.qty} × ₹{c.sku.current_price.toFixed(2)} / {c.sku.unit}</div>
                   </div>
-                  <div className="font-bold text-sm">${(c.sku.current_price * c.qty).toFixed(2)}</div>
+                  <div className="font-bold text-sm">₹{(c.sku.current_price * c.qty).toFixed(2)}</div>
                 </div>
               ))}
               <div className="flex justify-between pt-3 mt-1 font-bold">
                 <span>Total</span>
-                <span className="text-primary text-lg">${cartTotal.toFixed(2)}</span>
+                <span className="text-primary text-lg">₹{cartTotal.toFixed(2)}</span>
               </div>
             </div>
 

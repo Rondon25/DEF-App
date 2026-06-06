@@ -84,12 +84,12 @@ def seed_skus():
         if db.query(models.SKU).count() > 0:
             return
         skus = [
-            models.SKU(code="DEF-5L",    name="DEF 5L",    description="Diesel Exhaust Fluid — 5 litre container. Suitable for passenger vehicles and light commercial.",    volume_liters=5,    unit="unit",  current_price=6.00),
-            models.SKU(code="DEF-10L",   name="DEF 10L",   description="Diesel Exhaust Fluid — 10 litre container. Popular choice for small fleets and workshops.",           volume_liters=10,   unit="unit",  current_price=11.00),
-            models.SKU(code="DEF-20L",   name="DEF 20L",   description="Diesel Exhaust Fluid — 20 litre drum. Ideal for medium-duty vehicles and service centres.",           volume_liters=20,   unit="unit",  current_price=19.00),
-            models.SKU(code="DEF-200L",  name="DEF 200L",  description="Diesel Exhaust Fluid — 200 litre drum. High-volume option for large fleets and depots.",              volume_liters=200,  unit="drum",  current_price=160.00),
-            models.SKU(code="DEF-1000L", name="DEF 1000L", description="Diesel Exhaust Fluid — 1000 litre IBC. Bulk supply for mining, agriculture, and large operations.",   volume_liters=1000, unit="ibc",   current_price=720.00),
-            models.SKU(code="DEF-BULK",  name="DEF Bulk",  description="Bulk DEF supply — delivered via tanker. Contact sales for pricing on volumes over 5000 litres.",       volume_liters=0,    unit="litre", current_price=0.52),
+            models.SKU(code="DEF-5L",    name="DEF 5L",    description="Diesel Exhaust Fluid — 5 litre container. Suitable for passenger vehicles and light commercial.",    volume_liters=5,    unit="unit",  current_price=572.34),
+            models.SKU(code="DEF-10L",   name="DEF 10L",   description="Diesel Exhaust Fluid — 10 litre container. Popular choice for small fleets and workshops.",           volume_liters=10,   unit="unit",  current_price=1049.29),
+            models.SKU(code="DEF-20L",   name="DEF 20L",   description="Diesel Exhaust Fluid — 20 litre drum. Ideal for medium-duty vehicles and service centres.",           volume_liters=20,   unit="unit",  current_price=1812.41),
+            models.SKU(code="DEF-200L",  name="DEF 200L",  description="Diesel Exhaust Fluid — 200 litre drum. High-volume option for large fleets and depots.",              volume_liters=200,  unit="drum",  current_price=15262.40),
+            models.SKU(code="DEF-1000L", name="DEF 1000L", description="Diesel Exhaust Fluid — 1000 litre IBC. Bulk supply for mining, agriculture, and large operations.",   volume_liters=1000, unit="ibc",   current_price=68680.80),
+            models.SKU(code="DEF-BULK",  name="DEF Bulk",  description="Bulk DEF supply — delivered via tanker. Contact sales for pricing on volumes over 5000 litres.",       volume_liters=0,    unit="litre", current_price=49.60),
         ]
         db.add_all(skus)
 

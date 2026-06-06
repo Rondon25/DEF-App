@@ -159,7 +159,7 @@ export default function OrderDetail() {
               <option value="credit">Credit Account</option>
             </select>
           </Field>
-          <Field label="Amount paid (USD)">
+          <Field label="Amount paid (INR)">
             <input className={inputCls} type="number" min="0" step="0.01" placeholder={order.total_amount?.toFixed(2)} value={payAmount} onChange={e => { setPayAmount(e.target.value); setPayError(""); }} />
           </Field>
           <Field label="Payment proof image">
@@ -256,11 +256,11 @@ export default function OrderDetail() {
         {order.items?.map((item: any) => (
           <div key={item.id} className="flex items-center gap-3 px-4 py-3 border-t border-border first:border-t-0">
             <div className="size-9 rounded-lg bg-teal-50 flex items-center justify-center text-primary shrink-0"><Droplet className="size-4" /></div>
-            <div className="flex-1 min-w-0"><div className="font-semibold text-sm">{item.sku_name || `SKU #${item.sku_id}`}</div><div className="text-[12px] text-ink-4">{item.quantity} × ${item.unit_price?.toFixed(2)}</div></div>
-            <div className="font-bold text-sm">${item.subtotal?.toFixed(2)}</div>
+            <div className="flex-1 min-w-0"><div className="font-semibold text-sm">{item.sku_name || `SKU #${item.sku_id}`}</div><div className="text-[12px] text-ink-4">{item.quantity} × ₹{item.unit_price?.toFixed(2)}</div></div>
+            <div className="font-bold text-sm">₹{item.subtotal?.toFixed(2)}</div>
           </div>
         ))}
-        <div className="flex justify-between px-4 py-3 border-t-2 border-border font-bold"><span>Total</span><span className="text-primary">${order.total_amount?.toFixed(2)}</span></div>
+        <div className="flex justify-between px-4 py-3 border-t-2 border-border font-bold"><span>Total</span><span className="text-primary">₹{order.total_amount?.toFixed(2)}</span></div>
       </Card>
 
       {/* Delivery address */}

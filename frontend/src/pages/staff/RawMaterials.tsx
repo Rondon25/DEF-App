@@ -78,7 +78,7 @@ export default function RawMaterials() {
         <StatCard label="Stock Lines" value={summary?.total_lines ?? "—"} icon={<Boxes className="size-4" />} />
         <StatCard label="Critical (below ROP)" value={summary?.critical ?? "—"} icon={<AlertTriangle className="size-4" />} warn={(summary?.critical ?? 0) > 0} />
         <StatCard label="Reorder Signals" value={summary?.order_lines ?? "—"} icon={<ShoppingCart className="size-4" />} />
-        <StatCard label="Inventory Value" value={summary ? `$${Number(summary.inventory_value).toLocaleString()}` : "—"} icon={<DollarSign className="size-4" />} />
+        <StatCard label="Inventory Value" value={summary ? `₹${Number(summary.inventory_value).toLocaleString()}` : "—"} icon={<DollarSign className="size-4" />} />
       </div>
 
       {/* Search + plant filter + export */}

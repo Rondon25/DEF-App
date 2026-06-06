@@ -179,7 +179,7 @@ export default function StaffOrderDetail() {
         <ActionCard icon={<CreditCard className="size-4" />} tone="amber" title="Verify Payment">
           <div className="text-[13px] space-y-0.5 mb-3">
             <div><span className="text-ink-3">Method:</span> <span className="font-semibold capitalize">{payment.method?.replace("_", " ")}</span></div>
-            <div><span className="text-ink-3">Amount:</span> <span className="font-semibold">${payment.amount?.toFixed(2)}</span></div>
+            <div><span className="text-ink-3">Amount:</span> <span className="font-semibold">₹{payment.amount?.toFixed(2)}</span></div>
             <div><span className="text-ink-3">Uploaded:</span> {new Date(payment.uploaded_at).toLocaleString()}</div>
           </div>
           {payment.proof_file_url && (
@@ -276,11 +276,11 @@ export default function StaffOrderDetail() {
         {order.items?.map((item: any) => (
           <div key={item.id} className="flex items-center gap-3 px-4 py-3 border-t border-border first:border-t-0">
             <div className="size-9 rounded-lg bg-teal-50 flex items-center justify-center text-primary shrink-0"><Droplet className="size-4" /></div>
-            <div className="flex-1 min-w-0"><div className="font-semibold text-sm">{item.sku_name || `SKU #${item.sku_id}`}</div><div className="text-[12px] text-ink-4">{item.quantity} × ${item.unit_price?.toFixed(2)}</div></div>
-            <div className="font-bold text-sm">${item.subtotal?.toFixed(2)}</div>
+            <div className="flex-1 min-w-0"><div className="font-semibold text-sm">{item.sku_name || `SKU #${item.sku_id}`}</div><div className="text-[12px] text-ink-4">{item.quantity} × ₹{item.unit_price?.toFixed(2)}</div></div>
+            <div className="font-bold text-sm">₹{item.subtotal?.toFixed(2)}</div>
           </div>
         ))}
-        <div className="flex justify-between px-4 py-3 border-t-2 border-border font-bold"><span>Total</span><span className="text-primary">${order.total_amount?.toFixed(2)}</span></div>
+        <div className="flex justify-between px-4 py-3 border-t-2 border-border font-bold"><span>Total</span><span className="text-primary">₹{order.total_amount?.toFixed(2)}</span></div>
       </div>
 
       {/* Delivery address */}

@@ -83,7 +83,7 @@ export default function StaffCreateOrder({ onClose }: { onClose: () => void }) {
           <div className="flex gap-2">
             <select value={pickSku} onChange={(e) => setPickSku(e.target.value ? Number(e.target.value) : "")} className={selectCls}>
               <option value="">Select product…</option>
-              {skus.map((s) => <option key={s.id} value={s.id}>{s.name} — ${s.current_price.toFixed(2)}/{s.unit}</option>)}
+              {skus.map((s) => <option key={s.id} value={s.id}>{s.name} — ₹{s.current_price.toFixed(2)}/{s.unit}</option>)}
             </select>
             <button onClick={addLine} disabled={!pickSku} className="shrink-0 h-11 px-4 rounded-xl bg-primary text-white text-sm font-semibold disabled:opacity-50 inline-flex items-center gap-1"><Plus size={16} /></button>
           </div>
@@ -96,17 +96,17 @@ export default function StaffCreateOrder({ onClose }: { onClose: () => void }) {
               <div key={l.sku.id} className="flex items-center gap-2 p-2.5">
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-[13px] truncate">{l.sku.name}</div>
-                  <div className="text-[11px] text-ink-4">${l.sku.current_price.toFixed(2)} / {l.sku.unit}</div>
+                  <div className="text-[11px] text-ink-4">₹{l.sku.current_price.toFixed(2)} / {l.sku.unit}</div>
                 </div>
                 <button onClick={() => setQty(l.sku.id, l.qty - 1)} className="size-7 rounded-full border border-border flex items-center justify-center text-ink-2"><Minus size={13} /></button>
                 <span className="w-6 text-center font-bold text-sm">{l.qty}</span>
                 <button onClick={() => setQty(l.sku.id, l.qty + 1)} className="size-7 rounded-full bg-primary text-white flex items-center justify-center"><Plus size={13} /></button>
-                <span className="w-16 text-right font-bold text-[13px]">${(l.sku.current_price * l.qty).toFixed(2)}</span>
+                <span className="w-16 text-right font-bold text-[13px]">₹{(l.sku.current_price * l.qty).toFixed(2)}</span>
                 <button onClick={() => setQty(l.sku.id, 0)} className="text-ink-4 hover:text-red-600"><Trash2 size={14} /></button>
               </div>
             ))}
             <div className="flex justify-between p-2.5 font-bold text-sm">
-              <span>Total</span><span className="text-primary">${total.toFixed(2)}</span>
+              <span>Total</span><span className="text-primary">₹{total.toFixed(2)}</span>
             </div>
           </div>
         )}

@@ -151,7 +151,7 @@ export default function CustomerDetail() {
         <div className="grid grid-cols-3 lg:grid-cols-1 gap-3">
           <MiniKpi icon={<Package className="size-4" />} label="Total Orders" value={orders.length} />
           <MiniKpi icon={<Activity className="size-4" />} label="Active" value={activeOrders.length} />
-          <MiniKpi icon={<Wallet className="size-4" />} label="Total Spent" value={`$${totalSpent.toLocaleString("en-US", { maximumFractionDigits: 0 })}`} />
+          <MiniKpi icon={<Wallet className="size-4" />} label="Total Spent" value={`₹${totalSpent.toLocaleString("en-US", { maximumFractionDigits: 0 })}`} />
         </div>
       </div>
 
@@ -259,7 +259,7 @@ export default function CustomerDetail() {
                 <div className="font-mono font-semibold text-sm">{order.order_number}</div>
                 <div className="flex items-center gap-2 mt-0.5"><StatusPill status={order.status} /><span className="text-xs text-ink-4">{new Date(order.created_at).toLocaleDateString("en-US", { dateStyle: "short" })}</span></div>
               </div>
-              <div className="font-bold text-sm shrink-0">${order.total_amount?.toFixed(2)}</div>
+              <div className="font-bold text-sm shrink-0">₹{order.total_amount?.toFixed(2)}</div>
               <ChevronRight className="size-4 text-ink-4 shrink-0" />
             </Link>
           ))

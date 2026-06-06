@@ -116,7 +116,7 @@ export default function CatalogueManagement() {
   const exportExcel = () => {
     const data = skus.map((s) => ({
       Code: s.sku_code, Name: s.name, Description: s.description || "",
-      Volume_L: s.volume_liters, Unit: s.unit, Price_USD: s.current_price.toFixed(2),
+      Volume_L: s.volume_liters, Unit: s.unit, Price_INR: s.current_price.toFixed(2),
       Status: s.is_active ? "Active" : "Inactive",
     }));
     const ws = XLSX.utils.json_to_sheet(data);
@@ -138,10 +138,10 @@ export default function CatalogueManagement() {
     doc.text(`Generated ${new Date().toLocaleDateString("en-US", { dateStyle: "long" })} · ${skus.length} products`, 14, 25);
     autoTable(doc, {
       startY: 31,
-      head: [["Code", "Name", "Unit", "Volume (L)", "Price (USD)", "Status"]],
+      head: [["Code", "Name", "Unit", "Volume (L)", "Price (INR)", "Status"]],
       body: skus.map((s) => [
         s.sku_code, s.name, s.unit, s.volume_liters || "—",
-        `$${s.current_price.toFixed(2)}`, s.is_active ? "Active" : "Inactive",
+        `Rs ${s.current_price.toFixed(2)}`, s.is_active ? "Active" : "Inactive",
       ]),
       headStyles: { fillColor: [30, 30, 45], textColor: 255, fontStyle: "bold" },
       alternateRowStyles: { fillColor: [248, 249, 250] },
@@ -171,7 +171,7 @@ export default function CatalogueManagement() {
         <StatCard label="Total Products" value={skus.length} icon={<Layers className="size-4" />} />
         <StatCard label="Active" value={skus.filter(s => s.is_active).length} icon={<Power className="size-4" />} />
         <StatCard label="Inactive" value={skus.filter(s => !s.is_active).length} icon={<PowerOff className="size-4" />} />
-        <StatCard label="Avg Price" value={skus.length ? `$${(skus.reduce((a, s) => a + (s.current_price || 0), 0) / skus.length).toFixed(0)}` : "—"} icon={<DollarSign className="size-4" />} />
+        <StatCard label="Avg Price" value={skus.length ? `₹${(skus.reduce((a, s) => a + (s.current_price || 0), 0) / skus.length).toFixed(0)}` : "—"} icon={<DollarSign className="size-4" />} />
       </div>
 
       {/* Search + actions */}
@@ -248,7 +248,7 @@ export default function CatalogueManagement() {
                     </td>
                     <td className="px-5 py-3.5 font-mono text-[13px] text-ink-3">{sku.sku_code}</td>
                     <td className="px-5 py-3.5 text-right">
-                      <span className="font-bold text-primary text-sm">${sku.current_price.toFixed(2)}</span>
+                      <span className="font-bold text-primary text-sm">₹{sku.current_price.toFixed(2)}</span>
                       <span className="text-ink-4 text-xs"> /{sku.unit}</span>
                     </td>
                     <td className="px-5 py-3.5">
@@ -315,7 +315,7 @@ export default function CatalogueManagement() {
             </div>
           </div>
           <div className="mb-3">
-            <label>Price (USD) *</label>
+            <label>Price (INR) *</label>
             <input className={inputCls} type="number" min="0" step="0.01" placeholder="0.00" value={newForm.current_price}
               onChange={e => setNewForm(p => ({ ...p, current_price: e.target.value }))} />
           </div>
@@ -390,10 +390,10 @@ export default function CatalogueManagement() {
       {priceSku && (
         <Sheet title={`Update Price — ${priceSku.name}`} onClose={() => setPriceSku(null)}>
           <div style={{ background: "var(--surface)", borderRadius: "var(--radius)", padding: 12, marginBottom: 14, fontSize: 13 }}>
-            Current price: <strong className="text-primary">${priceSku.current_price.toFixed(2)}</strong> / {priceSku.unit}
+            Current price: <strong className="text-primary">₹{priceSku.current_price.toFixed(2)}</strong> / {priceSku.unit}
           </div>
           <div className="mb-3">
-            <label>New price (USD) *</label>
+            <label>New price (INR) *</label>
             <input className={inputCls} type="number" min="0" step="0.01"
               value={newPrice} onChange={e => setNewPrice(e.target.value)} />
           </div>

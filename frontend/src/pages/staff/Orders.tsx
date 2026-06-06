@@ -99,7 +99,7 @@ export default function StaffOrders() {
       head: [["Order #", "Customer", "Status", "Date", "Amount"]],
       body: filtered.map((o: any) => [
         o.order_number, o.customer_name || "", statusLabel(o.status),
-        new Date(o.created_at).toLocaleDateString("en-US"), `$${o.total_amount?.toFixed(2)}`,
+        new Date(o.created_at).toLocaleDateString("en-US"), `Rs ${o.total_amount?.toFixed(2)}`,
       ]),
       headStyles: { fillColor: [30, 30, 45], textColor: 255, fontStyle: "bold" },
       alternateRowStyles: { fillColor: [248, 249, 250] },
@@ -227,7 +227,7 @@ export default function StaffOrders() {
                     </td>
                     <td className="px-5 py-3.5"><StatusPill status={o.status} /></td>
                     <td className="px-5 py-3.5 text-sm text-ink-3">{new Date(o.created_at).toLocaleDateString("en-US", { dateStyle: "short" })}</td>
-                    <td className="px-5 py-3.5 text-right font-semibold text-sm">${o.total_amount?.toFixed(2)}</td>
+                    <td className="px-5 py-3.5 text-right font-semibold text-sm">₹{o.total_amount?.toFixed(2)}</td>
                     <td className="px-5 py-3.5">
                       <div className="flex justify-end">
                         <button onClick={() => setDelOrder(o)} title="Archive order"
@@ -257,7 +257,7 @@ export default function StaffOrders() {
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="font-bold text-sm">${o.total_amount?.toFixed(2)}</div>
+                  <div className="font-bold text-sm">₹{o.total_amount?.toFixed(2)}</div>
                   <div className="text-[11px] text-ink-4">{new Date(o.created_at).toLocaleDateString("en-US", { dateStyle: "short" })}</div>
                 </div>
               </Link>
