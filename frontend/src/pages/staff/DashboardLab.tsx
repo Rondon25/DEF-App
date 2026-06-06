@@ -49,7 +49,7 @@ export default function DashboardLab() {
   ];
 
   return (
-    <div className="min-h-dvh flex" style={{ background: C.canvas, color: C.ink }}>
+    <div className="h-dvh overflow-hidden flex" style={{ background: C.canvas, color: C.ink }}>
       {/* Sidebar */}
       <aside className="w-[230px] shrink-0 flex-col p-5 hidden lg:flex" style={{ background: C.sidebar, color: "#fff" }}>
         <div className="flex items-center gap-2.5 mb-8 px-1">
@@ -75,7 +75,7 @@ export default function DashboardLab() {
       </aside>
 
       {/* Main */}
-      <div className="flex-1 min-w-0 flex flex-col">
+      <div className="flex-1 min-w-0 min-h-0 flex flex-col">
         {/* Topbar */}
         <header className="h-16 flex items-center gap-4 px-6 border-b" style={{ borderColor: C.border, background: "#fff" }}>
           <h1 className="text-lg font-bold">Dashboard</h1>
@@ -92,7 +92,7 @@ export default function DashboardLab() {
           </div>
         </header>
 
-        <div className="flex-1 grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="flex-1 min-h-0 overflow-y-auto grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px]">
           {/* Center column */}
           <div className="p-6 space-y-5 min-w-0">
             {/* KPI row */}
@@ -187,12 +187,6 @@ export default function DashboardLab() {
 
           {/* Right rail */}
           <aside className="border-l p-5 space-y-5 hidden xl:block" style={{ borderColor: C.border, background: "#fff" }}>
-            <div className="text-right">
-              <div className="size-12 rounded-full ml-auto flex items-center justify-center text-base font-bold mb-2" style={{ background: C.lime, color: C.ink }}>{user?.name?.[0]?.toUpperCase()}</div>
-              <div className="font-bold text-sm">{user?.name}</div>
-              <div className="text-[12px] capitalize" style={{color:C.sub}}>{user?.role?.replace("_"," ")}</div>
-            </div>
-
             {/* Plant Production — stacked %-blocks with trend sparklines */}
             <div className="rounded-2xl p-4" style={{ background: "#fff", boxShadow: "0 1px 2px rgba(16,16,28,.04), 0 1px 3px rgba(16,16,28,.06)" }}>
               <div className="flex items-center justify-between mb-1"><h3 className="font-bold text-sm">Plant Production</h3><span style={{color:C.sub}}>···</span></div>
