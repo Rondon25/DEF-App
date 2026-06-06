@@ -1,9 +1,21 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { staffApi } from "../../api";
-import { ClipboardList, CreditCard, Users } from "lucide-react";
+import { ClipboardList, CreditCard, Users, DollarSign, TrendingUp, Activity } from "lucide-react";
 
 const ic = { display: "inline", verticalAlign: "-3px", marginRight: 6 } as const;
+
+function AnalKpi({ featured, label, value, icon }: { featured?: boolean; label: string; value: React.ReactNode; icon: React.ReactNode }) {
+  return (
+    <div className={`rounded-2xl p-5 ${featured ? "bg-sidebar text-white" : "bg-surface shadow-[var(--shadow-sm)]"}`}>
+      <div className="flex items-center justify-between mb-4">
+        <span className={`text-[13px] font-medium ${featured ? "text-white/60" : "text-ink-3"}`}>{label}</span>
+        <span className={`flex size-7 items-center justify-center rounded-lg ${featured ? "bg-white/10 text-accent" : "bg-teal-50 text-primary"}`}>{icon}</span>
+      </div>
+      <div className="text-3xl font-bold">{value}</div>
+    </div>
+  );
+}
 
 export default function Analytics() {
   const [days, setDays] = useState(30);
@@ -42,22 +54,19 @@ export default function Analytics() {
 
   return (
     <>
-      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <div className="flex items-start justify-between gap-3 mb-5 flex-wrap">
         <div>
-          <h1>Analytics</h1>
-          <p>Business performance overview</p>
+          <h1 className="text-2xl font-bold text-ink">Analytics</h1>
+          <p className="text-sm text-ink-3">Business performance overview</p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          {[7, 30, 90].map(d => (
+        <div className="flex gap-2">
+          {[7, 30, 90].map((d) => (
             <button
               key={d}
               onClick={() => setDays(d)}
-              style={{
-                padding: "6px 12px", borderRadius: 99, fontSize: 13, fontWeight: 600,
-                border: `2px solid ${days === d ? "var(--blue)" : "var(--border)"}`,
-                background: days === d ? "var(--blue)" : "var(--surface)",
-                color: days === d ? "#fff" : "var(--ink-2)", cursor: "pointer",
-              }}
+              className={`px-4 py-1.5 rounded-full text-[13px] font-semibold border-2 transition-colors ${
+                days === d ? "bg-primary border-primary text-white" : "bg-surface border-border text-ink-2 hover:border-primary"
+              }`}
             >
               {d}d
             </button>
@@ -67,23 +76,11 @@ export default function Analytics() {
 
       {/* KPIs */}
       {summary && (
-        <div className="kpi-grid">
-          <div className="kpi-card">
-            <div className="kpi-label">Total Orders</div>
-            <div className="kpi-value">{summary.total_orders}</div>
-          </div>
-          <div className="kpi-card green">
-            <div className="kpi-label">Revenue (Closed)</div>
-            <div className="kpi-value" style={{ fontSize: 18 }}>${summary.total_revenue.toLocaleString()}</div>
-          </div>
-          <div className="kpi-card blue">
-            <div className="kpi-label">Pipeline</div>
-            <div className="kpi-value" style={{ fontSize: 18 }}>${summary.pending_revenue.toLocaleString()}</div>
-          </div>
-          <div className="kpi-card">
-            <div className="kpi-label">Active Orders</div>
-            <div className="kpi-value">{summary.active_orders}</div>
-          </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+          <AnalKpi featured label="Total Orders" value={summary.total_orders} icon={<ClipboardList className="size-4" />} />
+          <AnalKpi label="Revenue (Closed)" value={`$${summary.total_revenue.toLocaleString()}`} icon={<DollarSign className="size-4" />} />
+          <AnalKpi label="Pipeline" value={`$${summary.pending_revenue.toLocaleString()}`} icon={<TrendingUp className="size-4" />} />
+          <AnalKpi label="Active Orders" value={summary.active_orders} icon={<Activity className="size-4" />} />
         </div>
       )}
 

@@ -6,7 +6,8 @@ import { SkeletonList } from "@/components/Skeleton";
 import ErrorScreen from "@/components/ErrorScreen";
 import { StatusPill, statusLabel } from "@/components/StatusPill";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import { Search, ClipboardList, X, FileDown, FileSpreadsheet, FileText, Trash2 } from "lucide-react";
+import StaffCreateOrder from "@/components/StaffCreateOrder";
+import { Search, ClipboardList, X, FileDown, FileSpreadsheet, FileText, Trash2, Plus } from "lucide-react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -25,6 +26,7 @@ export default function StaffOrders() {
   const [filter, setFilter] = useState(searchParams.get("filter") || "");
   const [search, setSearch] = useState("");
   const [showExport, setShowExport] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
   const [delOrder, setDelOrder] = useState<any>(null);
   const today = new Date().toISOString().split("T")[0];
   const qc = useQueryClient();
@@ -104,27 +106,35 @@ export default function StaffOrders() {
           <h1 className="text-2xl font-bold text-ink">Orders</h1>
           <p className="text-sm text-ink-3">{filtered.length} of {orders.length} order{orders.length !== 1 ? "s" : ""}</p>
         </div>
-        <div className="relative">
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <button
+              onClick={() => setShowExport((v) => !v)}
+              disabled={filtered.length === 0}
+              className="inline-flex items-center gap-1.5 h-10 px-4 rounded-full border border-border bg-surface text-sm font-medium text-ink-2 hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
+            >
+              <FileDown size={16} /> Export
+            </button>
+            {showExport && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowExport(false)} />
+                <div className="absolute right-0 top-12 z-20 w-48 bg-surface rounded-xl shadow-[var(--shadow-lg)] border border-border overflow-hidden">
+                  <button onClick={exportExcel} className="w-full flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-canvas text-left">
+                    <FileSpreadsheet size={16} className="text-green-600" /> Export as Excel
+                  </button>
+                  <button onClick={exportPDF} className="w-full flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-canvas text-left border-t border-border">
+                    <FileText size={16} className="text-red-600" /> Export as PDF
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
           <button
-            onClick={() => setShowExport((v) => !v)}
-            disabled={filtered.length === 0}
-            className="inline-flex items-center gap-1.5 h-10 px-4 rounded-full border border-border bg-surface text-sm font-medium text-ink-2 hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
+            onClick={() => setShowCreate(true)}
+            className="inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-primary text-white text-sm font-semibold hover:bg-teal-700 transition-colors"
           >
-            <FileDown size={16} /> Export
+            <Plus size={16} /> Add Order
           </button>
-          {showExport && (
-            <>
-              <div className="fixed inset-0 z-10" onClick={() => setShowExport(false)} />
-              <div className="absolute right-0 top-12 z-20 w-48 bg-surface rounded-xl shadow-[var(--shadow-lg)] border border-border overflow-hidden">
-                <button onClick={exportExcel} className="w-full flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-canvas text-left">
-                  <FileSpreadsheet size={16} className="text-green-600" /> Export as Excel
-                </button>
-                <button onClick={exportPDF} className="w-full flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-canvas text-left border-t border-border">
-                  <FileText size={16} className="text-red-600" /> Export as PDF
-                </button>
-              </div>
-            </>
-          )}
         </div>
       </div>
 
@@ -247,6 +257,8 @@ export default function StaffOrders() {
           onCancel={() => setDelOrder(null)}
         />
       )}
+
+      {showCreate && <StaffCreateOrder onClose={() => setShowCreate(false)} />}
     </>
   );
 }

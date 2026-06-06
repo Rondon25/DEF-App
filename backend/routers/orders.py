@@ -269,6 +269,57 @@ def list_all_orders(
     return [_enrich_order_staff(o) for o in orders]
 
 
+# ── Staff: create order on behalf of a customer ──────────────────────────────
+
+class StaffOrderIn(BaseModel):
+    customer_id: int
+    items: list[OrderItemIn]
+    delivery_address: str | None = None
+    notes: str | None = None
+
+
+@router.post("/staff/orders", status_code=201)
+def staff_create_order(
+    payload: StaffOrderIn,
+    db: Session = Depends(get_db),
+    staff: models.StaffUser = Depends(require_role("admin", "central_team", "sales")),
+):
+    customer = db.query(models.Customer).filter(models.Customer.id == payload.customer_id).first()
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    if not payload.items:
+        raise HTTPException(status_code=400, detail="Order must have at least one item")
+
+    order_items, subtotal = [], 0.0
+    for item_in in payload.items:
+        sku = db.query(models.SKU).filter(models.SKU.id == item_in.sku_id, models.SKU.is_active == True).first()
+        if not sku:
+            raise HTTPException(status_code=404, detail=f"SKU {item_in.sku_id} not found")
+        item_subtotal = round(item_in.quantity * sku.current_price, 2)
+        subtotal += item_subtotal
+        order_items.append(models.OrderItem(sku_id=sku.id, quantity=item_in.quantity, unit_price=sku.current_price, subtotal=item_subtotal))
+
+    order = models.Order(
+        order_number=_gen_order_number(),
+        customer_id=customer.id,
+        salesperson_id=customer.assigned_salesperson_id or staff.id,
+        status=models.OrderStatus.submitted,
+        subtotal=round(subtotal, 2),
+        total_amount=round(subtotal, 2),
+        delivery_address=payload.delivery_address or customer.address,
+        notes=payload.notes,
+        items=order_items,
+    )
+    db.add(order)
+    db.commit()
+    db.refresh(order)
+    audit_log(db, "order", order.id, "created_by_staff", staff=staff, new_value=order.order_number)
+    db.commit()
+
+    send_order_received(customer.phone_number, customer.name, order.order_number)
+    return _enrich_order_staff(order)
+
+
 # ── Staff: archive (soft delete) order ───────────────────────────────────────
 
 @router.post("/staff/orders/{order_id}/archive")

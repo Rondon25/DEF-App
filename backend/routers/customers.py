@@ -89,6 +89,47 @@ def list_customers(
     return q.order_by(models.Customer.created_at.desc()).all()
 
 
+class StaffCreateCustomer(BaseModel):
+    name: str
+    phone_number: str
+    company_name: str | None = None
+    address: str | None = None
+    city: str | None = None
+    state: str | None = None
+    is_credit_account: bool = False
+
+
+@router.post("/customers", response_model=CustomerListOut, status_code=201)
+def staff_create_customer(
+    payload: StaffCreateCustomer,
+    db: Session = Depends(get_db),
+    staff: models.StaffUser = Depends(require_role("admin", "central_team", "sales")),
+):
+    phone = "".join(c for c in payload.phone_number if c.isdigit())
+    if not phone or len(phone) < 8:
+        raise HTTPException(status_code=400, detail="Valid phone number required")
+    if db.query(models.Customer).filter(models.Customer.phone_number == phone).first():
+        raise HTTPException(status_code=400, detail="Phone number already registered")
+
+    c = models.Customer(
+        name=payload.name,
+        phone_number=phone,
+        company_name=payload.company_name,
+        address=payload.address,
+        city=payload.city,
+        state=payload.state,
+        is_credit_account=payload.is_credit_account,
+        status=models.CustomerStatus.active,   # staff-onboarded = pre-approved
+        approved_by=staff.id,
+        approved_at=datetime.utcnow(),
+    )
+    db.add(c)
+    audit_log(db, "customer", 0, "created_by_staff", staff=staff, new_value=payload.name)
+    db.commit()
+    db.refresh(c)
+    return c
+
+
 @router.post("/customers/{customer_id}/archive")
 def archive_customer(
     customer_id: int,

@@ -4,7 +4,10 @@ import { Link } from "react-router-dom";
 import { staffApi } from "../../api";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { SkeletonList } from "@/components/Skeleton";
-import { Check, X, UserPlus, ChevronRight, Trash2, CreditCard, Loader2 } from "lucide-react";
+import { Check, X, UserPlus, ChevronRight, Trash2, CreditCard, Loader2, FileDown, FileSpreadsheet, FileText, Plus } from "lucide-react";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const STATUS_TONE: Record<string, string> = {
   pending:   "bg-amber-100 text-amber-700",
@@ -19,6 +22,11 @@ export default function Customers() {
   const [rejectId, setRejectId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [delCustomer, setDelCustomer] = useState<any>(null);
+  const [showExport, setShowExport] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [addForm, setAddForm] = useState({ name: "", phone_number: "", company_name: "", address: "", city: "", state: "" });
+  const [addErr, setAddErr] = useState("");
+  const today = new Date().toISOString().split("T")[0];
 
   const { data: pending = [] } = useQuery({
     queryKey: ["pending-customers"],
@@ -42,14 +50,68 @@ export default function Customers() {
     mutationFn: (id: number) => staffApi.post(`/customers/${id}/archive`, {}).then((r) => r.data),
     onSuccess: () => { setDelCustomer(null); qc.invalidateQueries({ queryKey: ["all-customers"] }); qc.invalidateQueries({ queryKey: ["pending-customers"] }); },
   });
+  const createMutation = useMutation({
+    mutationFn: (body: any) => staffApi.post("/customers", body).then((r) => r.data),
+    onSuccess: () => { setShowAdd(false); setAddForm({ name: "", phone_number: "", company_name: "", address: "", city: "", state: "" }); setAddErr(""); qc.invalidateQueries({ queryKey: ["all-customers"] }); },
+    onError: (e: any) => setAddErr(e.response?.data?.detail || "Failed to create customer"),
+  });
 
   const list = tab === "pending" ? pending : all;
 
+  const exportExcel = () => {
+    const data = all.map((c: any) => ({ Name: c.name, Company: c.company_name || "", Phone: c.phone_number, City: c.city || "", State: c.state || "", Status: c.status, Credit: c.is_credit_account ? "Yes" : "No", Registered: new Date(c.created_at).toLocaleDateString("en-US") }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Customers");
+    XLSX.writeFile(wb, `customers_${today}.xlsx`);
+    setShowExport(false);
+  };
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(16); doc.setTextColor(13, 148, 136);
+    doc.text("Rohan Energy Solutions — Customers", 14, 18);
+    doc.setFontSize(10); doc.setTextColor(120);
+    doc.text(`Generated ${new Date().toLocaleDateString("en-US", { dateStyle: "long" })} · ${all.length} customers`, 14, 25);
+    autoTable(doc, {
+      startY: 31,
+      head: [["Name", "Company", "Phone", "Status", "Registered"]],
+      body: all.map((c: any) => [c.name, c.company_name || "", c.phone_number, c.status, new Date(c.created_at).toLocaleDateString("en-US")]),
+      headStyles: { fillColor: [30, 30, 45], textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [248, 249, 250] },
+      styles: { fontSize: 9, cellPadding: 3 },
+    });
+    doc.save(`customers_${today}.pdf`);
+    setShowExport(false);
+  };
+
   return (
     <>
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold text-ink">Customers</h1>
-        <p className="text-sm text-ink-3">Manage customer accounts and approvals</p>
+      <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-ink">Customers</h1>
+          <p className="text-sm text-ink-3">Manage customer accounts and approvals</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <button onClick={() => setShowExport((v) => !v)} disabled={all.length === 0}
+              className="inline-flex items-center gap-1.5 h-10 px-4 rounded-full border border-border bg-surface text-sm font-medium text-ink-2 hover:border-primary hover:text-primary transition-colors disabled:opacity-50">
+              <FileDown size={16} /> Export
+            </button>
+            {showExport && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowExport(false)} />
+                <div className="absolute right-0 top-12 z-20 w-44 bg-surface rounded-xl shadow-[var(--shadow-lg)] border border-border overflow-hidden">
+                  <button onClick={exportExcel} className="w-full flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-canvas text-left"><FileSpreadsheet size={16} className="text-green-600" /> Excel</button>
+                  <button onClick={exportPDF} className="w-full flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-canvas text-left border-t border-border"><FileText size={16} className="text-red-600" /> PDF</button>
+                </div>
+              </>
+            )}
+          </div>
+          <button onClick={() => { setShowAdd(true); setAddErr(""); }}
+            className="inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-primary text-white text-sm font-semibold hover:bg-teal-700 transition-colors">
+            <Plus size={16} /> Add Customer
+          </button>
+        </div>
       </div>
 
       {/* Approval alert */}
@@ -176,6 +238,42 @@ export default function Customers() {
           onConfirm={() => archiveMutation.mutate(delCustomer.id)}
           onCancel={() => setDelCustomer(null)}
         />
+      )}
+
+      {/* Add customer modal */}
+      {showAdd && (
+        <div className="fixed inset-0 z-[300] bg-black/50 flex items-end sm:items-center sm:justify-center" onClick={() => setShowAdd(false)}>
+          <div className="bg-surface w-full sm:max-w-[460px] rounded-t-2xl sm:rounded-2xl p-6 max-h-[90dvh] overflow-auto" onClick={(e) => e.stopPropagation()} style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)" }}>
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-lg font-bold">Add Customer</h3>
+              <button onClick={() => setShowAdd(false)} className="text-ink-3"><X size={20} /></button>
+            </div>
+            <p className="text-sm text-ink-3 mb-4">Onboard a customer directly — they'll be active immediately (no approval needed).</p>
+            {addErr && <div className="rounded-xl bg-red-50 border border-red-100 px-3.5 py-2.5 mb-3 text-[13px] text-red-700">{addErr}</div>}
+            <div className="space-y-3">
+              {[
+                ["name", "Full name *", "Jane Smith"],
+                ["phone_number", "Phone number *", "91XXXXXXXXXX"],
+                ["company_name", "Company", "Acme Transport Pvt Ltd"],
+                ["address", "Address", "Plot 12, MIDC Industrial Area"],
+              ].map(([key, label, ph]) => (
+                <div key={key}>
+                  <label className="text-[13px] font-semibold text-ink-2 mb-1.5 block">{label}</label>
+                  <input value={(addForm as any)[key]} onChange={(e) => setAddForm((f) => ({ ...f, [key]: e.target.value }))} placeholder={ph}
+                    className="w-full h-11 rounded-xl border border-input bg-surface px-3.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                </div>
+              ))}
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="text-[13px] font-semibold text-ink-2 mb-1.5 block">City</label><input value={addForm.city} onChange={(e) => setAddForm((f) => ({ ...f, city: e.target.value }))} placeholder="Mumbai" className="w-full h-11 rounded-xl border border-input bg-surface px-3.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" /></div>
+                <div><label className="text-[13px] font-semibold text-ink-2 mb-1.5 block">State</label><input value={addForm.state} onChange={(e) => setAddForm((f) => ({ ...f, state: e.target.value }))} placeholder="Maharashtra" className="w-full h-11 rounded-xl border border-input bg-surface px-3.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" /></div>
+              </div>
+            </div>
+            <button onClick={() => createMutation.mutate(addForm)} disabled={createMutation.isPending || !addForm.name || !addForm.phone_number}
+              className="w-full h-12 rounded-full bg-primary text-white font-semibold flex items-center justify-center gap-1.5 hover:bg-teal-700 transition-colors disabled:opacity-60 mt-5">
+              {createMutation.isPending ? <Loader2 className="size-5 animate-spin" /> : <><Plus size={16} /> Create Customer</>}
+            </button>
+          </div>
+        </div>
       )}
     </>
   );
