@@ -119,6 +119,35 @@
   --sidebar-ring:               #d9f99d;
 }
 
+/* ----------------------------------------------------------------------------
+   LAB THEME — scoped palette override (Figma dashboard system).
+   Applied via the `.lab-theme` class on the staff shell so it cascades to all
+   staff pages without affecting the customer portal. CSS vars inherit, so every
+   utility (bg-canvas, bg-sidebar, text-accent, shadow-[var(--shadow-sm)], …)
+   picks up these values for descendants only.
+   ---------------------------------------------------------------------------- */
+.lab-theme {
+  --color-canvas:   #f3f3f2;   /* warm grey page bg */
+  --color-navy-900: #0f0f14;
+  --color-navy-800: #15151b;   /* near-black sidebar */
+  --color-navy-700: #26262f;   /* sidebar hover */
+  --color-lime-300: #e4f060;   /* vivid lime accent */
+
+  --background:       #f3f3f2;
+  --accent:           #e4f060;
+  --accent-foreground:#15151b;
+  --sidebar:                    #15151b;
+  --sidebar-foreground:         #9c9ca6;
+  --sidebar-primary:            #e4f060;
+  --sidebar-primary-foreground: #15151b;
+  --sidebar-accent:             #26262f;
+  --sidebar-border:             #26262f;
+
+  /* crisper, lab-style card shadow */
+  --shadow-sm: 0 1px 2px rgba(16,16,28,.04), 0 1px 3px rgba(16,16,28,.06);
+  --shadow:    0 1px 2px rgba(16,16,28,.05), 0 4px 14px rgba(16,16,28,.06);
+}
+
 /* Bridge semantic vars into Tailwind's color namespace */
 @theme inline {
   --color-background:             var(--background);

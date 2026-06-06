@@ -5,7 +5,7 @@ import { clearStaffAuth, getStaffUser } from "../hooks/useAuth";
 import { staffApi } from "../api";
 import {
   LayoutDashboard, Users, ClipboardList, Layers,
-  Package, Menu, X, LogOut, Factory, Settings2, Boxes, ShoppingCart, PackageCheck, Cog, TrendingUp,
+  Package, Menu, X, LogOut, Factory, Settings2, Boxes, ShoppingCart, PackageCheck, Cog, TrendingUp, Search,
 } from "lucide-react";
 import logoMark from "../assets/logo-mark.svg";
 import NotificationBell from "./NotificationBell";
@@ -157,7 +157,7 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
   );
 
   return (
-    <div className="min-h-dvh bg-canvas">
+    <div className="lab-theme min-h-dvh bg-canvas text-ink">
       {/* Desktop sidebar (fixed) + Mobile drawer */}
       <aside
         className={`fixed inset-y-0 left-0 w-[260px] bg-sidebar z-50 transition-transform duration-200 md:translate-x-0 ${
@@ -180,8 +180,13 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
           <button onClick={() => setOpen(true)} className="md:hidden text-ink-3">
             <Menu className="size-6" />
           </button>
-          <div className="hidden md:block text-sm font-semibold text-ink-3 capitalize">
+          <div className="hidden md:block text-sm font-semibold text-ink-3 capitalize shrink-0">
             {user?.name ? `Welcome, ${user.name.split(" ")[0]}` : "Staff Portal"}
+          </div>
+          {/* Global search */}
+          <div className="relative hidden lg:block ml-2">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-ink-4" />
+            <input placeholder="Search anything here..." className="h-9 w-[260px] rounded-full bg-canvas pl-9 pr-4 text-sm outline-none border border-transparent focus:border-input focus:bg-surface transition-colors placeholder:text-ink-4" />
           </div>
           <div className="flex items-center gap-3 ml-auto">
             <NotificationBell role={user?.role || "sales"} />
