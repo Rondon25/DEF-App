@@ -119,7 +119,7 @@ def seed_staff():
             return
         from services.auth import hash_password
         staff = [
-            models.StaffUser(name="Admin User",       email="admin@def.com",      phone_number="61400000001", hashed_password=hash_password("admin123"),      role=models.StaffRole.admin),
+            models.StaffUser(name="Admin User",       email="admin@def.com",      phone_number="61400000001", hashed_password=hash_password("Rohan@2025"),    role=models.StaffRole.admin),
             models.StaffUser(name="Central Team",     email="central@def.com",    phone_number="61400000002", hashed_password=hash_password("central123"),    role=models.StaffRole.central_team),
             models.StaffUser(name="Finance Team",     email="finance@def.com",    phone_number="61400000003", hashed_password=hash_password("finance123"),    role=models.StaffRole.finance),
             models.StaffUser(name="Sales Rep",        email="sales@def.com",      phone_number="61400000004", hashed_password=hash_password("sales123"),      role=models.StaffRole.sales),
@@ -128,7 +128,7 @@ def seed_staff():
         db.add_all(staff)
         db.commit()
         print("✅ Staff users seeded.")
-        print("   admin@def.com / admin123")
+        print("   admin@def.com / Rohan@2025")
         print("   central@def.com / central123")
         print("   finance@def.com / finance123")
         print("   sales@def.com / sales123")
