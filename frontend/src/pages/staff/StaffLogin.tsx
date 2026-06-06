@@ -39,7 +39,7 @@ export default function StaffLogin() {
       <div className="w-full max-w-[400px]">
         {/* Brand */}
         <div className="flex flex-col items-center mb-7">
-          <img src={logoFull} alt="Rain Energy Solutions" className="h-20 w-auto mb-2" />
+          <img src={logoFull} alt="Rohan Energy Solutions" className="h-20 w-auto mb-2" />
           <p className="text-sm text-ink-3">Staff Portal</p>
         </div>
 

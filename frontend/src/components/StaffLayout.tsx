@@ -7,6 +7,7 @@ import {
   LayoutDashboard, Users, ClipboardList, Layers,
   Package, Droplet, Menu, X, LogOut, Bell, Factory, Settings2, Boxes, ShoppingCart, PackageCheck, Cog, TrendingUp,
 } from "lucide-react";
+import logoFull from "../assets/logo-full.svg";
 
 type NavItem = { to: string; icon: any; label: string };
 
@@ -182,6 +183,7 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
             {user?.name ? `Welcome, ${user.name.split(" ")[0]}` : "Staff Portal"}
           </div>
           <div className="flex items-center gap-3 ml-auto">
+            <img src={logoFull} alt="Rohan Energy Solutions" className="h-9 w-auto" />
             {canSeeCustomers && (
               <button
                 onClick={() => navigate("/staff/customers")}
