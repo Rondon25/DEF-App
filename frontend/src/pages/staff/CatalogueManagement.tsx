@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { staffApi } from "../../api";
-import { Pencil, DollarSign, X, Plus, Droplet, Power, PowerOff } from "lucide-react";
-
-const ic = { display: "inline", verticalAlign: "-3px", marginRight: 5 } as const;
+import { Pencil, DollarSign, X, Plus, Droplet, Power, PowerOff, Upload, FileDown, FileSpreadsheet, FileText } from "lucide-react";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import BulkSkuUpload, { type SkuRow } from "@/components/BulkSkuUpload";
 
 interface SKU {
   id: number;
@@ -22,6 +24,9 @@ export default function CatalogueManagement() {
   const qc = useQueryClient();
 
   const [showAdd,     setShowAdd]     = useState(false);
+  const [showBulk,    setShowBulk]    = useState(false);
+  const [showExport,  setShowExport]  = useState(false);
+  const [importing,   setImporting]   = useState(false);
   const [editSku,     setEditSku]     = useState<SKU | null>(null);
   const [priceSku,    setPriceSku]    = useState<SKU | null>(null);
   const [newForm,     setNewForm]     = useState(EMPTY_NEW);
@@ -82,19 +87,103 @@ export default function CatalogueManagement() {
 
   const today = new Date().toISOString().split("T")[0];
 
+  // Bulk import — create each SKU sequentially
+  const importSkus = async (rows: SkuRow[]) => {
+    setImporting(true);
+    for (const r of rows) {
+      await staffApi.post("/admin/skus", {
+        code: r.code, name: r.name, description: r.description || null,
+        volume_liters: r.volume_liters, unit: r.unit, current_price: r.current_price,
+      }).catch(() => {}); // skip dupes/errors silently
+    }
+    invalidate();
+    setImporting(false);
+    setShowBulk(false);
+  };
+
+  // Export — Excel
+  const exportExcel = () => {
+    const data = skus.map((s) => ({
+      Code: s.sku_code, Name: s.name, Description: s.description || "",
+      Volume_L: s.volume_liters, Unit: s.unit, Price_USD: s.current_price.toFixed(2),
+      Status: s.is_active ? "Active" : "Inactive",
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws["!cols"] = [{ wch: 12 }, { wch: 18 }, { wch: 42 }, { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 10 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Catalogue");
+    XLSX.writeFile(wb, `catalogue_${today}.xlsx`);
+    setShowExport(false);
+  };
+
+  // Export — PDF
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.setTextColor(13, 148, 136);
+    doc.text("Rohan Energy Solutions — Catalogue", 14, 18);
+    doc.setFontSize(10);
+    doc.setTextColor(120);
+    doc.text(`Generated ${new Date().toLocaleDateString("en-US", { dateStyle: "long" })} · ${skus.length} products`, 14, 25);
+    autoTable(doc, {
+      startY: 31,
+      head: [["Code", "Name", "Unit", "Volume (L)", "Price (USD)", "Status"]],
+      body: skus.map((s) => [
+        s.sku_code, s.name, s.unit, s.volume_liters || "—",
+        `$${s.current_price.toFixed(2)}`, s.is_active ? "Active" : "Inactive",
+      ]),
+      headStyles: { fillColor: [30, 30, 45], textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [248, 249, 250] },
+      styles: { fontSize: 9, cellPadding: 3 },
+      columnStyles: { 4: { halign: "right" } },
+    });
+    doc.save(`catalogue_${today}.pdf`);
+    setShowExport(false);
+  };
+
   return (
     <>
-      <div className="flex items-start justify-between mb-5">
+      <div className="flex items-start justify-between gap-3 mb-5 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-ink">Catalogue</h1>
           <p className="text-sm text-ink-3">{skus.length} products</p>
         </div>
-        <button
-          onClick={() => { setShowAdd(true); setError(""); }}
-          className="inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-primary text-white text-sm font-semibold hover:bg-teal-700 transition-colors"
-        >
-          <Plus size={16} /> Add SKU
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Export dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowExport((v) => !v)}
+              className="inline-flex items-center gap-1.5 h-10 px-4 rounded-full border border-border bg-surface text-sm font-medium text-ink-2 hover:border-primary hover:text-primary transition-colors"
+            >
+              <FileDown size={16} /> Export
+            </button>
+            {showExport && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowExport(false)} />
+                <div className="absolute right-0 top-12 z-20 w-48 bg-surface rounded-xl shadow-[var(--shadow-lg)] border border-border overflow-hidden">
+                  <button onClick={exportExcel} className="w-full flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-canvas text-left">
+                    <FileSpreadsheet size={16} className="text-green-600" /> Export as Excel
+                  </button>
+                  <button onClick={exportPDF} className="w-full flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-canvas text-left border-t border-border">
+                    <FileText size={16} className="text-red-600" /> Export as PDF
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+          <button
+            onClick={() => setShowBulk(true)}
+            className="inline-flex items-center gap-1.5 h-10 px-4 rounded-full border border-border bg-surface text-sm font-medium text-ink-2 hover:border-primary hover:text-primary transition-colors"
+          >
+            <Upload size={16} /> Bulk Add
+          </button>
+          <button
+            onClick={() => { setShowAdd(true); setError(""); }}
+            className="inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-primary text-white text-sm font-semibold hover:bg-teal-700 transition-colors"
+          >
+            <Plus size={16} /> Add SKU
+          </button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -302,6 +391,11 @@ export default function CatalogueManagement() {
             {priceMutation.isPending ? <span className="spinner" /> : "Update Price"}
           </button>
         </Sheet>
+      )}
+
+      {/* Bulk add */}
+      {showBulk && (
+        <BulkSkuUpload onClose={() => !importing && setShowBulk(false)} onSkus={importSkus} />
       )}
     </>
   );
