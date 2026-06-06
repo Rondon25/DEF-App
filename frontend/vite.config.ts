@@ -44,7 +44,7 @@ export default defineConfig({
           req.method === "GET" && req.headers.accept?.includes("text/html") ? req.url : undefined,
       },
       "/admin":     "http://localhost:8004",
-      "/uploads":   "http://localhost:8004",
+      "/files":     "http://localhost:8004",
       "/whatsapp":  "http://localhost:8004",
       "/health":    "http://localhost:8004",
     },

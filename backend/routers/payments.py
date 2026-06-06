@@ -9,7 +9,7 @@ import models
 from routers.auth import require_active_customer
 from routers.staff_auth import get_current_staff, require_role
 from routers.orders import _get_order
-from services.files import save_payment_proof
+from services.files import save_payment_proof, sign_file_url
 from services.whatsapp import send_payment_received, send_payment_rejected
 
 router = APIRouter(tags=["payments"])
@@ -101,7 +101,7 @@ async def upload_payment_proof(
 
 # ── Customer: get my payment ──────────────────────────────────────────────────
 
-@router.get("/orders/{order_id}/payment", response_model=PaymentOut)
+@router.get("/orders/{order_id}/payment")
 def get_my_payment(
     order_id: int,
     db: Session = Depends(get_db),
@@ -113,7 +113,18 @@ def get_my_payment(
     ).first()
     if not order or not order.payment:
         raise HTTPException(status_code=404, detail="Payment not found")
-    return order.payment
+    p = order.payment
+    return {
+        "id": p.id, "order_id": p.order_id,
+        "method": p.method.value if hasattr(p.method, "value") else p.method,
+        "amount": p.amount,
+        "proof_file_url": sign_file_url(p.proof_file_url),
+        "proof_filename": p.proof_filename,
+        "status": p.status.value if hasattr(p.status, "value") else p.status,
+        "uploaded_at": p.uploaded_at.isoformat(),
+        "verified_at": p.verified_at.isoformat() if p.verified_at else None,
+        "rejection_reason": p.rejection_reason,
+    }
 
 
 # ── Staff: get payment for an order ─────────────────────────────────────────
@@ -133,7 +144,7 @@ def get_order_payment_staff(
         "order_id":       p.order_id,
         "method":         p.method.value if hasattr(p.method, "value") else p.method,
         "amount":         p.amount,
-        "proof_file_url": p.proof_file_url,
+        "proof_file_url": sign_file_url(p.proof_file_url),
         "proof_filename": p.proof_filename,
         "status":         p.status.value if hasattr(p.status, "value") else p.status,
         "uploaded_at":    p.uploaded_at.isoformat(),
@@ -162,7 +173,7 @@ def list_pending_payments(
             "customer_phone": p.order.customer.phone_number if p.order and p.order.customer else None,
             "method":         p.method.value if hasattr(p.method, "value") else p.method,
             "amount":         p.amount,
-            "proof_file_url": p.proof_file_url,
+            "proof_file_url": sign_file_url(p.proof_file_url),
             "proof_filename": p.proof_filename,
             "status":         p.status.value if hasattr(p.status, "value") else p.status,
             "uploaded_at":    p.uploaded_at.isoformat(),

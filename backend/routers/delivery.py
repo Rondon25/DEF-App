@@ -9,7 +9,7 @@ import models
 from routers.auth import require_active_customer
 from routers.staff_auth import get_current_staff, require_role
 from services.whatsapp import send_order_shipped, send_order_delivered, send_grn_confirmation
-from services.files import save_grn_image
+from services.files import save_grn_image, sign_file_url
 
 router = APIRouter(tags=["delivery"])
 
@@ -194,7 +194,7 @@ def get_delivery_customer(
         } if d else None,
         "grn": {
             "condition_notes": g.condition_notes if g else None,
-            "image_url":       g.image_url if g else None,
+            "image_url":       sign_file_url(g.image_url) if g else None,
             "is_accepted":     g.is_accepted if g else None,
             "submitted_at":    g.submitted_at.isoformat() if g and g.submitted_at else None,
         } if g else None,
@@ -226,7 +226,7 @@ def get_delivery(
         "grn": {
             "received_qty":    g.received_qty if g else None,
             "condition_notes": g.condition_notes if g else None,
-            "image_url":       g.image_url if g else None,
+            "image_url":       sign_file_url(g.image_url) if g else None,
             "is_accepted":     g.is_accepted if g else None,
             "submitted_at":    g.submitted_at.isoformat() if g and g.submitted_at else None,
         } if g else None,

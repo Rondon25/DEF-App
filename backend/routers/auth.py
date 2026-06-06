@@ -13,7 +13,7 @@ from slowapi.util import get_remote_address
 from database import get_db
 import models
 from services.auth import (
-    generate_otp, otp_expiry, is_otp_valid, create_access_token, decode_token, is_locked, record_fail, clear_fails
+    generate_otp, otp_expiry, is_otp_valid, hash_otp, create_access_token, decode_token, is_locked, record_fail, clear_fails
 )
 from services.whatsapp import send_otp, send_registration_pending
 
@@ -178,7 +178,7 @@ def send_otp_route(request: Request, payload: SendOTPRequest, db: Session = Depe
         raise HTTPException(status_code=403, detail="Account is suspended")
 
     otp = generate_otp(6)
-    customer.otp_code       = otp
+    customer.otp_code       = hash_otp(otp)
     customer.otp_expires_at = otp_expiry(10)
     customer.otp_channel    = models.OTPChannel.whatsapp
     db.commit()
@@ -372,7 +372,7 @@ def request_phone_change(
 
     otp = generate_otp(6)
     # Store new phone + OTP temporarily in the pending fields
-    current.otp_code       = otp
+    current.otp_code       = hash_otp(otp)
     current.otp_expires_at = otp_expiry(10)
     db.commit()
 

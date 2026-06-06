@@ -4,22 +4,31 @@ from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from database import engine, Base, SessionLocal
 import models
-from routers import auth, staff_auth, catalog, customers, orders, payments, delivery, notes, audit, analytics, export, stock, config, rm_inventory, production, forecast, dashboard, search
+from routers import auth, staff_auth, catalog, customers, orders, payments, delivery, notes, audit, analytics, export, stock, config, rm_inventory, production, forecast, dashboard, search, files
 from services.whatsapp import get_status as wa_status
 from services.rls import apply_rls_policies
 from services.scheduler import start_scheduler
 
-# ── Create tables ─────────────────────────────────────────────────────────────
-Base.metadata.create_all(bind=engine)
+# ── Environment / secrets boot-guard ──────────────────────────────────────────
+APP_ENV = os.environ.get("APP_ENV", "development").lower()
+IS_PROD = APP_ENV in ("production", "prod")
+if IS_PROD:
+    if os.environ.get("JWT_SECRET", "def-mobile-jwt-secret") == "def-mobile-jwt-secret":
+        raise RuntimeError("JWT_SECRET must be set to a strong value in production.")
+    if not os.environ.get("DATABASE_URL"):
+        raise RuntimeError("DATABASE_URL must be set in production.")
+
+# ── Create tables (dev convenience; production uses Alembic migrations) ────────
+if not IS_PROD:
+    Base.metadata.create_all(bind=engine)
 
 # ── App ───────────────────────────────────────────────────────────────────────
 app = FastAPI(title="DEF Platform Mobile", version="1.0.0")
@@ -28,20 +37,34 @@ limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+_default_origins = "http://localhost:5173,http://localhost:5174,http://localhost:3000"
+ALLOWED_ORIGINS = [o.strip() for o in os.environ.get("CORS_ORIGINS", _default_origins).split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ── Static file serving for uploads ──────────────────────────────────────────
+
+# ── Security headers ──────────────────────────────────────────────────────────
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    resp = await call_next(request)
+    resp.headers["X-Content-Type-Options"] = "nosniff"
+    resp.headers["X-Frame-Options"] = "DENY"
+    resp.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    resp.headers["Permissions-Policy"] = "geolocation=(self), camera=(), microphone=()"
+    if IS_PROD:
+        resp.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return resp
+
+
+# Uploads dir (served only via signed /files endpoint — no public static mount)
 UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "uploads")
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_DIR, "payments"), exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_DIR, "grns"), exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(auth.router)
@@ -62,6 +85,7 @@ app.include_router(production.router)
 app.include_router(forecast.router)
 app.include_router(dashboard.router)
 app.include_router(search.router)
+app.include_router(files.router)
 
 
 # ── Health & WhatsApp status ──────────────────────────────────────────────────
@@ -141,8 +165,10 @@ def seed_staff():
         db.close()
 
 
-seed_skus()
-seed_staff()
+# Seed demo data only outside production (or when SEED_DEMO=1)
+if not IS_PROD or os.environ.get("SEED_DEMO") == "1":
+    seed_skus()
+    seed_staff()
 
 # Apply RLS policies
 try:

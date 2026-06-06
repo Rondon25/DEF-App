@@ -61,18 +61,24 @@ def generate_otp(length: int = 6) -> str:
     return "".join(random.choices(string.digits, k=length))
 
 
+def hash_otp(code: str) -> str:
+    import hmac, hashlib
+    return hmac.new(SECRET_KEY.encode(), code.encode(), hashlib.sha256).hexdigest()
+
+
 def otp_expiry(minutes: int = 10) -> datetime:
     return datetime.utcnow() + timedelta(minutes=minutes)
 
 
 def is_otp_valid(submitted: str, stored: str | None, expires_at: datetime | None) -> bool:
-    if not stored or not expires_at:
+    """`stored` is the HMAC hash of the issued OTP."""
+    if not stored or not expires_at or not submitted:
         return False
     from datetime import timezone
+    import hmac
     now = datetime.now(timezone.utc)
-    # Handle both aware and naive datetimes
     if expires_at.tzinfo is None:
         expires_at = expires_at.replace(tzinfo=timezone.utc)
     if now > expires_at:
         return False
-    return submitted == stored
+    return hmac.compare_digest(hash_otp(submitted), stored)
