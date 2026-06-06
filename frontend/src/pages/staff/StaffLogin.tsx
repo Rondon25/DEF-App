@@ -3,7 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { setStaffAuth } from "../../hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Building2, Loader2, AlertCircle, Info } from "lucide-react";
+import { Loader2, AlertCircle, Info } from "lucide-react";
+import logoFull from "../../assets/logo-full.svg";
 
 const inputCls =
   "w-full h-11 rounded-xl border border-input bg-surface px-3.5 text-sm placeholder:text-ink-4 " +
@@ -38,10 +39,7 @@ export default function StaffLogin() {
       <div className="w-full max-w-[400px]">
         {/* Brand */}
         <div className="flex flex-col items-center mb-7">
-          <div className="size-14 rounded-2xl bg-sidebar flex items-center justify-center mb-3 shadow-[var(--shadow-sm)]">
-            <Building2 className="size-7 text-accent" />
-          </div>
-          <h1 className="text-xl font-bold text-ink">Rohan Energy Solutions</h1>
+          <img src={logoFull} alt="Rain Energy Solutions" className="h-20 w-auto mb-2" />
           <p className="text-sm text-ink-3">Staff Portal</p>
         </div>
 

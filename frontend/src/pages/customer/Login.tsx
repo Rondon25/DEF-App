@@ -3,7 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { setCustomerAuth } from "../../hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Droplet, ArrowRight, Loader2, MessageCircle, AlertCircle } from "lucide-react";
+import { ArrowRight, Loader2, MessageCircle, AlertCircle } from "lucide-react";
+import logoFull from "../../assets/logo-full.svg";
 
 type Step = "phone" | "otp";
 
@@ -103,10 +104,7 @@ export default function CustomerLogin() {
       <div className="w-full max-w-[400px]">
         {/* Brand */}
         <div className="flex flex-col items-center mb-7">
-          <div className="size-14 rounded-2xl bg-sidebar flex items-center justify-center mb-3 shadow-[var(--shadow-sm)]">
-            <Droplet className="size-7 text-accent" fill="currentColor" />
-          </div>
-          <h1 className="text-xl font-bold text-ink">Rohan Energy Solutions</h1>
+          <img src={logoFull} alt="Rain Energy Solutions" className="h-20 w-auto mb-2" />
           <p className="text-sm text-ink-3">Customer Portal</p>
         </div>
 
