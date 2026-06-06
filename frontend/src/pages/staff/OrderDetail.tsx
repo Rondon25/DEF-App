@@ -5,6 +5,11 @@ import { staffApi } from "../../api";
 import { getStaffUser } from "../../hooks/useAuth";
 import { SkeletonOrderDetail } from "../../components/Skeleton";
 import ErrorScreen from "../../components/ErrorScreen";
+import { StatusPill } from "@/components/StatusPill";
+import {
+  ChevronLeft, ClipboardCheck, CreditCard, Check, X, PartyPopper, Truck,
+  PackageCheck, Lock, StickyNote, Trash2, ArrowRight, Droplet, MapPin,
+} from "lucide-react";
 
 const STATUS_LABEL: Record<string, string> = {
   submitted:         "Submitted",
@@ -170,13 +175,13 @@ export default function StaffOrderDetail() {
 
   return (
     <>
-      <div className="page-header" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <Link to="/staff/orders" style={{ color: "var(--ink-3)", textDecoration: "none", fontSize: 20 }}>←</Link>
+      <div className="flex items-center gap-3 mb-5">
+        <Link to="/staff/orders" className="flex size-9 items-center justify-center rounded-full border border-border text-ink-3 hover:text-ink hover:border-primary transition-colors">
+          <ChevronLeft className="size-5" />
+        </Link>
         <div>
-          <h1>{order.order_number}</h1>
-          <span className={`badge ${STATUS_BADGE[order.status] || "badge-gray"}`}>
-            {STATUS_LABEL[order.status] || order.status}
-          </span>
+          <h1 className="text-xl font-bold font-mono">{order.order_number}</h1>
+          <div className="mt-0.5"><StatusPill status={order.status} /></div>
         </div>
       </div>
 
@@ -194,7 +199,7 @@ export default function StaffOrderDetail() {
       {/* 1. Verify + send proforma */}
       {order.status === "submitted" && canVerify && (
         <div className="card" style={{ padding: 16, border: "2px solid var(--blue)" }}>
-          <div style={{ fontWeight: 700, marginBottom: 8 }}>📋 Verify Order & Send Proforma</div>
+          <div style={{ fontWeight: 700, marginBottom: 8 }}><ClipboardCheck size={16} style={{display:"inline",verticalAlign:"-3px",marginRight:6}} />Verify Order & Send Proforma</div>
           <div className="form-group">
             <label>Notes (appears on proforma)</label>
             <textarea
@@ -208,7 +213,7 @@ export default function StaffOrderDetail() {
             onClick={() => verifyMutation.mutate()}
             disabled={anyPending}
           >
-            {verifyMutation.isPending ? <span className="spinner" /> : "✅ Verify & Send Proforma Invoice"}
+            {verifyMutation.isPending ? <span className="spinner" /> : <><Check size={16} /> Verify & Send Proforma Invoice</>}
           </button>
         </div>
       )}
@@ -216,7 +221,7 @@ export default function StaffOrderDetail() {
       {/* 2. Verify payment */}
       {order.status === "payment_uploaded" && canFinance && payment && (
         <div className="card" style={{ padding: 16, border: "2px solid var(--amber, #f59e0b)" }}>
-          <div style={{ fontWeight: 700, marginBottom: 8 }}>💳 Verify Payment</div>
+          <div style={{ fontWeight: 700, marginBottom: 8 }}><CreditCard size={16} style={{display:"inline",verticalAlign:"-3px",marginRight:6}} />Verify Payment</div>
           <div style={{ fontSize: 13, marginBottom: 12 }}>
             <div><strong>Method:</strong> {payment.method?.replace("_", " ")}</div>
             <div><strong>Amount:</strong> ${payment.amount?.toFixed(2)}</div>
@@ -249,14 +254,14 @@ export default function StaffOrderDetail() {
               onClick={() => verifyPayMutation.mutate(true)}
               disabled={anyPending}
             >
-              {verifyPayMutation.isPending ? <span className="spinner" /> : "✅ Approve"}
+              {verifyPayMutation.isPending ? <span className="spinner" /> : <><Check size={16} /> Approve</>}
             </button>
             <button
               className="btn btn-secondary" style={{ flex: 1, color: "var(--red, #ef4444)" }}
               onClick={() => verifyPayMutation.mutate(false)}
               disabled={anyPending}
             >
-              ✕ Reject
+              <><X size={16} /> Reject</>
             </button>
           </div>
         </div>
@@ -265,7 +270,7 @@ export default function StaffOrderDetail() {
       {/* 3. Confirm order */}
       {order.status === "payment_verified" && canVerify && (
         <div className="card" style={{ padding: 16, border: "2px solid var(--green, #16a34a)" }}>
-          <div style={{ fontWeight: 700, marginBottom: 8 }}>🎉 Confirm Order</div>
+          <div style={{ fontWeight: 700, marginBottom: 8 }}><PartyPopper size={16} style={{display:"inline",verticalAlign:"-3px",marginRight:6}} />Confirm Order</div>
           <div className="form-group">
             <label>Tentative delivery date (optional)</label>
             <input type="date" className="input" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} />
@@ -275,7 +280,7 @@ export default function StaffOrderDetail() {
             onClick={() => confirmMutation.mutate()}
             disabled={anyPending}
           >
-            {confirmMutation.isPending ? <span className="spinner" /> : "✅ Confirm & Notify Customer"}
+            {confirmMutation.isPending ? <span className="spinner" /> : <><Check size={16} /> Confirm & Notify Customer</>}
           </button>
         </div>
       )}
@@ -283,7 +288,7 @@ export default function StaffOrderDetail() {
       {/* 4. Dispatch */}
       {["confirmed","in_production","ready_for_dispatch"].includes(order.status) && canOps && (
         <div className="card" style={{ padding: 16, border: "2px solid var(--purple, #7c3aed)" }}>
-          <div style={{ fontWeight: 700, marginBottom: 8 }}>🚚 Mark as Dispatched</div>
+          <div style={{ fontWeight: 700, marginBottom: 8 }}><Truck size={16} style={{display:"inline",verticalAlign:"-3px",marginRight:6}} />Mark as Dispatched</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <div className="form-group">
               <label>Tracking number</label>
@@ -301,7 +306,7 @@ export default function StaffOrderDetail() {
               onClick={() => statusMutation.mutate(order.status === "confirmed" ? "in_production" : "ready_for_dispatch")}
               disabled={anyPending}
             >
-              {order.status === "confirmed" ? "→ Move to In Production" : "→ Move to Ready for Dispatch"}
+              {order.status === "confirmed" ? "Move to In Production" : "Move to Ready for Dispatch"}
             </button>
           )}
           <button
@@ -309,7 +314,7 @@ export default function StaffOrderDetail() {
             onClick={() => dispatchMutation.mutate()}
             disabled={anyPending}
           >
-            {dispatchMutation.isPending ? <span className="spinner" /> : "🚚 Mark Shipped"}
+            {dispatchMutation.isPending ? <span className="spinner" /> : <><Truck size={16} /> Mark Shipped</>}
           </button>
         </div>
       )}
@@ -317,13 +322,13 @@ export default function StaffOrderDetail() {
       {/* 5. Mark delivered */}
       {order.status === "shipped" && canOps && (
         <div className="card" style={{ padding: 16, border: "2px solid var(--green, #16a34a)" }}>
-          <div style={{ fontWeight: 700, marginBottom: 8 }}>📦 Mark as Delivered</div>
+          <div style={{ fontWeight: 700, marginBottom: 8 }}><PackageCheck size={16} style={{display:"inline",verticalAlign:"-3px",marginRight:6}} />Mark as Delivered</div>
           <button
             className="btn btn-primary btn-full"
             onClick={() => deliverMutation.mutate()}
             disabled={anyPending}
           >
-            {deliverMutation.isPending ? <span className="spinner" /> : "✅ Mark Delivered"}
+            {deliverMutation.isPending ? <span className="spinner" /> : <><Check size={16} /> Mark Delivered</>}
           </button>
         </div>
       )}
@@ -331,7 +336,7 @@ export default function StaffOrderDetail() {
       {/* 6. Close order */}
       {order.status === "grn_submitted" && canVerify && (
         <div className="card" style={{ padding: 16, border: "2px solid var(--border)" }}>
-          <div style={{ fontWeight: 700, marginBottom: 8 }}>🔒 Close Order</div>
+          <div style={{ fontWeight: 700, marginBottom: 8 }}><Lock size={16} style={{display:"inline",verticalAlign:"-3px",marginRight:6}} />Close Order</div>
           <button
             className="btn btn-primary btn-full"
             onClick={() => closeMutation.mutate()}
@@ -369,7 +374,7 @@ export default function StaffOrderDetail() {
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
                 <span style={{ color: "var(--ink-3)" }}>Delivered</span>
                 <span style={{ fontWeight: 600, color: "var(--green,#16a34a)" }}>
-                  ✓ {new Date(delivery.delivery.delivered_at).toLocaleDateString("en-US", { dateStyle: "medium" })}
+                  <Check size={13} style={{display:"inline",verticalAlign:"-2px"}} /> {new Date(delivery.delivery.delivered_at).toLocaleDateString("en-US", { dateStyle: "medium" })}
                 </span>
               </div>
             )}
@@ -380,7 +385,7 @@ export default function StaffOrderDetail() {
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
                 <span style={{ color: "var(--ink-3)" }}>Accepted</span>
                 <span style={{ fontWeight: 600, color: delivery.grn.is_accepted ? "var(--green,#16a34a)" : "var(--red,#ef4444)" }}>
-                  {delivery.grn.is_accepted ? "✓ Yes" : "✗ No"}
+                  {delivery.grn.is_accepted ? "Yes" : "No"}
                 </span>
               </div>
               {delivery.grn.condition_notes && (
@@ -418,7 +423,7 @@ export default function StaffOrderDetail() {
         <div style={{ padding: "14px 16px 0", fontWeight: 700, fontSize: 14 }}>Order Items</div>
         {order.items?.map((item: any) => (
           <div key={item.id} className="list-item" style={{ display: "flex" }}>
-            <div className="list-item-icon">🧪</div>
+            <div className="list-item-icon"><Droplet size={18} /></div>
             <div className="list-item-body">
               <div className="list-item-title">{item.sku_name || `SKU #${item.sku_id}`}</div>
               <div className="list-item-sub">{item.quantity} × ${item.unit_price?.toFixed(2)}</div>
@@ -441,7 +446,7 @@ export default function StaffOrderDetail() {
       {order.delivery_address && (
         <div className="card" style={{ padding: 14 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-3)", marginBottom: 4 }}>DELIVERY</div>
-          <div style={{ fontSize: 14 }}>📍 {order.delivery_address}</div>
+          <div style={{ fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}><MapPin size={15} /> {order.delivery_address}</div>
           {order.tentative_delivery_date && (
             <div style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 4 }}>
               📅 Est. {new Date(order.tentative_delivery_date).toLocaleDateString("en-US", { dateStyle: "medium" })}
@@ -460,7 +465,7 @@ export default function StaffOrderDetail() {
       {/* Internal notes */}
       <div className="card" style={{ padding: 16 }}>
         <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>
-          🗒️ Internal Notes
+          <StickyNote size={15} style={{display:"inline",verticalAlign:"-2px",marginRight:6}} />Internal Notes
           <span style={{ fontSize: 11, fontWeight: 400, color: "var(--ink-4)", marginLeft: 6 }}>Not visible to customer</span>
         </div>
 

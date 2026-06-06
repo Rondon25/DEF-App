@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { staffApi } from "../../api";
+import { ClipboardList, CreditCard, Users } from "lucide-react";
+
+const ic = { display: "inline", verticalAlign: "-3px", marginRight: 6 } as const;
 
 export default function Analytics() {
   const [days, setDays] = useState(30);
@@ -151,13 +154,13 @@ export default function Analytics() {
         <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>Export Data</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <button className="btn btn-secondary btn-full" style={{ justifyContent: "flex-start" }} onClick={() => handleExport("orders")}>
-            📋 Export Orders (last {days} days) → CSV
+            <ClipboardList size={15} style={ic} /> Export Orders (last {days} days)
           </button>
           <button className="btn btn-secondary btn-full" style={{ justifyContent: "flex-start" }} onClick={() => handleExport("payments")}>
-            💳 Export Payments (last {days} days) → CSV
+            <CreditCard size={15} style={ic} /> Export Payments (last {days} days)
           </button>
           <button className="btn btn-secondary btn-full" style={{ justifyContent: "flex-start" }} onClick={() => handleExport("customers")}>
-            👥 Export All Customers → CSV
+            <Users size={15} style={ic} /> Export All Customers
           </button>
         </div>
       </div>

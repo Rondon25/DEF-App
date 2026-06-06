@@ -2,6 +2,9 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { staffApi } from "../../api";
+import { Check, X, Users, CheckCircle2, CreditCard, MapPin } from "lucide-react";
+
+const ic = { display: "inline", verticalAlign: "-3px", marginRight: 5 } as const;
 
 const STATUS_BADGE: Record<string, string> = {
   pending:   "badge-amber",
@@ -88,7 +91,7 @@ export default function Customers() {
         <div className="loading-screen"><span className="spinner spinner-dark" /></div>
       ) : list.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-icon">{tab === "pending" ? "✅" : "👥"}</div>
+          <div className="empty-icon">{tab === "pending" ? <CheckCircle2 size={32} /> : <Users size={32} />}</div>
           <h3>{tab === "pending" ? "No pending approvals" : "No customers yet"}</h3>
           <p>{tab === "pending" ? "All caught up!" : "Customers will appear here after registration."}</p>
         </div>
@@ -110,8 +113,8 @@ export default function Customers() {
                     {c.company_name || "—"} · {c.phone_number}
                   </div>
                   {(c.city || c.country) && (
-                    <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2 }}>
-                      📍 {[c.city, c.country].filter(Boolean).join(", ")}
+                    <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2, display: "flex", alignItems: "center", gap: 4 }}>
+                      <MapPin size={12} /> {[c.city, c.country].filter(Boolean).join(", ")}
                     </div>
                   )}
                 </Link>
@@ -123,7 +126,7 @@ export default function Customers() {
               {/* Meta */}
               <div style={{ fontSize: 12, color: "var(--ink-3)" }}>
                 Registered {new Date(c.created_at).toLocaleDateString("en-US", { dateStyle: "medium" })}
-                {c.is_credit_account && " · 💳 Credit account"}
+                {c.is_credit_account && <span style={{display:"inline-flex",alignItems:"center",gap:4,marginLeft:4}}><CreditCard size={12} /> Credit account</span>}
               </div>
 
               {/* Action buttons for pending */}
@@ -135,14 +138,14 @@ export default function Customers() {
                     disabled={approveMutation.isPending}
                     onClick={() => approveMutation.mutate(c.id)}
                   >
-                    {approveMutation.isPending ? "Approving…" : "✅ Approve"}
+                    {approveMutation.isPending ? "Approving…" : <><Check size={15} style={ic} /> Approve</>}
                   </button>
                   <button
                     className="btn btn-secondary"
                     style={{ flex: 1, color: "var(--red, #ef4444)" }}
                     onClick={() => { setRejectId(c.id); setRejectReason(""); }}
                   >
-                    ✕ Reject
+                    <X size={15} style={ic} /> Reject
                   </button>
                 </div>
               )}

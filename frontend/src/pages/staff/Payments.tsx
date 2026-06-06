@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { staffApi } from "../../api";
+import { Check, X, CheckCircle2 } from "lucide-react";
+
+const ic = { display: "inline", verticalAlign: "-3px", marginRight: 5 } as const;
 
 export default function Payments() {
   const qc = useQueryClient();
@@ -37,7 +40,7 @@ export default function Payments() {
         <div className="loading-screen"><span className="spinner spinner-dark" /></div>
       ) : payments.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-icon">✅</div>
+          <div className="empty-icon"><CheckCircle2 size={32} /></div>
           <h3>No pending payments</h3>
           <p>All payment proofs have been verified.</p>
         </div>
@@ -87,14 +90,14 @@ export default function Payments() {
                   disabled={verifyMutation.isPending}
                   onClick={() => verifyMutation.mutate({ id: p.id, approved: true })}
                 >
-                  ✅ Approve
+                  <Check size={15} style={ic} /> Approve
                 </button>
                 <button
                   className="btn btn-secondary"
                   style={{ flex: 1, color: "var(--red, #ef4444)" }}
                   onClick={() => { setRejectId(p.id); setRejectReason(""); }}
                 >
-                  ✕ Reject
+                  <X size={15} style={ic} /> Reject
                 </button>
               </div>
             </div>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ChevronLeft, ClipboardList } from "lucide-react";
 import { staffApi } from "../../api";
 import { getStaffUser } from "../../hooks/useAuth";
 
@@ -130,7 +131,7 @@ export default function CustomerDetail() {
   };
 
   if (isLoading) return <div className="loading-screen"><span className="spinner spinner-dark" /></div>;
-  if (!customer) return <div className="empty-state"><div className="empty-icon">❌</div><p>Customer not found</p></div>;
+  if (!customer) return <div className="empty-state"><div className="empty-icon"><ClipboardList size={32} /></div><p>Customer not found</p></div>;
 
   const totalSpent   = orders.reduce((s: number, o: any) => s + (o.total_amount || 0), 0);
   const activeOrders = orders.filter((o: any) => !["closed","cancelled"].includes(o.status));
@@ -138,7 +139,7 @@ export default function CustomerDetail() {
   return (
     <>
       <div className="page-header" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <Link to="/staff/customers" style={{ color: "var(--ink-3)", textDecoration: "none", fontSize: 20 }}>←</Link>
+        <Link to="/staff/customers" style={{ color: "var(--ink-3)", textDecoration: "none", display: "inline-flex" }}><ChevronLeft size={22} /></Link>
         <div>
           <h1>{customer.name}</h1>
           <span className={`badge ${CUSTOMER_STATUS_BADGE[customer.status] || "badge-gray"}`} style={{ textTransform: "capitalize" }}>
@@ -361,7 +362,7 @@ export default function CustomerDetail() {
 
         {orders.length === 0 ? (
           <div className="empty-state" style={{ padding: "24px 16px" }}>
-            <div className="empty-icon" style={{ fontSize: 28 }}>📋</div>
+            <div className="empty-icon"><ClipboardList size={28} /></div>
             <p>No orders yet</p>
           </div>
         ) : (
@@ -372,7 +373,7 @@ export default function CustomerDetail() {
               className="list-item"
               style={{ display: "flex", textDecoration: "none" }}
             >
-              <div className="list-item-icon">📋</div>
+              <div className="list-item-icon"><ClipboardList size={18} /></div>
               <div className="list-item-body">
                 <div className="list-item-title">{order.order_number}</div>
                 <div className="list-item-sub" style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>

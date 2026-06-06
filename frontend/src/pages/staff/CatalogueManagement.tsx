@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { staffApi } from "../../api";
+import { Pencil, DollarSign, X } from "lucide-react";
+
+const ic = { display: "inline", verticalAlign: "-3px", marginRight: 5 } as const;
 
 interface SKU {
   id: number;
@@ -116,10 +119,10 @@ export default function CatalogueManagement() {
 
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <button className="btn btn-secondary" style={{ fontSize: 12, padding: "6px 12px" }} onClick={() => openEdit(sku)}>
-                  ✏️ Edit
+                  <Pencil size={13} style={ic} /> Edit
                 </button>
                 <button className="btn btn-secondary" style={{ fontSize: 12, padding: "6px 12px" }} onClick={() => openPrice(sku)}>
-                  💲 Update Price
+                  <DollarSign size={13} style={ic} /> Update Price
                 </button>
                 <button
                   className="btn btn-secondary"
@@ -298,7 +301,7 @@ function Sheet({ title, onClose, children }: { title: string; onClose: () => voi
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <h3 style={{ fontWeight: 700, fontSize: 16 }}>{title}</h3>
-          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: "var(--ink-3)" }}>✕</button>
+          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: "var(--ink-3)", display: "flex" }}><X size={20} /></button>
         </div>
         {children}
       </div>
