@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { clearStaffAuth, getStaffUser } from "../hooks/useAuth";
+import { staffApi } from "../api";
 import {
   LayoutDashboard, Users, ClipboardList, CreditCard, Layers,
-  Package, BarChart3, Droplet, Menu, X, LogOut,
+  Package, BarChart3, Droplet, Menu, X, LogOut, Bell,
 } from "lucide-react";
 
 type NavItem = { to: string; icon: any; label: string };
@@ -56,6 +58,16 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
   const roleColor = ROLE_COLOR[user?.role || "sales"] || "#5eead4";
   const [open, setOpen] = useState(false);
 
+  // Live count of customers awaiting approval (for the nav badge)
+  const canSeeCustomers = ["admin", "central_team", "sales"].includes(user?.role || "");
+  const { data: pending = [] } = useQuery({
+    queryKey: ["pending-customers"],
+    queryFn: () => staffApi.get("/customers/pending").then((r) => r.data),
+    enabled: canSeeCustomers,
+    refetchInterval: 30_000,
+  });
+  const pendingCount = pending.length;
+
   const Sidebar = (
     <div className="h-full flex flex-col p-5">
       {/* Logo */}
@@ -74,6 +86,7 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
         <div className="text-[10px] font-bold uppercase tracking-wider text-white/30 px-3 mb-3">Navigation</div>
         {nav.map((n) => {
           const Icon = n.icon;
+          const showBadge = n.to === "/staff/customers" && pendingCount > 0;
           return (
             <NavLink
               key={n.to}
@@ -89,7 +102,12 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
               }
             >
               <Icon className="size-[18px] shrink-0" />
-              {n.label}
+              <span className="flex-1">{n.label}</span>
+              {showBadge && (
+                <span className="flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold">
+                  {pendingCount}
+                </span>
+              )}
             </NavLink>
           );
         })}
@@ -148,6 +166,20 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
             {user?.name ? `Welcome, ${user.name.split(" ")[0]}` : "Staff Portal"}
           </div>
           <div className="flex items-center gap-3 ml-auto">
+            {canSeeCustomers && (
+              <button
+                onClick={() => navigate("/staff/customers")}
+                className="relative text-ink-3 hover:text-ink transition-colors"
+                title={pendingCount > 0 ? `${pendingCount} customer(s) awaiting approval` : "No new approvals"}
+              >
+                <Bell className="size-5" />
+                {pendingCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold">
+                    {pendingCount}
+                  </span>
+                )}
+              </button>
+            )}
             <div className="flex items-center gap-2 bg-sidebar text-white pl-1.5 pr-4 py-1.5 rounded-full text-[13px]">
               <div className="size-7 rounded-full bg-accent text-sidebar flex items-center justify-center text-xs font-bold">
                 {user?.name?.[0]?.toUpperCase()}

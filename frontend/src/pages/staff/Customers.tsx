@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { staffApi } from "../../api";
-import { Check, X, Users, CheckCircle2, CreditCard, MapPin } from "lucide-react";
+import { Check, X, Users, CheckCircle2, CreditCard, MapPin, UserPlus, ChevronRight } from "lucide-react";
 
 const ic = { display: "inline", verticalAlign: "-3px", marginRight: 5 } as const;
 
@@ -15,7 +15,7 @@ const STATUS_BADGE: Record<string, string> = {
 
 export default function Customers() {
   const qc = useQueryClient();
-  const [tab, setTab] = useState<"pending" | "all">("pending");
+  const [tab, setTab] = useState<"pending" | "all">("all");
   const [rejectId, setRejectId]     = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState("");
 
@@ -60,6 +60,32 @@ export default function Customers() {
         <h1>Customers</h1>
         <p>Manage customer accounts and approvals</p>
       </div>
+
+      {/* Approval alert */}
+      {pending.length > 0 && tab !== "pending" && (
+        <button
+          onClick={() => setTab("pending")}
+          style={{
+            width: "100%", display: "flex", alignItems: "center", gap: 12,
+            background: "#fffbeb", border: "1px solid #fde68a", borderRadius: "var(--radius-lg)",
+            padding: "14px 16px", marginBottom: 16, cursor: "pointer", textAlign: "left",
+          }}
+        >
+          <span style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            width: 36, height: 36, borderRadius: 10, background: "#fef3c7", color: "#b45309", flexShrink: 0,
+          }}>
+            <UserPlus size={18} />
+          </span>
+          <span style={{ flex: 1 }}>
+            <span style={{ fontWeight: 700, fontSize: 14, color: "#92400e", display: "block" }}>
+              {pending.length} customer{pending.length > 1 ? "s" : ""} awaiting approval
+            </span>
+            <span style={{ fontSize: 12.5, color: "#b45309" }}>Tap to review and approve new registrations</span>
+          </span>
+          <ChevronRight size={18} color="#b45309" />
+        </button>
+      )}
 
       {/* Tabs */}
       <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
