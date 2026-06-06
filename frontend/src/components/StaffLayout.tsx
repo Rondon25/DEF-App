@@ -1,111 +1,164 @@
+import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { clearStaffAuth, getStaffUser } from "../hooks/useAuth";
+import {
+  LayoutDashboard, Users, ClipboardList, CreditCard, Layers,
+  Package, BarChart3, Droplet, Menu, X, LogOut,
+} from "lucide-react";
 
-const NAV_BY_ROLE: Record<string, { to: string; emoji: string; label: string }[]> = {
+type NavItem = { to: string; icon: any; label: string };
+
+const NAV_BY_ROLE: Record<string, NavItem[]> = {
   admin: [
-    { to: "/staff",            emoji: "📊", label: "Dashboard"   },
-    { to: "/staff/customers",  emoji: "👥", label: "Customers"   },
-    { to: "/staff/orders",     emoji: "📋", label: "Orders"      },
-    { to: "/staff/payments",   emoji: "💳", label: "Payments"    },
-    { to: "/staff/catalog",    emoji: "🗂️",  label: "Catalogue"  },
-    { to: "/staff/stock",      emoji: "📦", label: "Stock"       },
-    { to: "/staff/analytics",  emoji: "📈", label: "Analytics"   },
+    { to: "/staff",           icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/staff/customers", icon: Users,           label: "Customers" },
+    { to: "/staff/orders",    icon: ClipboardList,   label: "Orders" },
+    { to: "/staff/payments",  icon: CreditCard,      label: "Payments" },
+    { to: "/staff/catalog",   icon: Layers,          label: "Catalogue" },
+    { to: "/staff/stock",     icon: Package,         label: "Stock" },
+    { to: "/staff/analytics", icon: BarChart3,       label: "Analytics" },
   ],
   central_team: [
-    { to: "/staff",            emoji: "📊", label: "Dashboard"   },
-    { to: "/staff/customers",  emoji: "👥", label: "Customers"   },
-    { to: "/staff/orders",     emoji: "📋", label: "Orders"      },
-    { to: "/staff/payments",   emoji: "💳", label: "Payments"    },
-    { to: "/staff/catalog",    emoji: "🗂️",  label: "Catalogue"  },
-    { to: "/staff/analytics",  emoji: "📈", label: "Analytics"   },
+    { to: "/staff",           icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/staff/customers", icon: Users,           label: "Customers" },
+    { to: "/staff/orders",    icon: ClipboardList,   label: "Orders" },
+    { to: "/staff/payments",  icon: CreditCard,      label: "Payments" },
+    { to: "/staff/catalog",   icon: Layers,          label: "Catalogue" },
+    { to: "/staff/analytics", icon: BarChart3,       label: "Analytics" },
   ],
   finance: [
-    { to: "/staff",            emoji: "📊", label: "Dashboard"   },
-    { to: "/staff/payments",   emoji: "💳", label: "Payments"    },
-    { to: "/staff/orders",     emoji: "📋", label: "Orders"      },
+    { to: "/staff",          icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/staff/payments", icon: CreditCard,      label: "Payments" },
+    { to: "/staff/orders",   icon: ClipboardList,   label: "Orders" },
   ],
   operations: [
-    { to: "/staff",            emoji: "📊", label: "Dashboard"   },
-    { to: "/staff/orders",     emoji: "📋", label: "Orders"      },
-    { to: "/staff/stock",      emoji: "📦", label: "Stock"       },
+    { to: "/staff",        icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/staff/orders", icon: ClipboardList,   label: "Orders" },
+    { to: "/staff/stock",  icon: Package,         label: "Stock" },
   ],
   sales: [
-    { to: "/staff",            emoji: "📊", label: "Dashboard"   },
-    { to: "/staff/customers",  emoji: "👥", label: "Customers"   },
-    { to: "/staff/orders",     emoji: "📋", label: "Orders"      },
-    { to: "/staff/analytics",  emoji: "📈", label: "Analytics"   },
+    { to: "/staff",           icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/staff/customers", icon: Users,           label: "Customers" },
+    { to: "/staff/orders",    icon: ClipboardList,   label: "Orders" },
+    { to: "/staff/analytics", icon: BarChart3,       label: "Analytics" },
   ],
 };
 
 const ROLE_COLOR: Record<string, string> = {
-  admin:        "#7C3AED",
-  central_team: "#2563EB",
-  finance:      "#16A34A",
-  operations:   "#D97706",
-  sales:        "#0891B2",
+  admin: "#a78bfa", central_team: "#5eead4", finance: "#86efac",
+  operations: "#fcd34d", sales: "#67e8f9",
 };
 
 export default function StaffLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
-  const user     = getStaffUser();
-  const nav      = NAV_BY_ROLE[user?.role || "sales"] || NAV_BY_ROLE.sales;
-  const roleColor = ROLE_COLOR[user?.role || "sales"] || "var(--blue)";
+  const user = getStaffUser();
+  const nav = NAV_BY_ROLE[user?.role || "sales"] || NAV_BY_ROLE.sales;
+  const roleColor = ROLE_COLOR[user?.role || "sales"] || "#5eead4";
+  const [open, setOpen] = useState(false);
 
-  return (
-    <div className="app-shell">
-      {/* Mobile header */}
-      <header className="mobile-header">
-        <h2>🏭 DEF Staff</h2>
-        <span style={{ fontSize: 11, color: "rgba(255,255,255,.5)", textTransform: "capitalize" }}>
-          {user?.role?.replace("_", " ")}
-        </span>
-      </header>
-
-      {/* Desktop sidebar */}
-      <aside className="sidebar">
-        <div className="sidebar-logo">
-          <h2>DEF Platform</h2>
-          <span>Staff Portal</span>
+  const Sidebar = (
+    <div className="h-full flex flex-col p-5">
+      {/* Logo */}
+      <div className="flex items-center gap-2.5 mb-8 px-1">
+        <div className="size-9 rounded-xl bg-accent flex items-center justify-center text-sidebar shrink-0">
+          <Droplet className="size-5" fill="currentColor" />
         </div>
-        <div className="sidebar-section">
-          <div className="sidebar-section-label">Navigation</div>
-          <nav className="sidebar-nav">
-            {nav.map(n => (
-              <NavLink key={n.to} to={n.to} end={n.to === "/staff"} className={({ isActive }) => isActive ? "active" : ""}>
-                <span className="nav-icon">{n.emoji}</span>{n.label}
-              </NavLink>
-            ))}
-          </nav>
+        <div className="leading-tight">
+          <div className="font-bold text-accent text-[15px]">Rohan Energy</div>
+          <div className="text-[10px] text-white/40">Staff Portal</div>
         </div>
-        {user && (
-          <div className="sidebar-user">
-            <div className="user-name">{user.name}</div>
-            <div className="user-role" style={{ color: roleColor, fontWeight: 600 }}>
-              {user.role.replace("_", " ")}
-            </div>
-            <button className="btn-logout" onClick={() => { clearStaffAuth(); navigate("/staff/login"); }}>
-              Sign out
-            </button>
-          </div>
-        )}
-      </aside>
+      </div>
 
-      {/* Main */}
-      <main className="main-content">
-        <div className="page-content">{children}</div>
-      </main>
-
-      {/* Bottom nav (mobile — only show first 4) */}
-      <nav className="bottom-nav">
-        <div className="bottom-nav-inner">
-          {nav.slice(0, 4).map(n => (
-            <NavLink key={n.to} to={n.to} end={n.to === "/staff"} className={({ isActive }) => `bottom-nav-item${isActive ? " active" : ""}`}>
-              <span className="nav-emoji">{n.emoji}</span>
+      {/* Nav */}
+      <nav className="flex-1">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-white/30 px-3 mb-3">Navigation</div>
+        {nav.map((n) => {
+          const Icon = n.icon;
+          return (
+            <NavLink
+              key={n.to}
+              to={n.to}
+              end={n.to === "/staff"}
+              onClick={() => setOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-full px-4 py-2.5 mb-1 text-sm transition-colors ${
+                  isActive
+                    ? "bg-accent text-sidebar font-semibold"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-white font-medium"
+                }`
+              }
+            >
+              <Icon className="size-[18px] shrink-0" />
               {n.label}
             </NavLink>
-          ))}
-        </div>
+          );
+        })}
       </nav>
+
+      {/* User card */}
+      {user && (
+        <div className="rounded-2xl bg-sidebar-accent p-3 mt-3">
+          <div className="flex items-center gap-2.5 mb-2.5">
+            <div className="size-9 rounded-full bg-accent text-sidebar flex items-center justify-center text-xs font-bold shrink-0">
+              {user.name?.[0]?.toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <div className="text-white text-[13px] font-semibold truncate">{user.name}</div>
+              <div className="text-[11px] font-semibold capitalize" style={{ color: roleColor }}>
+                {user.role.replace("_", " ")}
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => { clearStaffAuth(); navigate("/staff/login"); }}
+            className="w-full flex items-center justify-center gap-2 h-9 rounded-full bg-white/10 text-white/70 text-xs font-medium hover:bg-white/15 hover:text-white transition-colors"
+          >
+            <LogOut className="size-3.5" /> Sign out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="min-h-dvh bg-canvas">
+      {/* Desktop sidebar (fixed) + Mobile drawer */}
+      <aside
+        className={`fixed inset-y-0 left-0 w-[260px] bg-sidebar z-50 transition-transform duration-200 md:translate-x-0 ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {Sidebar}
+        <button onClick={() => setOpen(false)} className="md:hidden absolute top-4 right-4 text-white/60">
+          <X className="size-5" />
+        </button>
+      </aside>
+
+      {/* Mobile overlay */}
+      {open && <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setOpen(false)} />}
+
+      {/* Main column */}
+      <div className="md:ml-[260px] flex flex-col min-h-dvh">
+        {/* Topbar */}
+        <header className="sticky top-0 z-30 bg-surface/90 backdrop-blur border-b border-border h-16 flex items-center justify-between gap-4 px-4 md:px-8">
+          <button onClick={() => setOpen(true)} className="md:hidden text-ink-3">
+            <Menu className="size-6" />
+          </button>
+          <div className="hidden md:block text-sm font-semibold text-ink-3 capitalize">
+            {user?.name ? `Welcome, ${user.name.split(" ")[0]}` : "Staff Portal"}
+          </div>
+          <div className="flex items-center gap-3 ml-auto">
+            <div className="flex items-center gap-2 bg-sidebar text-white pl-1.5 pr-4 py-1.5 rounded-full text-[13px]">
+              <div className="size-7 rounded-full bg-accent text-sidebar flex items-center justify-center text-xs font-bold">
+                {user?.name?.[0]?.toUpperCase()}
+              </div>
+              <span className="hidden sm:inline">{user?.name}</span>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 p-4 md:p-8 max-w-[1400px] w-full">{children}</main>
+      </div>
     </div>
   );
 }
