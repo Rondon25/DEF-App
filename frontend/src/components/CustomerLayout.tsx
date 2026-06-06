@@ -17,7 +17,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
   return (
     <div className="min-h-dvh bg-canvas flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-surface/90 backdrop-blur border-b border-border">
+      <header className="sticky top-0 z-40 bg-surface/90 backdrop-blur border-b border-border" style={{ paddingTop: "env(safe-area-inset-top)" }}>
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="size-8 rounded-lg bg-white border border-border flex items-center justify-center">

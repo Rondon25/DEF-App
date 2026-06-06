@@ -165,6 +165,15 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    -webkit-tap-highlight-color: transparent;   /* no grey flash on tap (iOS) */
+    -webkit-text-size-adjust: 100%;             /* don't auto-resize text on rotate */
+  }
+
+  /* iOS Safari zooms the page in when a focused input has font-size < 16px.
+     Force 16px on form controls for touch (coarse-pointer) devices only, so
+     the visual text-sm sizing is preserved on desktop. */
+  @media (pointer: coarse) {
+    input, select, textarea { font-size: 16px; }
   }
   /* Type scale — headings use Inter heavy + tight tracking as the display treatment */
   h1 { font-size: 23px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
