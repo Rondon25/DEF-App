@@ -5,6 +5,7 @@ import { setStaffAuth } from "../../hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Loader2, AlertCircle, Info } from "lucide-react";
 import logoFull from "../../assets/logo-full.svg";
+import logoHpcl from "../../assets/logo-hpcl.svg";
 
 const inputCls =
   "w-full h-11 rounded-xl border border-input bg-surface px-3.5 text-sm placeholder:text-ink-4 " +
@@ -39,7 +40,11 @@ export default function StaffLogin() {
       <div className="w-full max-w-[400px]">
         {/* Brand */}
         <div className="flex flex-col items-center mb-7">
-          <img src={logoFull} alt="Rohan Energy Solutions" className="h-20 w-auto mb-2" />
+          <div className="flex items-center justify-center gap-4 mb-2">
+            <img src={logoFull} alt="Rohan Energy Solutions" className="h-16 w-auto" />
+            <span className="h-12 w-px bg-border" />
+            <img src={logoHpcl} alt="Hindustan Petroleum" className="h-16 w-auto" />
+          </div>
           <p className="text-sm text-ink-3">Staff Portal</p>
         </div>
 
