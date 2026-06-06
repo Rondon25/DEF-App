@@ -146,6 +146,13 @@ class SKU(Base):
     unit                 = Column(String(50), default="unit")
     current_price        = Column(Float, nullable=False)
     stock_qty            = Column(Float, nullable=True)   # legacy total; now derived from plant_stocks
+    # ── Manufacturing / recipe parameters (from ASSUMPTIONS sheet) ──
+    granule_kg_per_unit          = Column(Float, default=0.0)   # granules consumed per finished unit
+    packaging_per_unit           = Column(Float, default=0.0)   # packaging items per finished unit
+    target_output_per_shift_hour = Column(Float, default=0.0)   # units producible per shift-hour
+    min_fg_safety_stock          = Column(Float, default=0.0)   # min finished-goods buffer
+    dispatch_cost_per_unit       = Column(Float, default=0.0)
+    revenue_per_unit             = Column(Float, default=0.0)
     is_active            = Column(Boolean, default=True)
     is_archived          = Column(Boolean, default=False)  # soft delete
     created_at           = Column(DateTime, default=datetime.utcnow)
@@ -154,6 +161,7 @@ class SKU(Base):
     price_history = relationship("SKUPriceHistory", back_populates="sku")
     order_items   = relationship("OrderItem", back_populates="sku")
     plant_stocks  = relationship("PlantStock", back_populates="sku", cascade="all, delete-orphan")
+    bom_items     = relationship("BillOfMaterials", back_populates="sku", cascade="all, delete-orphan")
 
 
 # ─── PLANTS (FACTORIES / WAREHOUSES) ─────────────────────────────────────────
@@ -168,11 +176,24 @@ class Plant(Base):
     manager_phone = Column(String(30), nullable=True)
     manager_email = Column(String(255), nullable=True)
     max_capacity  = Column(Float, nullable=True)   # max units the plant can hold
+    # ── Production capacity config (from ASSUMPTIONS sheet) ──
+    working_days_per_month = Column(Integer, default=26)
+    shifts_per_day         = Column(Integer, default=3)
+    hours_per_shift        = Column(Integer, default=8)
     is_active     = Column(Boolean, default=True)
     is_archived   = Column(Boolean, default=False)
     created_at    = Column(DateTime, default=datetime.utcnow)
 
-    stocks = relationship("PlantStock", back_populates="plant", cascade="all, delete-orphan")
+    stocks       = relationship("PlantStock", back_populates="plant", cascade="all, delete-orphan")
+    rm_stocks    = relationship("RawMaterialStock", back_populates="plant", cascade="all, delete-orphan")
+
+    @property
+    def effective_hours_per_day(self) -> float:
+        return (self.shifts_per_day or 0) * (self.hours_per_shift or 0)
+
+    @property
+    def capacity_hours_month(self) -> float:
+        return self.effective_hours_per_day * (self.working_days_per_month or 0)
 
 
 class PlantStock(Base):
@@ -186,6 +207,97 @@ class PlantStock(Base):
 
     plant = relationship("Plant", back_populates="stocks")
     sku   = relationship("SKU", back_populates="plant_stocks")
+
+
+# ─── RAW MATERIALS / VENDORS / BOM (manufacturing master data) ───────────────
+
+class MaterialType(str, enum.Enum):
+    granule   = "granule"
+    packaging = "packaging"
+    label     = "label"
+    misc      = "misc"
+
+
+class RawMaterial(Base):
+    __tablename__ = "raw_materials"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    name        = Column(String(150), nullable=False)        # e.g. "Granules", "Bucket 5L"
+    type        = Column(SAEnum(MaterialType), default=MaterialType.granule)
+    unit        = Column(String(30), default="kg")           # kg / units
+    is_active   = Column(Boolean, default=True)
+    is_archived = Column(Boolean, default=False)
+    created_at  = Column(DateTime, default=datetime.utcnow)
+
+    stocks      = relationship("RawMaterialStock", back_populates="material", cascade="all, delete-orphan")
+    bom_items   = relationship("BillOfMaterials", back_populates="material", cascade="all, delete-orphan")
+    vendor_links = relationship("VendorMaterial", back_populates="material", cascade="all, delete-orphan")
+
+
+class Vendor(Base):
+    __tablename__ = "vendors"
+
+    id           = Column(Integer, primary_key=True, index=True)
+    name         = Column(String(150), nullable=False)
+    contact_name = Column(String(150), nullable=True)
+    phone        = Column(String(30), nullable=True)
+    email        = Column(String(255), nullable=True)
+    is_active    = Column(Boolean, default=True)
+    is_archived  = Column(Boolean, default=False)
+    created_at   = Column(DateTime, default=datetime.utcnow)
+
+    material_links = relationship("VendorMaterial", back_populates="vendor", cascade="all, delete-orphan")
+
+
+class VendorMaterial(Base):
+    """Sourcing terms: which vendor supplies which material, per-plant lead time, MOQ, cost."""
+    __tablename__ = "vendor_materials"
+
+    id               = Column(Integer, primary_key=True, index=True)
+    vendor_id        = Column(Integer, ForeignKey("vendors.id"), nullable=False)
+    material_id      = Column(Integer, ForeignKey("raw_materials.id"), nullable=False)
+    plant_id         = Column(Integer, ForeignKey("plants.id"), nullable=True)   # null = applies to all plants
+    lead_time_days   = Column(Integer, default=7)
+    safety_stock_days = Column(Integer, default=3)
+    min_order_qty    = Column(Float, default=0.0)
+    unit_cost        = Column(Float, default=0.0)
+    is_archived      = Column(Boolean, default=False)
+    created_at       = Column(DateTime, default=datetime.utcnow)
+
+    vendor   = relationship("Vendor", back_populates="material_links")
+    material = relationship("RawMaterial", back_populates="vendor_links")
+    plant    = relationship("Plant")
+
+
+class BillOfMaterials(Base):
+    """Recipe: raw material consumed per finished unit of an SKU."""
+    __tablename__ = "bill_of_materials"
+
+    id            = Column(Integer, primary_key=True, index=True)
+    sku_id        = Column(Integer, ForeignKey("skus.id"), nullable=False)
+    material_id   = Column(Integer, ForeignKey("raw_materials.id"), nullable=False)
+    qty_per_unit  = Column(Float, default=0.0)
+    created_at    = Column(DateTime, default=datetime.utcnow)
+
+    sku      = relationship("SKU", back_populates="bom_items")
+    material = relationship("RawMaterial", back_populates="bom_items")
+
+
+class RawMaterialStock(Base):
+    """Current raw-material stock per plant + reorder parameters (Phase 1 fills logic)."""
+    __tablename__ = "raw_material_stocks"
+
+    id               = Column(Integer, primary_key=True, index=True)
+    plant_id         = Column(Integer, ForeignKey("plants.id"), nullable=False)
+    material_id      = Column(Integer, ForeignKey("raw_materials.id"), nullable=False)
+    quantity         = Column(Float, default=0.0)
+    avg_daily_usage  = Column(Float, default=0.0)
+    safety_stock     = Column(Float, default=0.0)
+    reorder_point    = Column(Float, default=0.0)
+    updated_at       = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    plant    = relationship("Plant", back_populates="rm_stocks")
+    material = relationship("RawMaterial", back_populates="stocks")
 
 
 class SKUPriceHistory(Base):
