@@ -300,6 +300,75 @@ class RawMaterialStock(Base):
     material = relationship("RawMaterial", back_populates="stocks")
 
 
+# ─── STOCK MOVEMENT LEDGER (daily, FG + RM) ──────────────────────────────────
+
+class StockEntity(str, enum.Enum):
+    raw_material   = "raw_material"
+    finished_good  = "finished_good"
+
+
+class StockMovement(Base):
+    """Daily ledger row: opening -> in -> out -> closing for a material or SKU at a plant."""
+    __tablename__ = "stock_movements"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    entity      = Column(SAEnum(StockEntity), nullable=False)
+    plant_id    = Column(Integer, ForeignKey("plants.id"), nullable=False)
+    material_id = Column(Integer, ForeignKey("raw_materials.id"), nullable=True)
+    sku_id      = Column(Integer, ForeignKey("skus.id"), nullable=True)
+    movement_date = Column(Date, nullable=False)
+    opening     = Column(Float, default=0.0)
+    qty_in      = Column(Float, default=0.0)   # receipts / produced
+    qty_out     = Column(Float, default=0.0)   # usage / dispatched
+    closing     = Column(Float, default=0.0)
+    reason      = Column(String(100), nullable=True)  # receipt, usage, adjustment, production, dispatch
+    note        = Column(Text, nullable=True)
+    staff_id    = Column(Integer, ForeignKey("staff_users.id"), nullable=True)
+    created_at  = Column(DateTime, default=datetime.utcnow)
+
+    plant    = relationship("Plant")
+    material = relationship("RawMaterial")
+    sku      = relationship("SKU")
+
+
+# ─── PURCHASE ORDERS / REORDER TRACKER ───────────────────────────────────────
+
+class POStatus(str, enum.Enum):
+    draft    = "draft"
+    pending  = "pending"
+    ordered  = "ordered"
+    arrived  = "arrived"
+    cancelled = "cancelled"
+
+
+class PurchaseOrder(Base):
+    __tablename__ = "purchase_orders"
+
+    id              = Column(Integer, primary_key=True, index=True)
+    po_number       = Column(String(30), unique=True, nullable=True)
+    plant_id        = Column(Integer, ForeignKey("plants.id"), nullable=False)
+    material_id     = Column(Integer, ForeignKey("raw_materials.id"), nullable=False)
+    vendor_id       = Column(Integer, ForeignKey("vendors.id"), nullable=True)
+    trigger_date    = Column(Date, nullable=True)
+    stock_at_trigger = Column(Float, default=0.0)
+    reorder_point   = Column(Float, default=0.0)
+    order_qty       = Column(Float, default=0.0)
+    lead_time_days  = Column(Integer, default=7)
+    expected_arrival = Column(Date, nullable=True)
+    unit_cost       = Column(Float, default=0.0)
+    status          = Column(SAEnum(POStatus), default=POStatus.draft)
+    auto_generated  = Column(Boolean, default=False)
+    notes           = Column(Text, nullable=True)
+    is_archived     = Column(Boolean, default=False)
+    created_by      = Column(Integer, ForeignKey("staff_users.id"), nullable=True)
+    created_at      = Column(DateTime, default=datetime.utcnow)
+    updated_at      = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    plant    = relationship("Plant")
+    material = relationship("RawMaterial")
+    vendor   = relationship("Vendor")
+
+
 class SKUPriceHistory(Base):
     __tablename__ = "sku_price_history"
 
