@@ -131,7 +131,7 @@ export default function StaffOrderDetail() {
   if (!order) return <ErrorScreen title="Order not found" message="This order may have been deleted or you don't have access." back />;
 
   const canVerify    = ["admin","central_team"].includes(user?.role || "");
-  const canFinance   = ["admin","finance"].includes(user?.role || "");
+  const canFinance   = ["admin","finance","central_team"].includes(user?.role || "");
   const canOps       = ["admin","central_team","operations"].includes(user?.role || "");
   const anyPending   = verifyMutation.isPending || verifyPayMutation.isPending ||
                        confirmMutation.isPending || dispatchMutation.isPending ||
