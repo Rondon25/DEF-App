@@ -4,6 +4,7 @@ import { api } from "../../api";
 import { getCustomerUser } from "../../hooks/useAuth";
 import { StatusPill } from "@/components/StatusPill";
 import { SkeletonList } from "@/components/Skeleton";
+import StatCard from "@/components/ui/StatCard";
 import {
   ShoppingCart, Package, Activity, Wallet, CreditCard,
   ChevronRight, ArrowRight, ClipboardList,
@@ -50,10 +51,10 @@ export default function CustomerHome() {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-3 mb-5">
-        <KpiTile icon={<Package className="size-4" />} label="Total Orders" value={orders.length} />
-        <KpiTile icon={<Activity className="size-4" />} label="Active" value={active.length} accent />
-        <KpiTile icon={<Wallet className="size-4" />} label="Total Spent" value={`$${totalSpent.toLocaleString("en-US", { maximumFractionDigits: 0 })}`} />
-        <KpiTile icon={<CreditCard className="size-4" />} label="Credit Account" value={customer?.is_credit_account ? "Yes" : "No"} />
+        <StatCard icon={<Package className="size-4" />} label="Total Orders" value={orders.length} />
+        <StatCard icon={<Activity className="size-4" />} label="Active" value={active.length} />
+        <StatCard icon={<Wallet className="size-4" />} label="Total Spent" value={`$${totalSpent.toLocaleString("en-US", { maximumFractionDigits: 0 })}`} />
+        <StatCard icon={<CreditCard className="size-4" />} label="Credit Account" value={customer?.is_credit_account ? "Yes" : "No"} />
       </div>
 
       {/* Recent orders */}
@@ -108,19 +109,5 @@ export default function CustomerHome() {
         )}
       </div>
     </>
-  );
-}
-
-function KpiTile({ icon, label, value, accent }: { icon: React.ReactNode; label: string; value: React.ReactNode; accent?: boolean }) {
-  return (
-    <div className="bg-surface rounded-2xl p-4 shadow-[var(--shadow-sm)]">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-xs text-ink-3 font-medium">{label}</span>
-        <span className={`flex size-7 items-center justify-center rounded-lg ${accent ? "bg-accent text-sidebar" : "bg-teal-50 text-primary"}`}>
-          {icon}
-        </span>
-      </div>
-      <div className="text-2xl font-bold text-ink">{value}</div>
-    </div>
   );
 }

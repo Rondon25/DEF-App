@@ -101,7 +101,7 @@ export default function CustomerLogin() {
   };
 
   return (
-    <div className="min-h-dvh flex items-center justify-center bg-canvas px-4 py-8">
+    <div className="lab-theme min-h-dvh flex items-center justify-center bg-canvas px-4 py-8">
       <div className="w-full max-w-[400px]">
         {/* Brand */}
         <div className="flex flex-col items-center mb-7">

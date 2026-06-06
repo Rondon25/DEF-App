@@ -15,7 +15,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
   const initial = customer?.name?.[0]?.toUpperCase() || "?";
 
   return (
-    <div className="min-h-dvh bg-canvas flex flex-col">
+    <div className="lab-theme min-h-dvh bg-canvas text-ink flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-surface/90 backdrop-blur border-b border-border" style={{ paddingTop: "env(safe-area-inset-top)" }}>
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">

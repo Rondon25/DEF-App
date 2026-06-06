@@ -57,7 +57,7 @@ export default function CustomerRegister() {
   // ── Success ──
   if (done) {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-canvas px-4 py-8">
+      <div className="lab-theme min-h-dvh flex items-center justify-center bg-canvas px-4 py-8">
         <div className="w-full max-w-[400px] bg-surface rounded-2xl shadow-[var(--shadow)] p-8 text-center">
           <div className="size-16 rounded-full bg-teal-50 flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 className="size-9 text-primary" />
@@ -74,7 +74,7 @@ export default function CustomerRegister() {
   }
 
   return (
-    <div className="min-h-dvh bg-canvas px-4 py-8">
+    <div className="lab-theme min-h-dvh bg-canvas px-4 py-8">
       <div className="w-full max-w-[440px] mx-auto">
         {/* Brand */}
         <div className="flex flex-col items-center mb-6">
