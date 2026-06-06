@@ -3,6 +3,7 @@
    dashboard, wired to our real data. Standalone full-screen layout (own sidebar +
    right rail). Self-contained inline-SVG charts. Route: /staff/dashboard-lab
    ───────────────────────────────────────────────────────────────────────────── */
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { staffApi } from "../../api";
@@ -135,7 +136,7 @@ export default function DashboardLab() {
                           <div className="text-xl font-bold leading-none">{util}%</div>
                           <div className="text-[11px] mt-1" style={{color:C.sub}}>Last week: {t.prev}%</div>
                         </div>
-                        <Sparkline data={t.pts} color={col} w={84} h={34} fill />
+                        <Sparkline data={t.pts} color={col} w={84} h={34} fill hover suffix="%" />
                       </div>
                     </div>
                   );
@@ -147,7 +148,7 @@ export default function DashboardLab() {
             {/* Profit by category — col 1, row 2 */}
             <Card title="Profit by Product Category" className="xl:col-start-1 xl:row-start-2">
               <div className="flex items-center gap-5">
-                <Donut segments={(topSkus.length?topSkus:[{total_revenue:1}]).map((s:any,i:number)=>({ value:s.total_revenue||1, color:SERIES[i%SERIES.length] }))}
+                <Donut segments={(topSkus.length?topSkus:[{total_revenue:1,name:"—"}]).map((s:any,i:number)=>({ value:s.total_revenue||1, color:SERIES[i%SERIES.length], label:s.name||"—", display:`$${Number(s.total_revenue||0).toLocaleString()}` }))}
                   centerTop={`$${Number(anal?.total_revenue||0).toLocaleString()}`} centerSub="Revenue" />
                 <div className="flex-1 space-y-2.5 min-w-0">
                   {(topSkus.length?topSkus:[]).map((s:any,i:number)=>(
@@ -164,10 +165,7 @@ export default function DashboardLab() {
 
             {/* Order Summary — col 2, row 2 */}
             <Card title="Order Summary" className="xl:col-start-2 xl:row-start-2" right={<span className="text-2xl font-bold">${Number(anal?.total_revenue||0).toLocaleString()}</span>}>
-              <AreaChart data={rev.map((d:any)=>d.revenue)} />
-              <div className="flex justify-between text-[11px] mt-2" style={{ color: C.sub }}>
-                <span>{rev[0]?.date}</span><span>{rev[rev.length-1]?.date}</span>
-              </div>
+              <AreaChart data={rev} />
             </Card>
 
             {/* Stock Level — col 1, row 3 */}
@@ -280,19 +278,34 @@ function Kpi({ label, value, delta, up, spark }: { label: string; value: React.R
   );
 }
 
-function Sparkline({ data, color = C.lime2, w = 60, h = 24, fill = false }: { data: number[]; color?: string; w?: number; h?: number; fill?: boolean }) {
+function Sparkline({ data, color = C.lime2, w = 60, h = 24, fill = false, hover = false, suffix = "" }: { data: number[]; color?: string; w?: number; h?: number; fill?: boolean; hover?: boolean; suffix?: string }) {
+  const [hi, setHi] = useState<number | null>(null);
   const max=Math.max(...data),min=Math.min(...data),rng=max-min||1;
-  const xy=(v:number,i:number)=>[ (i/(data.length-1))*w, h-((v-min)/rng)*(h-4)-2 ];
-  const line=data.map((v,i)=>xy(v,i).join(",")).join(" ");
+  const X=(i:number)=>(i/(data.length-1))*w, Y=(v:number)=>h-((v-min)/rng)*(h-4)-2;
+  const line=data.map((v,i)=>`${X(i)},${Y(v)}`).join(" ");
   const gid=`sp-${color.replace("#","")}-${w}`;
-  return (
+  const svg = (
     <svg width={w} height={h} className="block">
       {fill && (<>
         <defs><linearGradient id={gid} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={color} stopOpacity="0.35" /><stop offset="100%" stopColor={color} stopOpacity="0" /></linearGradient></defs>
         <polygon points={`0,${h} ${line} ${w},${h}`} fill={`url(#${gid})`} />
       </>)}
       <polyline points={line} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      {hover && hi!=null && <circle cx={X(hi)} cy={Y(data[hi])} r="3" fill={color} stroke="#fff" strokeWidth="1.5" />}
     </svg>
+  );
+  if (!hover) return svg;
+  return (
+    <div className="relative" style={{ width: w }}
+      onMouseMove={(e)=>{ const r=e.currentTarget.getBoundingClientRect(); setHi(Math.round(Math.min(1,Math.max(0,(e.clientX-r.left)/r.width))*(data.length-1))); }}
+      onMouseLeave={()=>setHi(null)}>
+      {svg}
+      {hi!=null && (
+        <div className="absolute -translate-x-1/2 -top-6 pointer-events-none z-10" style={{ left: `${(hi/(data.length-1))*100}%` }}>
+          <div className="rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-white whitespace-nowrap" style={{ background: C.ink }}>{Math.round(data[hi])}{suffix}</div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -308,35 +321,62 @@ function trendFor(value: number, seed: number) {
 
 const RED = "#E5484D";
 
-function Donut({ segments, centerTop, centerSub }: { segments: { value: number; color: string }[]; centerTop: string; centerSub: string }) {
+function Donut({ segments, centerTop, centerSub }: { segments: { value: number; color: string; label?: string; display?: string }[]; centerTop: string; centerSub: string }) {
+  const [hi, setHi] = useState<number | null>(null);
   const total=segments.reduce((s,x)=>s+x.value,0)||1;
   const r=52, c=2*Math.PI*r; let off=0;
+  const h = hi!=null ? segments[hi] : null;
   return (
     <div className="relative shrink-0" style={{ width: 132, height: 132 }}>
       <svg width="132" height="132" viewBox="0 0 132 132">
         <circle cx="66" cy="66" r={r} fill="none" stroke={C.canvas} strokeWidth="16" />
-        {segments.map((s,i)=>{ const len=(s.value/total)*c; const el=<circle key={i} cx="66" cy="66" r={r} fill="none" stroke={s.color} strokeWidth="16" strokeDasharray={`${len} ${c-len}`} strokeDashoffset={-off} transform="rotate(-90 66 66)" strokeLinecap="butt" />; off+=len; return el; })}
+        {segments.map((s,i)=>{ const len=(s.value/total)*c; const el=(
+          <circle key={i} cx="66" cy="66" r={r} fill="none" stroke={s.color} strokeWidth={hi===i?21:16}
+            strokeDasharray={`${len} ${c-len}`} strokeDashoffset={-off} transform="rotate(-90 66 66)" strokeLinecap="butt"
+            style={{ cursor: "pointer", transition: "stroke-width .15s", opacity: hi==null||hi===i?1:0.45 }}
+            onMouseEnter={()=>setHi(i)} onMouseLeave={()=>setHi(null)} />
+        ); off+=len; return el; })}
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[15px] font-bold">{centerTop}</span><span className="text-[10px]" style={{color:C.sub}}>{centerSub}</span>
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-3">
+        {h ? (<><span className="text-[10px] truncate max-w-[92px]" style={{color:C.sub}}>{h.label}</span><span className="text-[14px] font-bold">{h.display}</span></>)
+           : (<><span className="text-[15px] font-bold">{centerTop}</span><span className="text-[10px]" style={{color:C.sub}}>{centerSub}</span></>)}
       </div>
     </div>
   );
 }
 
-function AreaChart({ data }: { data: number[] }) {
+function AreaChart({ data }: { data: { date: string; revenue: number }[] }) {
+  const [hi, setHi] = useState<number | null>(null);
   const w=440,h=120;
   if(!data.length) return <div className="h-[120px] flex items-center justify-center text-[13px]" style={{color:C.sub}}>No data</div>;
-  const max=Math.max(...data,1),min=Math.min(...data,0),rng=max-min||1;
-  const pt=(v:number,i:number)=>[ (i/(data.length-1))*w, h-((v-min)/rng)*(h-10)-5 ];
-  const line=data.map((v,i)=>pt(v,i).join(",")).join(" ");
+  const vals=data.map(d=>d.revenue);
+  const max=Math.max(...vals,1),min=Math.min(...vals,0),rng=max-min||1;
+  const X=(i:number)=>(i/(data.length-1))*w, Y=(v:number)=>h-((v-min)/rng)*(h-10)-5;
+  const line=vals.map((v,i)=>`${X(i)},${Y(v)}`).join(" ");
   const area=`0,${h} ${line} ${w},${h}`;
+  const frac = hi!=null ? hi/(data.length-1) : 0;
   return (
-    <svg width="100%" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="block">
-      <defs><linearGradient id="lab-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={C.lime} stopOpacity="0.55" /><stop offset="100%" stopColor={C.lime} stopOpacity="0" /></linearGradient></defs>
-      <polygon points={area} fill="url(#lab-area)" />
-      <polyline points={line} fill="none" stroke={C.lime2} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <div className="relative" onMouseLeave={()=>setHi(null)}
+      onMouseMove={(e)=>{ const r=e.currentTarget.getBoundingClientRect(); setHi(Math.round(Math.min(1,Math.max(0,(e.clientX-r.left)/r.width))*(data.length-1))); }}>
+      <svg width="100%" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="block" style={{ height: 120 }}>
+        <defs><linearGradient id="lab-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={C.lime} stopOpacity="0.55" /><stop offset="100%" stopColor={C.lime} stopOpacity="0" /></linearGradient></defs>
+        <polygon points={area} fill="url(#lab-area)" />
+        <polyline points={line} fill="none" stroke={C.lime2} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        {hi!=null && <line x1={X(hi)} y1="0" x2={X(hi)} y2={h} stroke={C.lime2} strokeWidth="1" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />}
+      </svg>
+      {hi!=null && (
+        <>
+          {/* marker dot in screen space (so it isn't distorted by preserveAspectRatio) */}
+          <div className="absolute size-2.5 rounded-full pointer-events-none" style={{ left: `${frac*100}%`, top: Y(vals[hi]), background: C.lime2, border: "2px solid #fff", transform: "translate(-50%,-50%)" }} />
+          <div className="absolute -translate-x-1/2 pointer-events-none z-10" style={{ left: `${frac*100}%`, top: -6 }}>
+            <div className="rounded-lg px-2 py-1 text-[11px] font-semibold text-white whitespace-nowrap text-center" style={{ background: C.ink }}>
+              ${Number(vals[hi]).toLocaleString()}<div className="font-normal opacity-70 text-[10px]">{data[hi].date}</div>
+            </div>
+          </div>
+        </>
+      )}
+      <div className="flex justify-between text-[11px] mt-2" style={{ color: C.sub }}><span>{data[0]?.date}</span><span>{data[data.length-1]?.date}</span></div>
+    </div>
   );
 }
 
