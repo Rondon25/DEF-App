@@ -3,7 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import BulkLocationUpload, { type LocationRow } from "../../components/BulkLocationUpload";
 import { Button } from "@/components/ui/button";
-import { Droplet, ArrowRight, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Plus, Upload, X, MapPin } from "lucide-react";
+import { ArrowRight, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Plus, Upload, X, MapPin } from "lucide-react";
+import logoFull from "../../assets/logo-full.svg";
 
 interface ExtraLocation { label: string; address: string; city: string; state: string; }
 
@@ -76,10 +77,7 @@ export default function CustomerRegister() {
       <div className="w-full max-w-[440px] mx-auto">
         {/* Brand */}
         <div className="flex flex-col items-center mb-6">
-          <div className="size-14 rounded-2xl bg-sidebar flex items-center justify-center mb-3 shadow-[var(--shadow-sm)]">
-            <Droplet className="size-7 text-accent" fill="currentColor" />
-          </div>
-          <h1 className="text-xl font-bold text-ink">Rohan Energy Solutions</h1>
+          <img src={logoFull} alt="Rohan Energy Solutions" className="h-20 w-auto mb-2" />
           <p className="text-sm text-ink-3">Customer Portal</p>
         </div>
 
