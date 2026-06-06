@@ -6,10 +6,14 @@ import { getStaffUser } from "../../hooks/useAuth";
 import { SkeletonOrderDetail } from "../../components/Skeleton";
 import ErrorScreen from "../../components/ErrorScreen";
 import { StatusPill } from "@/components/StatusPill";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import {
   ChevronLeft, ClipboardCheck, CreditCard, Check, X, PartyPopper, Truck,
-  PackageCheck, Lock, StickyNote, Droplet, MapPin,
+  PackageCheck, Lock, StickyNote, Droplet, MapPin, Loader2, Calendar, Trash2,
 } from "lucide-react";
+
+const inputCls = "w-full h-11 rounded-xl border border-input bg-surface px-3.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-ink-4";
+const taCls = "w-full rounded-xl border border-input bg-surface px-3.5 py-2.5 text-sm resize-none outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-ink-4";
 
 export default function StaffOrderDetail() {
   const { id } = useParams();
@@ -152,380 +156,226 @@ export default function StaffOrderDetail() {
       </div>
 
       {/* Customer info */}
-      <div className="card" style={{ padding: 14 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-3)", marginBottom: 8 }}>CUSTOMER</div>
-        <div style={{ fontWeight: 700 }}>{order.customer_name}</div>
-        <div style={{ fontSize: 13, color: "var(--ink-3)" }}>{order.customer_phone}</div>
-        {order.company_name && <div style={{ fontSize: 13, color: "var(--ink-3)" }}>{order.company_name}</div>}
-      </div>
+      <Card label="Customer">
+        <div className="font-bold">{order.customer_name}</div>
+        <div className="text-[13px] text-ink-3">{order.customer_phone}</div>
+        {order.company_name && <div className="text-[13px] text-ink-3">{order.company_name}</div>}
+      </Card>
 
-      {/* Action panels */}
-      {actionError && <div className="alert alert-error">{actionError}</div>}
+      {actionError && <div className="rounded-xl bg-red-50 border border-red-100 px-3.5 py-2.5 mb-4 text-[13px] text-red-700">{actionError}</div>}
 
       {/* 1. Verify + send proforma */}
       {order.status === "submitted" && canVerify && (
-        <div className="card" style={{ padding: 16, border: "2px solid var(--blue)" }}>
-          <div style={{ fontWeight: 700, marginBottom: 8 }}><ClipboardCheck size={16} style={{display:"inline",verticalAlign:"-3px",marginRight:6}} />Verify Order & Send Proforma</div>
-          <div className="form-group">
-            <label>Notes (appears on proforma)</label>
-            <textarea
-              className="input" rows={2} style={{ resize: "none" }}
-              value={proformaNote} onChange={e => setProformaNote(e.target.value)}
-              placeholder="Payment terms, validity period, etc."
-            />
-          </div>
-          <button
-            className="btn btn-primary btn-full"
-            onClick={() => verifyMutation.mutate()}
-            disabled={anyPending}
-          >
-            {verifyMutation.isPending ? <span className="spinner" /> : <><Check size={16} /> Verify & Send Proforma Invoice</>}
-          </button>
-        </div>
+        <ActionCard icon={<ClipboardCheck className="size-4" />} tone="teal" title="Verify Order & Send Proforma">
+          <Field label="Notes (appears on proforma)">
+            <textarea className={taCls} rows={2} value={proformaNote} onChange={e => setProformaNote(e.target.value)} placeholder="Payment terms, validity period, etc." />
+          </Field>
+          <PrimaryBtn loading={verifyMutation.isPending} disabled={anyPending} onClick={() => verifyMutation.mutate()}><Check className="size-4" /> Verify & Send Proforma Invoice</PrimaryBtn>
+        </ActionCard>
       )}
 
       {/* 2. Verify payment */}
       {order.status === "payment_uploaded" && canFinance && payment && (
-        <div className="card" style={{ padding: 16, border: "2px solid var(--amber, #f59e0b)" }}>
-          <div style={{ fontWeight: 700, marginBottom: 8 }}><CreditCard size={16} style={{display:"inline",verticalAlign:"-3px",marginRight:6}} />Verify Payment</div>
-          <div style={{ fontSize: 13, marginBottom: 12 }}>
-            <div><strong>Method:</strong> {payment.method?.replace("_", " ")}</div>
-            <div><strong>Amount:</strong> ${payment.amount?.toFixed(2)}</div>
-            <div><strong>Uploaded:</strong> {new Date(payment.uploaded_at).toLocaleString()}</div>
-            {payment.proof_file_url && (
-              <div style={{ marginTop: 10 }}>
-                <img
-                  src={payment.proof_file_url}
-                  alt="Payment proof"
-                  style={{
-                    width: "100%", maxHeight: 260, objectFit: "contain",
-                    borderRadius: "var(--radius)", border: "1px solid var(--border)",
-                    background: "#f8f9fa", cursor: "pointer",
-                  }}
-                  onClick={() => window.open(payment.proof_file_url, "_blank")}
-                />
-                <div style={{ fontSize: 11, color: "var(--ink-4)", marginTop: 4 }}>
-                  Tap to open full size
-                </div>
-              </div>
-            )}
+        <ActionCard icon={<CreditCard className="size-4" />} tone="amber" title="Verify Payment">
+          <div className="text-[13px] space-y-0.5 mb-3">
+            <div><span className="text-ink-3">Method:</span> <span className="font-semibold capitalize">{payment.method?.replace("_", " ")}</span></div>
+            <div><span className="text-ink-3">Amount:</span> <span className="font-semibold">${payment.amount?.toFixed(2)}</span></div>
+            <div><span className="text-ink-3">Uploaded:</span> {new Date(payment.uploaded_at).toLocaleString()}</div>
           </div>
-          <div className="form-group">
-            <label>Rejection reason (if rejecting)</label>
-            <input className="input" value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Optional" />
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              className="btn btn-primary" style={{ flex: 1 }}
-              onClick={() => verifyPayMutation.mutate(true)}
-              disabled={anyPending}
-            >
-              {verifyPayMutation.isPending ? <span className="spinner" /> : <><Check size={16} /> Approve</>}
+          {payment.proof_file_url && (
+            <div className="mb-3">
+              <img src={payment.proof_file_url} alt="Payment proof" onClick={() => window.open(payment.proof_file_url, "_blank")}
+                className="w-full max-h-64 object-contain rounded-xl border border-border bg-canvas cursor-pointer" />
+              <div className="text-[11px] text-ink-4 mt-1">Tap to open full size</div>
+            </div>
+          )}
+          <Field label="Rejection reason (if rejecting)">
+            <input className={inputCls} value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Optional" />
+          </Field>
+          <div className="flex gap-2">
+            <button onClick={() => verifyPayMutation.mutate(true)} disabled={anyPending}
+              className="flex-1 h-11 rounded-full bg-primary text-white text-sm font-semibold flex items-center justify-center gap-1.5 hover:bg-teal-700 transition-colors disabled:opacity-60">
+              {verifyPayMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <><Check className="size-4" /> Approve</>}
             </button>
-            <button
-              className="btn btn-secondary" style={{ flex: 1, color: "var(--red, #ef4444)" }}
-              onClick={() => verifyPayMutation.mutate(false)}
-              disabled={anyPending}
-            >
-              <><X size={16} /> Reject</>
+            <button onClick={() => verifyPayMutation.mutate(false)} disabled={anyPending}
+              className="flex-1 h-11 rounded-full border border-red-200 text-red-600 text-sm font-semibold flex items-center justify-center gap-1.5 hover:bg-red-50 transition-colors disabled:opacity-60">
+              <X className="size-4" /> Reject
             </button>
           </div>
-        </div>
+        </ActionCard>
       )}
 
       {/* 3. Confirm order */}
       {order.status === "payment_verified" && canVerify && (
-        <div className="card" style={{ padding: 16, border: "2px solid var(--green, #16a34a)" }}>
-          <div style={{ fontWeight: 700, marginBottom: 8 }}><PartyPopper size={16} style={{display:"inline",verticalAlign:"-3px",marginRight:6}} />Confirm Order</div>
-          <div className="form-group">
-            <label>Tentative delivery date (optional)</label>
-            <input type="date" className="input" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} />
-          </div>
-          <button
-            className="btn btn-primary btn-full"
-            onClick={() => confirmMutation.mutate()}
-            disabled={anyPending}
-          >
-            {confirmMutation.isPending ? <span className="spinner" /> : <><Check size={16} /> Confirm & Notify Customer</>}
-          </button>
-        </div>
+        <ActionCard icon={<PartyPopper className="size-4" />} tone="green" title="Confirm Order">
+          <Field label="Tentative delivery date (optional)">
+            <input type="date" className={inputCls} value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} />
+          </Field>
+          <PrimaryBtn loading={confirmMutation.isPending} disabled={anyPending} onClick={() => confirmMutation.mutate()}><Check className="size-4" /> Confirm & Notify Customer</PrimaryBtn>
+        </ActionCard>
       )}
 
       {/* 4. Dispatch */}
       {["confirmed","in_production","ready_for_dispatch"].includes(order.status) && canOps && (
-        <div className="card" style={{ padding: 16, border: "2px solid var(--purple, #7c3aed)" }}>
-          <div style={{ fontWeight: 700, marginBottom: 8 }}><Truck size={16} style={{display:"inline",verticalAlign:"-3px",marginRight:6}} />Mark as Dispatched</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div className="form-group">
-              <label>Tracking number</label>
-              <input className="input" value={trackingNum} onChange={e => setTrackingNum(e.target.value)} placeholder="Optional" />
-            </div>
-            <div className="form-group">
-              <label>Carrier</label>
-              <input className="input" value={carrier} onChange={e => setCarrier(e.target.value)} placeholder="Optional" />
-            </div>
+        <ActionCard icon={<Truck className="size-4" />} tone="purple" title="Mark as Dispatched">
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <Field label="Tracking number"><input className={inputCls} value={trackingNum} onChange={e => setTrackingNum(e.target.value)} placeholder="Optional" /></Field>
+            <Field label="Carrier"><input className={inputCls} value={carrier} onChange={e => setCarrier(e.target.value)} placeholder="Optional" /></Field>
           </div>
           {["confirmed","in_production"].includes(order.status) && (
-            <button
-              className="btn btn-secondary btn-full"
-              style={{ marginBottom: 8 }}
-              onClick={() => statusMutation.mutate(order.status === "confirmed" ? "in_production" : "ready_for_dispatch")}
-              disabled={anyPending}
-            >
+            <button onClick={() => statusMutation.mutate(order.status === "confirmed" ? "in_production" : "ready_for_dispatch")} disabled={anyPending}
+              className="w-full h-11 rounded-full border border-border text-sm font-semibold text-ink-2 hover:bg-canvas transition-colors mb-2 disabled:opacity-60">
               {order.status === "confirmed" ? "Move to In Production" : "Move to Ready for Dispatch"}
             </button>
           )}
-          <button
-            className="btn btn-primary btn-full"
-            onClick={() => dispatchMutation.mutate()}
-            disabled={anyPending}
-          >
-            {dispatchMutation.isPending ? <span className="spinner" /> : <><Truck size={16} /> Mark Shipped</>}
-          </button>
-        </div>
+          <PrimaryBtn loading={dispatchMutation.isPending} disabled={anyPending} onClick={() => dispatchMutation.mutate()}><Truck className="size-4" /> Mark Shipped</PrimaryBtn>
+        </ActionCard>
       )}
 
       {/* 5. Mark delivered */}
       {order.status === "shipped" && canOps && (
-        <div className="card" style={{ padding: 16, border: "2px solid var(--green, #16a34a)" }}>
-          <div style={{ fontWeight: 700, marginBottom: 8 }}><PackageCheck size={16} style={{display:"inline",verticalAlign:"-3px",marginRight:6}} />Mark as Delivered</div>
-          <button
-            className="btn btn-primary btn-full"
-            onClick={() => deliverMutation.mutate()}
-            disabled={anyPending}
-          >
-            {deliverMutation.isPending ? <span className="spinner" /> : <><Check size={16} /> Mark Delivered</>}
-          </button>
-        </div>
+        <ActionCard icon={<PackageCheck className="size-4" />} tone="green" title="Mark as Delivered">
+          <PrimaryBtn loading={deliverMutation.isPending} disabled={anyPending} onClick={() => deliverMutation.mutate()}><Check className="size-4" /> Mark Delivered</PrimaryBtn>
+        </ActionCard>
       )}
 
       {/* 6. Close order */}
       {order.status === "grn_submitted" && canVerify && (
-        <div className="card" style={{ padding: 16, border: "2px solid var(--border)" }}>
-          <div style={{ fontWeight: 700, marginBottom: 8 }}><Lock size={16} style={{display:"inline",verticalAlign:"-3px",marginRight:6}} />Close Order</div>
-          <button
-            className="btn btn-primary btn-full"
-            onClick={() => closeMutation.mutate()}
-            disabled={anyPending}
-          >
-            {closeMutation.isPending ? <span className="spinner" /> : "Close & Archive Order"}
-          </button>
-        </div>
+        <ActionCard icon={<Lock className="size-4" />} tone="neutral" title="Close Order">
+          <PrimaryBtn loading={closeMutation.isPending} disabled={anyPending} onClick={() => closeMutation.mutate()}>Close &amp; Archive Order</PrimaryBtn>
+        </ActionCard>
       )}
 
       {/* Delivery & GRN info */}
       {delivery?.delivery && (
-        <div className="card" style={{ padding: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-3)", marginBottom: 10 }}>DELIVERY</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {delivery.delivery.carrier && (
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-                <span style={{ color: "var(--ink-3)" }}>Carrier</span>
-                <span style={{ fontWeight: 600 }}>{delivery.delivery.carrier}</span>
-              </div>
-            )}
-            {delivery.delivery.tracking_number && (
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-                <span style={{ color: "var(--ink-3)" }}>Tracking #</span>
-                <span style={{ fontWeight: 700, color: "var(--blue)" }}>{delivery.delivery.tracking_number}</span>
-              </div>
-            )}
-            {delivery.delivery.shipped_at && (
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-                <span style={{ color: "var(--ink-3)" }}>Shipped</span>
-                <span>{new Date(delivery.delivery.shipped_at).toLocaleDateString("en-US", { dateStyle: "medium" })}</span>
-              </div>
-            )}
-            {delivery.delivery.delivered_at && (
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-                <span style={{ color: "var(--ink-3)" }}>Delivered</span>
-                <span style={{ fontWeight: 600, color: "var(--green,#16a34a)" }}>
-                  <Check size={13} style={{display:"inline",verticalAlign:"-2px"}} /> {new Date(delivery.delivery.delivered_at).toLocaleDateString("en-US", { dateStyle: "medium" })}
-                </span>
-              </div>
-            )}
+        <Card label="Delivery">
+          <div className="space-y-1.5">
+            {delivery.delivery.carrier && <Row label="Carrier" value={delivery.delivery.carrier} />}
+            {delivery.delivery.tracking_number && <Row label="Tracking #" value={<span className="font-mono font-bold text-primary">{delivery.delivery.tracking_number}</span>} />}
+            {delivery.delivery.shipped_at && <Row label="Shipped" value={new Date(delivery.delivery.shipped_at).toLocaleDateString("en-US", { dateStyle: "medium" })} />}
+            {delivery.delivery.delivered_at && <Row label="Delivered" value={<span className="font-semibold text-green-600 inline-flex items-center gap-1"><Check className="size-3.5" /> {new Date(delivery.delivery.delivered_at).toLocaleDateString("en-US", { dateStyle: "medium" })}</span>} />}
           </div>
           {delivery.grn && (
-            <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-3)", marginBottom: 8 }}>GRN</div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
-                <span style={{ color: "var(--ink-3)" }}>Accepted</span>
-                <span style={{ fontWeight: 600, color: delivery.grn.is_accepted ? "var(--green,#16a34a)" : "var(--red,#ef4444)" }}>
-                  {delivery.grn.is_accepted ? "Yes" : "No"}
-                </span>
-              </div>
-              {delivery.grn.condition_notes && (
-                <div style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 4 }}>
-                  "{delivery.grn.condition_notes}"
-                </div>
-              )}
+            <div className="mt-3 pt-3 border-t border-border">
+              <div className="text-[11px] font-bold uppercase tracking-wide text-ink-4 mb-2">GRN</div>
+              <Row label="Accepted" value={<span className={`font-semibold ${delivery.grn.is_accepted ? "text-green-600" : "text-red-600"}`}>{delivery.grn.is_accepted ? "Yes" : "No"}</span>} />
+              {delivery.grn.condition_notes && <div className="text-[13px] text-ink-3 mt-1">"{delivery.grn.condition_notes}"</div>}
               {delivery.grn.image_url && (
-                <div style={{ marginTop: 8 }}>
-                  <img
-                    src={delivery.grn.image_url}
-                    alt="GRN photo"
-                    style={{
-                      width: "100%", maxHeight: 220, objectFit: "contain",
-                      borderRadius: "var(--radius)", border: "1px solid var(--border)",
-                      cursor: "pointer",
-                    }}
-                    onClick={() => window.open(delivery.grn.image_url, "_blank")}
-                  />
-                  <div style={{ fontSize: 11, color: "var(--ink-4)", marginTop: 4 }}>Tap to view full size</div>
-                </div>
+                <img src={delivery.grn.image_url} alt="GRN photo" onClick={() => window.open(delivery.grn.image_url, "_blank")}
+                  className="w-full max-h-56 object-contain rounded-xl border border-border mt-2 cursor-pointer" />
               )}
-              {delivery.grn.submitted_at && (
-                <div style={{ fontSize: 12, color: "var(--ink-4)", marginTop: 4 }}>
-                  Submitted {new Date(delivery.grn.submitted_at).toLocaleDateString("en-US", { dateStyle: "medium" })}
-                </div>
-              )}
+              {delivery.grn.submitted_at && <div className="text-[12px] text-ink-4 mt-1">Submitted {new Date(delivery.grn.submitted_at).toLocaleDateString("en-US", { dateStyle: "medium" })}</div>}
             </div>
           )}
-        </div>
+        </Card>
       )}
 
       {/* Order items */}
-      <div className="card" style={{ padding: 0 }}>
-        <div style={{ padding: "14px 16px 0", fontWeight: 700, fontSize: 14 }}>Order Items</div>
+      <div className="bg-surface rounded-2xl shadow-[var(--shadow-sm)] overflow-hidden mb-4">
+        <h3 className="font-bold text-[14px] px-4 pt-4 pb-1">Order Items</h3>
         {order.items?.map((item: any) => (
-          <div key={item.id} className="list-item" style={{ display: "flex" }}>
-            <div className="list-item-icon"><Droplet size={18} /></div>
-            <div className="list-item-body">
-              <div className="list-item-title">{item.sku_name || `SKU #${item.sku_id}`}</div>
-              <div className="list-item-sub">{item.quantity} × ${item.unit_price?.toFixed(2)}</div>
-            </div>
-            <div className="list-item-right">
-              <div className="list-item-amount">${item.subtotal?.toFixed(2)}</div>
-            </div>
+          <div key={item.id} className="flex items-center gap-3 px-4 py-3 border-t border-border first:border-t-0">
+            <div className="size-9 rounded-lg bg-teal-50 flex items-center justify-center text-primary shrink-0"><Droplet className="size-4" /></div>
+            <div className="flex-1 min-w-0"><div className="font-semibold text-sm">{item.sku_name || `SKU #${item.sku_id}`}</div><div className="text-[12px] text-ink-4">{item.quantity} × ${item.unit_price?.toFixed(2)}</div></div>
+            <div className="font-bold text-sm">${item.subtotal?.toFixed(2)}</div>
           </div>
         ))}
-        <div style={{
-          padding: "12px 16px", borderTop: "2px solid var(--border)",
-          display: "flex", justifyContent: "space-between", fontWeight: 700,
-        }}>
-          <span>Total</span>
-          <span style={{ color: "var(--blue)" }}>${order.total_amount?.toFixed(2)}</span>
-        </div>
+        <div className="flex justify-between px-4 py-3 border-t-2 border-border font-bold"><span>Total</span><span className="text-primary">${order.total_amount?.toFixed(2)}</span></div>
       </div>
 
-      {/* Delivery details */}
+      {/* Delivery address */}
       {order.delivery_address && (
-        <div className="card" style={{ padding: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-3)", marginBottom: 4 }}>DELIVERY</div>
-          <div style={{ fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}><MapPin size={15} /> {order.delivery_address}</div>
-          {order.tentative_delivery_date && (
-            <div style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 4 }}>
-              📅 Est. {new Date(order.tentative_delivery_date).toLocaleDateString("en-US", { dateStyle: "medium" })}
-            </div>
-          )}
-        </div>
+        <Card label="Delivery Address">
+          <div className="text-sm flex items-center gap-1.5"><MapPin className="size-4 text-ink-4 shrink-0" /> {order.delivery_address}</div>
+          {order.tentative_delivery_date && <div className="text-[13px] text-ink-3 mt-1.5 inline-flex items-center gap-1.5"><Calendar className="size-3.5" /> Est. {new Date(order.tentative_delivery_date).toLocaleDateString("en-US", { dateStyle: "medium" })}</div>}
+        </Card>
       )}
 
       {order.notes && (
-        <div className="card" style={{ padding: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-3)", marginBottom: 4 }}>NOTES</div>
-          <div style={{ fontSize: 14 }}>{order.notes}</div>
-        </div>
+        <Card label="Notes"><div className="text-sm">{order.notes}</div></Card>
       )}
 
       {/* Internal notes */}
-      <div className="card" style={{ padding: 16 }}>
-        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>
-          <StickyNote size={15} style={{display:"inline",verticalAlign:"-2px",marginRight:6}} />Internal Notes
-          <span style={{ fontSize: 11, fontWeight: 400, color: "var(--ink-4)", marginLeft: 6 }}>Not visible to customer</span>
-        </div>
-
-        {notes.length === 0 && (
-          <p style={{ fontSize: 13, color: "var(--ink-4)", marginBottom: 10 }}>No notes yet.</p>
-        )}
-
+      <div className="bg-surface rounded-2xl shadow-[var(--shadow-sm)] p-5 mb-4">
+        <div className="font-bold text-[14px] mb-3 flex items-center gap-1.5"><StickyNote className="size-4" /> Internal Notes <span className="text-[11px] font-normal text-ink-4">Not visible to customer</span></div>
+        {notes.length === 0 && <p className="text-[13px] text-ink-4 mb-3">No notes yet.</p>}
         {notes.map((note: any) => (
-          <div key={note.id} style={{
-            background: "var(--surface)", borderRadius: "var(--radius)",
-            padding: "10px 12px", marginBottom: 8,
-          }}>
-            <div style={{ fontSize: 13 }}>{note.content}</div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
-              <span style={{ fontSize: 11, color: "var(--ink-4)" }}>
-                {note.staff_name} · {new Date(note.created_at).toLocaleString()}
-              </span>
-              <button
-                onClick={() => deleteNoteMutation.mutate(note.id)}
-                style={{ background: "none", border: "none", color: "var(--red,#ef4444)", fontSize: 11, cursor: "pointer" }}
-              >
-                Delete
-              </button>
+          <div key={note.id} className="rounded-xl bg-canvas px-3 py-2.5 mb-2">
+            <div className="text-[13px]">{note.content}</div>
+            <div className="flex justify-between items-center mt-1.5">
+              <span className="text-[11px] text-ink-4">{note.staff_name} · {new Date(note.created_at).toLocaleString()}</span>
+              <button onClick={() => deleteNoteMutation.mutate(note.id)} className="text-[11px] text-red-500 hover:text-red-600 inline-flex items-center gap-1"><Trash2 className="size-3" /> Delete</button>
             </div>
           </div>
         ))}
-
-        <textarea
-          ref={noteRef}
-          className="input"
-          rows={2}
-          style={{ resize: "none", marginTop: 4, marginBottom: 8 }}
-          placeholder="Add an internal note..."
-          value={newNote}
-          onChange={e => setNewNote(e.target.value)}
-        />
-        <button
-          className="btn btn-secondary btn-full"
-          disabled={!newNote.trim() || addNoteMutation.isPending}
-          onClick={() => addNoteMutation.mutate(newNote)}
-        >
-          {addNoteMutation.isPending ? <span className="spinner spinner-dark" /> : "Add Note"}
+        <textarea ref={noteRef} className={taCls + " mt-1 mb-2"} rows={2} placeholder="Add an internal note..." value={newNote} onChange={e => setNewNote(e.target.value)} />
+        <button onClick={() => addNoteMutation.mutate(newNote)} disabled={!newNote.trim() || addNoteMutation.isPending}
+          className="w-full h-11 rounded-full border border-border text-sm font-semibold text-ink-2 hover:bg-canvas transition-colors disabled:opacity-60">
+          {addNoteMutation.isPending ? <Loader2 className="size-4 animate-spin mx-auto" /> : "Add Note"}
         </button>
       </div>
 
-      {/* Cancel button */}
+      {/* Cancel */}
       {canCancel && (
-        <div style={{ padding: "4px 0 24px" }}>
-          <button
-            className="btn btn-secondary btn-full"
-            style={{ color: "var(--red,#ef4444)", borderColor: "var(--red,#ef4444)" }}
-            onClick={() => setShowCancel(true)}
-          >
-            Cancel Order
-          </button>
-        </div>
+        <button onClick={() => setShowCancel(true)} className="w-full h-12 rounded-full border border-red-200 text-red-600 font-semibold hover:bg-red-50 transition-colors mb-6">
+          Cancel Order
+        </button>
       )}
 
-      {/* Cancel modal */}
       {showCancel && (
-        <div style={{
-          position: "fixed", inset: 0, background: "rgba(0,0,0,.5)",
-          display: "flex", alignItems: "flex-end", zIndex: 300, padding: 16,
-        }}>
-          <div className="card" style={{ width: "100%", maxWidth: 480, padding: 20, margin: "0 auto" }}>
-            <h3 style={{ fontWeight: 700, marginBottom: 8 }}>Cancel Order</h3>
-            <p style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 12 }}>
-              This cannot be undone. Optionally provide a reason.
-            </p>
-            <textarea
-              className="input"
-              rows={3}
-              style={{ resize: "none", marginBottom: 12 }}
-              placeholder="Reason for cancellation (optional)"
-              value={cancelReason}
-              onChange={e => setCancelReason(e.target.value)}
-            />
-            {actionError && <div className="alert alert-error" style={{ marginBottom: 10 }}>{actionError}</div>}
-            <div style={{ display: "flex", gap: 8 }}>
-              <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowCancel(false)}>
-                Keep Order
-              </button>
-              <button
-                className="btn btn-primary"
-                style={{ flex: 1, background: "var(--red,#ef4444)" }}
-                disabled={cancelMutation.isPending}
-                onClick={() => cancelMutation.mutate(cancelReason)}
-              >
-                {cancelMutation.isPending ? <span className="spinner" /> : "Confirm Cancel"}
-              </button>
+        <ConfirmDialog
+          title="Cancel order?"
+          message={
+            <div className="space-y-2">
+              <div>This cannot be undone. Optionally provide a reason.</div>
+              <textarea className={taCls} rows={3} placeholder="Reason for cancellation (optional)" value={cancelReason} onChange={e => setCancelReason(e.target.value)} />
             </div>
-          </div>
-        </div>
+          }
+          confirmLabel="Confirm cancel" cancelLabel="Keep order"
+          loading={cancelMutation.isPending} error={actionError}
+          onConfirm={() => cancelMutation.mutate(cancelReason)}
+          onCancel={() => { setShowCancel(false); setActionError(""); }}
+        />
       )}
     </>
+  );
+}
+
+const TONE: Record<string, string> = {
+  teal: "bg-teal-50 text-primary", amber: "bg-amber-50 text-amber-600",
+  green: "bg-green-50 text-green-600", purple: "bg-purple-50 text-purple-600",
+  neutral: "bg-canvas text-ink-3",
+};
+function ActionCard({ icon, tone, title, children }: { icon: React.ReactNode; tone: keyof typeof TONE | string; title: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-surface rounded-2xl shadow-[var(--shadow-sm)] p-5 mb-4">
+      <div className="flex items-center gap-2.5 mb-4">
+        <span className={`flex size-8 items-center justify-center rounded-lg shrink-0 ${TONE[tone] || TONE.neutral}`}>{icon}</span>
+        <h3 className="font-bold text-[15px]">{title}</h3>
+      </div>
+      {children}
+    </div>
+  );
+}
+function Card({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-surface rounded-2xl shadow-[var(--shadow-sm)] p-4 mb-4">
+      <div className="text-[11px] font-bold uppercase tracking-wide text-ink-4 mb-2">{label}</div>
+      {children}
+    </div>
+  );
+}
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return <div className="mb-3"><label className="text-[13px] font-semibold text-ink-2 mb-1.5 block">{label}</label>{children}</div>;
+}
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
+  return <div className="flex justify-between text-[13px]"><span className="text-ink-3">{label}</span><span>{value}</span></div>;
+}
+function PrimaryBtn({ children, onClick, loading, disabled }: { children: React.ReactNode; onClick: () => void; loading?: boolean; disabled?: boolean }) {
+  return (
+    <button onClick={onClick} disabled={loading || disabled}
+      className="w-full h-12 rounded-full bg-primary text-white font-semibold flex items-center justify-center gap-1.5 hover:bg-teal-700 transition-colors disabled:opacity-60">
+      {loading ? <Loader2 className="size-5 animate-spin" /> : children}
+    </button>
   );
 }

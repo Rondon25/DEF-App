@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { staffApi } from "../../api";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { SkeletonList } from "@/components/Skeleton";
+import StatCard from "@/components/ui/StatCard";
 import {
   Factory, Boxes, Gauge, Package, Search, Plus, Eye, Pencil, Trash2, X, Loader2,
   FileDown, FileSpreadsheet, FileText,
@@ -116,10 +117,10 @@ export default function Plants() {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <Kpi featured label="Plants" value={kpi.count} icon={<Factory className="size-4" />} />
-        <Kpi label="Total Capacity" value={kpi.capacity.toLocaleString()} icon={<Boxes className="size-4" />} />
-        <Kpi label="Total Holding" value={kpi.holding.toLocaleString()} icon={<Package className="size-4" />} />
-        <Kpi label="Utilization" value={`${kpi.util}%`} icon={<Gauge className="size-4" />} />
+        <StatCard label="Plants" value={kpi.count} icon={<Factory className="size-4" />} />
+        <StatCard label="Total Capacity" value={kpi.capacity.toLocaleString()} icon={<Boxes className="size-4" />} />
+        <StatCard label="Total Holding" value={kpi.holding.toLocaleString()} icon={<Package className="size-4" />} />
+        <StatCard label="Utilization" value={`${kpi.util}%`} icon={<Gauge className="size-4" />} />
       </div>
 
       {/* Search + actions */}
@@ -250,14 +251,3 @@ export default function Plants() {
   );
 }
 
-function Kpi({ featured, label, value, icon }: { featured?: boolean; label: string; value: React.ReactNode; icon: React.ReactNode }) {
-  return (
-    <div className={`rounded-2xl p-5 ${featured ? "bg-sidebar text-white" : "bg-surface shadow-[var(--shadow-sm)]"}`}>
-      <div className="flex items-center justify-between mb-4">
-        <span className={`text-[13px] font-medium ${featured ? "text-white/60" : "text-ink-3"}`}>{label}</span>
-        <span className={`flex size-7 items-center justify-center rounded-lg ${featured ? "bg-white/10 text-accent" : "bg-teal-50 text-primary"}`}>{icon}</span>
-      </div>
-      <div className="text-3xl font-bold">{value}</div>
-    </div>
-  );
-}

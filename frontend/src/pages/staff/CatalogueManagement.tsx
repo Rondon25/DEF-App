@@ -21,6 +21,8 @@ interface SKU {
 }
 
 const EMPTY_NEW = { code: "", name: "", description: "", volume_liters: "", unit: "unit", current_price: "" };
+const inputCls = "w-full h-11 rounded-xl border border-input bg-surface px-3.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-ink-4";
+const btnPrimary = "w-full h-12 rounded-full bg-primary text-white font-semibold flex items-center justify-center gap-1.5 hover:bg-teal-700 transition-colors disabled:opacity-60";
 
 export default function CatalogueManagement() {
   const qc = useQueryClient();
@@ -280,30 +282,30 @@ export default function CatalogueManagement() {
       {/* ── Add SKU sheet ── */}
       {showAdd && (
         <Sheet title="Add New SKU" onClose={() => setShowAdd(false)}>
-          <div className="form-group">
+          <div className="mb-3">
             <label>SKU Code *</label>
-            <input className="input" placeholder="DEF-25L" value={newForm.code}
+            <input className={inputCls} placeholder="DEF-25L" value={newForm.code}
               onChange={e => setNewForm(p => ({ ...p, code: e.target.value }))} />
           </div>
-          <div className="form-group">
+          <div className="mb-3">
             <label>Name *</label>
-            <input className="input" placeholder="DEF 25L" value={newForm.name}
+            <input className={inputCls} placeholder="DEF 25L" value={newForm.name}
               onChange={e => setNewForm(p => ({ ...p, name: e.target.value }))} />
           </div>
-          <div className="form-group">
+          <div className="mb-3">
             <label>Description</label>
-            <textarea className="input" rows={2} style={{ resize: "none" }} value={newForm.description}
+            <textarea className={inputCls} rows={2} style={{ resize: "none" }} value={newForm.description}
               onChange={e => setNewForm(p => ({ ...p, description: e.target.value }))} />
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div className="form-group">
+            <div className="mb-3">
               <label>Volume (litres)</label>
-              <input className="input" type="number" min="0" value={newForm.volume_liters}
+              <input className={inputCls} type="number" min="0" value={newForm.volume_liters}
                 onChange={e => setNewForm(p => ({ ...p, volume_liters: e.target.value }))} />
             </div>
-            <div className="form-group">
+            <div className="mb-3">
               <label>Unit</label>
-              <select className="input" value={newForm.unit}
+              <select className={inputCls} value={newForm.unit}
                 onChange={e => setNewForm(p => ({ ...p, unit: e.target.value }))}>
                 <option value="unit">unit</option>
                 <option value="drum">drum</option>
@@ -312,14 +314,14 @@ export default function CatalogueManagement() {
               </select>
             </div>
           </div>
-          <div className="form-group">
+          <div className="mb-3">
             <label>Price (USD) *</label>
-            <input className="input" type="number" min="0" step="0.01" placeholder="0.00" value={newForm.current_price}
+            <input className={inputCls} type="number" min="0" step="0.01" placeholder="0.00" value={newForm.current_price}
               onChange={e => setNewForm(p => ({ ...p, current_price: e.target.value }))} />
           </div>
-          {error && <div className="alert alert-error" style={{ marginBottom: 10 }}>{error}</div>}
+          {error && <div className="rounded-xl bg-red-50 border border-red-100 px-3.5 py-2.5 mb-3 text-[13px] text-red-700">{error}</div>}
           <button
-            className="btn btn-primary btn-full"
+            className={btnPrimary}
             disabled={createMutation.isPending || !newForm.code || !newForm.name || !newForm.current_price}
             onClick={() => createMutation.mutate({
               code: newForm.code,
@@ -338,25 +340,25 @@ export default function CatalogueManagement() {
       {/* ── Edit SKU sheet ── */}
       {editSku && (
         <Sheet title={`Edit — ${editSku.name}`} onClose={() => setEditSku(null)}>
-          <div className="form-group">
+          <div className="mb-3">
             <label>Name</label>
-            <input className="input" value={editForm.name}
+            <input className={inputCls} value={editForm.name}
               onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))} />
           </div>
-          <div className="form-group">
+          <div className="mb-3">
             <label>Description</label>
-            <textarea className="input" rows={2} style={{ resize: "none" }} value={editForm.description}
+            <textarea className={inputCls} rows={2} style={{ resize: "none" }} value={editForm.description}
               onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))} />
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div className="form-group">
+            <div className="mb-3">
               <label>Volume (litres)</label>
-              <input className="input" type="number" min="0" value={editForm.volume_liters}
+              <input className={inputCls} type="number" min="0" value={editForm.volume_liters}
                 onChange={e => setEditForm(p => ({ ...p, volume_liters: e.target.value }))} />
             </div>
-            <div className="form-group">
+            <div className="mb-3">
               <label>Unit</label>
-              <select className="input" value={editForm.unit}
+              <select className={inputCls} value={editForm.unit}
                 onChange={e => setEditForm(p => ({ ...p, unit: e.target.value }))}>
                 <option value="unit">unit</option>
                 <option value="drum">drum</option>
@@ -365,9 +367,9 @@ export default function CatalogueManagement() {
               </select>
             </div>
           </div>
-          {error && <div className="alert alert-error" style={{ marginBottom: 10 }}>{error}</div>}
+          {error && <div className="rounded-xl bg-red-50 border border-red-100 px-3.5 py-2.5 mb-3 text-[13px] text-red-700">{error}</div>}
           <button
-            className="btn btn-primary btn-full"
+            className={btnPrimary}
             disabled={editMutation.isPending}
             onClick={() => editMutation.mutate({
               id: editSku.id,
@@ -388,26 +390,26 @@ export default function CatalogueManagement() {
       {priceSku && (
         <Sheet title={`Update Price — ${priceSku.name}`} onClose={() => setPriceSku(null)}>
           <div style={{ background: "var(--surface)", borderRadius: "var(--radius)", padding: 12, marginBottom: 14, fontSize: 13 }}>
-            Current price: <strong style={{ color: "var(--blue)" }}>${priceSku.current_price.toFixed(2)}</strong> / {priceSku.unit}
+            Current price: <strong className="text-primary">${priceSku.current_price.toFixed(2)}</strong> / {priceSku.unit}
           </div>
-          <div className="form-group">
+          <div className="mb-3">
             <label>New price (USD) *</label>
-            <input className="input" type="number" min="0" step="0.01"
+            <input className={inputCls} type="number" min="0" step="0.01"
               value={newPrice} onChange={e => setNewPrice(e.target.value)} />
           </div>
-          <div className="form-group">
+          <div className="mb-3">
             <label>Effective from *</label>
-            <input className="input" type="date" defaultValue={today}
+            <input className={inputCls} type="date" defaultValue={today}
               onChange={e => setPriceNotes(e.target.value)} />
           </div>
-          <div className="form-group">
+          <div className="mb-3">
             <label>Notes (optional)</label>
-            <input className="input" placeholder="e.g. Q3 price adjustment"
+            <input className={inputCls} placeholder="e.g. Q3 price adjustment"
               value={priceNotes} onChange={e => setPriceNotes(e.target.value)} />
           </div>
-          {error && <div className="alert alert-error" style={{ marginBottom: 10 }}>{error}</div>}
+          {error && <div className="rounded-xl bg-red-50 border border-red-100 px-3.5 py-2.5 mb-3 text-[13px] text-red-700">{error}</div>}
           <button
-            className="btn btn-primary btn-full"
+            className={btnPrimary}
             disabled={priceMutation.isPending || !newPrice}
             onClick={() => priceMutation.mutate({
               id: priceSku.id,
