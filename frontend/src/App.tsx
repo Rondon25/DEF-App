@@ -29,7 +29,6 @@ import Procurement          from "./pages/staff/Procurement";
 import FinishedGoods         from "./pages/staff/FinishedGoods";
 import Production            from "./pages/staff/Production";
 import Forecast              from "./pages/staff/Forecast";
-import DashboardLab          from "./pages/staff/DashboardLab";
 import DesignPreview        from "./pages/DesignPreview";
 
 
@@ -65,7 +64,6 @@ export default function App() {
       <Route path="/staff/finished-goods" element={<RequireStaff roles={["admin","central_team","operations"]}><StaffLayout><FinishedGoods /></StaffLayout></RequireStaff>} />
       <Route path="/staff/production"     element={<RequireStaff roles={["admin","central_team","operations"]}><StaffLayout><Production /></StaffLayout></RequireStaff>} />
       <Route path="/staff/forecast"       element={<RequireStaff roles={["admin","central_team","operations","sales"]}><StaffLayout><Forecast /></StaffLayout></RequireStaff>} />
-      <Route path="/staff/dashboard-lab"  element={<RequireStaff roles={["admin","central_team","operations"]}><DashboardLab /></RequireStaff>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

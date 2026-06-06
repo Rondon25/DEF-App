@@ -5,6 +5,10 @@ import { staffApi } from "../../api";
 import { getStaffUser } from "../../hooks/useAuth";
 import { StatusPill } from "@/components/StatusPill";
 import { SkeletonList } from "@/components/Skeleton";
+import StatCard from "@/components/ui/StatCard";
+import AreaChart from "@/components/charts/AreaChart";
+import BarChart from "@/components/charts/BarChart";
+import Ring from "@/components/charts/Ring";
 import {
   Activity, UserPlus, CreditCard, Truck, ClipboardList, ChevronRight,
   DollarSign, TrendingUp, Users, Boxes, ShoppingCart, AlertTriangle, Gauge, Factory, Download,
@@ -70,10 +74,10 @@ function OperationsTab({ role }: { role: string }) {
   return (
     <>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <Kpi featured label="Active Orders" value={active.length} icon={<Activity className="size-4" />} />
-        {isCentral && <Kpi label="Pending Approval" value={pending.length} warn={pending.length > 0} icon={<UserPlus className="size-4" />} />}
-        {isFinance && <Kpi label="Payments to Verify" value={payments.length} warn={payments.length > 0} icon={<CreditCard className="size-4" />} />}
-        <Kpi label="In Transit" value={shipped.length} icon={<Truck className="size-4" />} />
+        <StatCard label="Active Orders" value={active.length} icon={<Activity className="size-4" />} />
+        {isCentral && <StatCard label="Pending Approval" value={pending.length} warn={pending.length > 0} icon={<UserPlus className="size-4" />} />}
+        {isFinance && <StatCard label="Payments to Verify" value={payments.length} warn={payments.length > 0} icon={<CreditCard className="size-4" />} />}
+        <StatCard label="In Transit" value={shipped.length} icon={<Truck className="size-4" />} />
       </div>
 
       <div className="grid lg:grid-cols-[2fr_minmax(0,1fr)] gap-5 mb-5">
@@ -142,7 +146,6 @@ function PerformanceTab() {
   const { data: topCustomers = [] } = useQuery({ queryKey: ["analytics-customers", days], queryFn: () => staffApi.get(`/admin/analytics/top-customers?days=${days}&limit=8`).then((r) => r.data) });
   const { data: topSkus = [] } = useQuery({ queryKey: ["analytics-skus", days], queryFn: () => staffApi.get(`/admin/analytics/top-skus?days=${days}&limit=6`).then((r) => r.data) });
   const { data: revenueData = [] } = useQuery({ queryKey: ["analytics-revenue", days], queryFn: () => staffApi.get(`/admin/analytics/revenue-over-time?days=${days}`).then((r) => r.data) });
-  const maxRevenue = Math.max(...revenueData.map((d: any) => d.revenue), 1);
 
   const handleExport = (type: string) => {
     staffApi.get(`/admin/export/${type}?days=${days}`, { responseType: "blob" }).then((r) => {
@@ -161,23 +164,16 @@ function PerformanceTab() {
 
       {summary && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-          <Kpi featured label="Total Orders" value={summary.total_orders} icon={<ClipboardList className="size-4" />} />
-          <Kpi label="Revenue (Closed)" value={`$${summary.total_revenue.toLocaleString()}`} icon={<DollarSign className="size-4" />} />
-          <Kpi label="Pipeline" value={`$${summary.pending_revenue.toLocaleString()}`} icon={<TrendingUp className="size-4" />} />
-          <Kpi label="Active Orders" value={summary.active_orders} icon={<Activity className="size-4" />} />
+          <StatCard label="Total Orders" value={summary.total_orders} icon={<ClipboardList className="size-4" />} />
+          <StatCard label="Revenue (Closed)" value={`$${summary.total_revenue.toLocaleString()}`} icon={<DollarSign className="size-4" />} />
+          <StatCard label="Pipeline" value={`$${summary.pending_revenue.toLocaleString()}`} icon={<TrendingUp className="size-4" />} />
+          <StatCard label="Active Orders" value={summary.active_orders} icon={<Activity className="size-4" />} />
         </div>
       )}
 
       <div className="bg-surface rounded-2xl shadow-[var(--shadow-sm)] p-5 mb-5">
         <h3 className="font-bold mb-4">Revenue over time</h3>
-        <div className="flex items-end gap-0.5 h-24 overflow-x-auto">
-          {revenueData.slice(-30).map((d: any, i: number) => (
-            <div key={i} className="flex-1 min-w-[8px] flex flex-col items-center justify-end">
-              <div title={`${d.date}: $${d.revenue}`} className="w-full rounded-t" style={{ background: d.revenue > 0 ? "var(--color-teal-600)" : "var(--color-border)", height: `${Math.max(2, (d.revenue / maxRevenue) * 90)}px`, transition: "height .2s" }} />
-            </div>
-          ))}
-        </div>
-        <div className="flex justify-between text-[11px] text-ink-4 mt-2"><span>{revenueData[0]?.date}</span><span>{revenueData[revenueData.length - 1]?.date}</span></div>
+        <AreaChart data={revenueData.map((d: any) => ({ label: d.date, value: d.revenue }))} prefix="$" />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-5 mb-5">
@@ -202,15 +198,14 @@ function ManufacturingTab() {
   const { data, isLoading } = useQuery<any>({ queryKey: ["mfg-dashboard"], queryFn: () => staffApi.get("/admin/dashboard/manufacturing").then((r) => r.data), refetchInterval: 30_000 });
   if (isLoading || !data) return <SkeletonList rows={6} />;
   const k = data.kpis;
-  const maxFc = Math.max(...data.forecast_by_sku.map((s: any) => s.units), 1);
 
   return (
     <>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <Kpi featured label={`Forecast (${data.month})`} value={Number(k.monthly_forecast_units).toLocaleString()} icon={<TrendingUp className="size-4" />} />
-        <Kpi label="Reorder Signals" value={k.active_reorder_signals} warn={k.active_reorder_signals > 0} icon={<ShoppingCart className="size-4" />} />
-        <Kpi label="Plants Over Capacity" value={k.plants_over_capacity} warn={k.plants_over_capacity > 0} icon={<Gauge className="size-4" />} />
-        <Kpi label="RM Critical Alerts" value={k.rm_critical_alerts} warn={k.rm_critical_alerts > 0} icon={<AlertTriangle className="size-4" />} />
+        <StatCard label={`Forecast (${data.month})`} value={Number(k.monthly_forecast_units).toLocaleString()} icon={<TrendingUp className="size-4" />} />
+        <StatCard label="Reorder Signals" value={k.active_reorder_signals} warn={k.active_reorder_signals > 0} icon={<ShoppingCart className="size-4" />} />
+        <StatCard label="Plants Over Capacity" value={k.plants_over_capacity} warn={k.plants_over_capacity > 0} icon={<Gauge className="size-4" />} />
+        <StatCard label="RM Critical Alerts" value={k.rm_critical_alerts} warn={k.rm_critical_alerts > 0} icon={<AlertTriangle className="size-4" />} />
       </div>
 
       {/* Secondary KPIs */}
@@ -225,16 +220,9 @@ function ManufacturingTab() {
         {/* Monthly sales by SKU */}
         <div className="bg-surface rounded-2xl shadow-[var(--shadow-sm)] p-5">
           <h3 className="font-bold mb-4 flex items-center gap-2"><TrendingUp size={17} className="text-primary" /> Monthly Forecast by Product</h3>
-          <div className="space-y-2.5">
-            {data.forecast_by_sku.length === 0 ? <p className="text-sm text-ink-4 py-4 text-center">No forecast for {data.month}</p> :
-              data.forecast_by_sku.map((s: any) => (
-                <div key={s.sku_id} className="flex items-center gap-3">
-                  <span className="text-sm font-mono w-20 shrink-0">{s.sku_code}</span>
-                  <div className="flex-1 h-2.5 rounded-full bg-canvas overflow-hidden"><div className="h-2.5 rounded-full bg-primary" style={{ width: `${Math.max(3, (s.units / maxFc) * 100)}%` }} /></div>
-                  <span className="text-sm font-semibold w-16 text-right">{s.units.toLocaleString()}</span>
-                </div>
-              ))}
-          </div>
+          {data.forecast_by_sku.length === 0
+            ? <p className="text-sm text-ink-4 py-4 text-center">No forecast for {data.month}</p>
+            : <BarChart data={data.forecast_by_sku.map((s: any) => ({ label: s.sku_code, value: s.units }))} />}
         </div>
 
         {/* Plant utilization + shifts needed */}
@@ -244,9 +232,12 @@ function ManufacturingTab() {
             {data.plant_utilization.map((p: any) => {
               const color = p.over_capacity ? "var(--color-danger)" : p.utilization > 80 ? "var(--color-amber-500)" : "var(--color-teal-600)";
               return (
-                <div key={p.plant_name}>
-                  <div className="flex justify-between text-[13px] mb-1"><span className="font-medium">{p.plant_name}</span><span className="text-ink-3">{p.used_hours}/{p.capacity_hours}h · {p.shifts_needed} shift(s)</span></div>
-                  <div className="h-2 rounded-full bg-canvas overflow-hidden"><div className="h-2 rounded-full" style={{ width: `${Math.min(100, p.utilization)}%`, background: color }} /></div>
+                <div key={p.plant_name} className="flex items-center gap-3">
+                  <Ring value={p.utilization} size={48} thickness={5} color={color} />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[13px] font-medium truncate">{p.plant_name}</div>
+                    <div className="text-[12px] text-ink-3">{p.used_hours}/{p.capacity_hours}h · {p.shifts_needed} shift(s)</div>
+                  </div>
                 </div>
               );
             })}
@@ -283,17 +274,6 @@ function ManufacturingTab() {
 }
 
 // ── shared ────────────────────────────────────────────────────────────────────
-function Kpi({ featured, warn, label, value, icon }: { featured?: boolean; warn?: boolean; label: string; value: React.ReactNode; icon: React.ReactNode }) {
-  return (
-    <div className={`rounded-2xl p-5 ${featured ? "bg-sidebar text-white" : "bg-surface shadow-[var(--shadow-sm)]"}`}>
-      <div className="flex items-center justify-between mb-4">
-        <span className={`text-[13px] font-medium ${featured ? "text-white/60" : "text-ink-3"}`}>{label}</span>
-        <span className={`flex size-7 items-center justify-center rounded-lg ${featured ? "bg-white/10 text-accent" : warn ? "bg-amber-100 text-amber-600" : "bg-teal-50 text-primary"}`}>{icon}</span>
-      </div>
-      <div className={`text-3xl font-bold ${warn && !featured ? "text-amber-600" : ""}`}>{value}</div>
-    </div>
-  );
-}
 function MiniStat({ label, value, icon }: { label: string; value: React.ReactNode; icon: React.ReactNode }) {
   return (
     <div className="rounded-2xl bg-surface shadow-[var(--shadow-sm)] p-4 flex items-center gap-3">
