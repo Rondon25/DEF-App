@@ -5,10 +5,11 @@ import { clearStaffAuth, getStaffUser } from "../hooks/useAuth";
 import { staffApi } from "../api";
 import {
   LayoutDashboard, Users, ClipboardList, Layers,
-  Package, Menu, X, LogOut, Factory, Settings2, Boxes, ShoppingCart, PackageCheck, Cog, TrendingUp, Search,
+  Package, Menu, X, LogOut, Factory, Settings2, Boxes, ShoppingCart, PackageCheck, Cog, TrendingUp,
 } from "lucide-react";
 import logoMark from "../assets/logo-mark.svg";
 import NotificationBell from "./NotificationBell";
+import GlobalSearch from "./GlobalSearch";
 
 type NavItem = { to: string; icon: any; label: string; roles: string[] };
 type NavSection = { title: string; items: NavItem[] };
@@ -184,10 +185,7 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
             {user?.name ? `Welcome, ${user.name.split(" ")[0]}` : "Staff Portal"}
           </div>
           {/* Global search */}
-          <div className="relative hidden lg:block ml-2">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-ink-4" />
-            <input placeholder="Search anything here..." className="h-9 w-[260px] rounded-full bg-canvas pl-9 pr-4 text-sm outline-none border border-transparent focus:border-input focus:bg-surface transition-colors placeholder:text-ink-4" />
-          </div>
+          <GlobalSearch />
           <div className="flex items-center gap-3 ml-auto">
             <NotificationBell role={user?.role || "sales"} />
             <div className="flex items-center gap-2 bg-sidebar text-white pl-1.5 pr-4 py-1.5 rounded-full text-[13px]">
