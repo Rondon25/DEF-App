@@ -13,13 +13,10 @@ import {
 const TIMELINE = [
   { key: "submitted",        label: "Placed" },
   { key: "proforma_sent",    label: "Invoice" },
-  { key: "payment_uploaded", label: "Payment" },
-  { key: "payment_verified", label: "Verified" },
+  { key: "payment_verified", label: "Paid" },
   { key: "confirmed",        label: "Confirmed" },
-  { key: "in_production",    label: "Production" },
   { key: "shipped",          label: "Shipped" },
   { key: "delivered",        label: "Delivered" },
-  { key: "closed",           label: "Closed" },
 ];
 
 const ORDER_INDEX: Record<string, number> = Object.fromEntries(
@@ -120,19 +117,21 @@ export default function OrderDetail() {
       {/* Timeline */}
       <Card className="mb-4">
         <h3 className="text-[13px] font-bold text-ink-2 mb-4">Order Progress</h3>
-        <div className="flex items-start overflow-x-auto pb-1">
+        <div className="flex items-start">
           {TIMELINE.map((step, i) => {
             const done = curIdx >= (ORDER_INDEX[step.key] ?? 0);
-            const current = order.status === step.key || (step.key === "shipped" && order.status === "ready_for_dispatch");
+            const current = order.status === step.key || (step.key === "shipped" && order.status === "ready_for_dispatch")
+              || (step.key === "confirmed" && order.status === "in_production")
+              || (step.key === "delivered" && ["grn_pending","grn_submitted","closed"].includes(order.status));
             return (
-              <div key={step.key} className="flex items-center" style={{ flex: i < TIMELINE.length - 1 ? 1 : undefined }}>
-                <div className="flex flex-col items-center min-w-[52px]">
-                  <div className={`size-7 rounded-full flex items-center justify-center text-[12px] font-bold ${done ? "bg-primary text-white" : "bg-canvas text-ink-4"} ${current ? "ring-2 ring-accent ring-offset-1" : ""}`}>
+              <div key={step.key} className="flex items-start" style={{ flex: i < TIMELINE.length - 1 ? 1 : "0 0 auto" }}>
+                <div className="flex flex-col items-center">
+                  <div className={`size-7 rounded-full flex items-center justify-center text-[12px] font-bold shrink-0 ${done ? "bg-primary text-white" : "bg-canvas text-ink-4"} ${current ? "ring-2 ring-accent ring-offset-1" : ""}`}>
                     {done ? <Check className="size-3.5" /> : i + 1}
                   </div>
-                  <span className={`text-[9px] mt-1 text-center max-w-[52px] ${done ? "text-ink-2 font-semibold" : "text-ink-4"}`}>{step.label}</span>
+                  <span className={`text-[10px] mt-1.5 text-center leading-tight ${done ? "text-ink-2 font-semibold" : "text-ink-4"}`}>{step.label}</span>
                 </div>
-                {i < TIMELINE.length - 1 && <div className={`flex-1 h-0.5 min-w-[8px] mb-5 ${curIdx > (ORDER_INDEX[step.key] ?? 0) ? "bg-primary" : "bg-border"}`} />}
+                {i < TIMELINE.length - 1 && <div className={`flex-1 h-0.5 mt-3.5 mx-1 ${curIdx > (ORDER_INDEX[step.key] ?? 0) ? "bg-primary" : "bg-border"}`} />}
               </div>
             );
           })}

@@ -96,7 +96,7 @@ export default function Catalogue() {
       {isLoading ? (
         <SkeletonList rows={5} />
       ) : (
-        <div className="flex flex-col gap-3 pb-24">
+        <div className="flex flex-col gap-3 pb-36">
           {skus.map((sku) => {
             const qty = getQty(sku.id);
             const out = sku.stock_qty !== null && sku.stock_qty <= 0;
@@ -154,7 +154,7 @@ export default function Catalogue() {
 
       {/* Sticky review bar */}
       {cart.length > 0 && !showCart && (
-        <div className="fixed inset-x-0 z-30 px-4" style={{ bottom: "calc(70px + env(safe-area-inset-bottom))" }}>
+        <div className="fixed inset-x-0 z-30 px-4" style={{ bottom: "calc(84px + env(safe-area-inset-bottom))" }}>
           <div className="max-w-2xl mx-auto">
             <Button size="full" className="h-12 shadow-[0_6px_24px_rgba(13,148,136,.35)]" onClick={() => setShowCart(true)}>
               <ShoppingCart className="size-4" />
