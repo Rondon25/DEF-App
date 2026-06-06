@@ -7,7 +7,7 @@ from pydantic import BaseModel, EmailStr
 
 from database import get_db
 import models
-from services.auth import hash_password, verify_password, create_access_token, decode_token
+from services.auth import hash_password, verify_password, create_access_token, decode_token, is_locked, record_fail, clear_fails
 
 router = APIRouter(tags=["staff-auth"])
 staff_bearer = OAuth2PasswordBearer(tokenUrl="/staff/login", auto_error=False)
@@ -79,11 +79,17 @@ class StaffRegisterRequest(BaseModel):
 
 @router.post("/staff/login", response_model=StaffTokenResponse)
 def staff_login(payload: StaffLoginRequest, db: Session = Depends(get_db)):
+    lock_key = f"staff:{payload.email.lower()}"
+    if is_locked(lock_key):
+        raise HTTPException(status_code=429, detail="Too many failed attempts. Try again in ~15 minutes.")
+
     user = db.query(models.StaffUser).filter(models.StaffUser.email == payload.email).first()
     if not user or not verify_password(payload.password, user.hashed_password):
+        record_fail(lock_key)
         raise HTTPException(status_code=401, detail="Invalid email or password")
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account is deactivated")
+    clear_fails(lock_key)
 
     token = create_access_token({
         "sub":   str(user.id),

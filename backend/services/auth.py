@@ -33,6 +33,30 @@ def decode_token(token: str) -> dict | None:
         return None
 
 
+# ── Brute-force lockout (in-memory) ───────────────────────────────────────────
+# After MAX_FAILS failed attempts within WINDOW, the key is locked for WINDOW.
+_FAILS: dict[str, list[float]] = {}
+MAX_FAILS = 5
+WINDOW_SEC = 15 * 60
+
+
+def is_locked(key: str) -> bool:
+    import time
+    now = time.time()
+    fails = [t for t in _FAILS.get(key, []) if now - t < WINDOW_SEC]
+    _FAILS[key] = fails
+    return len(fails) >= MAX_FAILS
+
+
+def record_fail(key: str) -> None:
+    import time
+    _FAILS.setdefault(key, []).append(time.time())
+
+
+def clear_fails(key: str) -> None:
+    _FAILS.pop(key, None)
+
+
 def generate_otp(length: int = 6) -> str:
     return "".join(random.choices(string.digits, k=length))
 

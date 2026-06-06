@@ -13,7 +13,7 @@ from slowapi.util import get_remote_address
 from database import get_db
 import models
 from services.auth import (
-    generate_otp, otp_expiry, is_otp_valid, create_access_token, decode_token
+    generate_otp, otp_expiry, is_otp_valid, create_access_token, decode_token, is_locked, record_fail, clear_fails
 )
 from services.whatsapp import send_otp, send_registration_pending
 
@@ -205,8 +205,13 @@ def verify_otp(payload: VerifyOTPRequest, db: Session = Depends(get_db)):
     if customer.status not in [models.CustomerStatus.active]:
         raise HTTPException(status_code=403, detail="Account is not active")
 
+    lock_key = f"otp:{phone}"
+    if is_locked(lock_key):
+        raise HTTPException(status_code=429, detail="Too many incorrect codes. Please request a new code in ~15 minutes.")
     if not is_otp_valid(payload.otp_code, customer.otp_code, customer.otp_expires_at):
+        record_fail(lock_key)
         raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+    clear_fails(lock_key)
 
     customer.otp_code       = None
     customer.otp_expires_at = None
