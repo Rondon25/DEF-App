@@ -7,8 +7,11 @@ import type { DeliveryLocation } from "../../hooks/useAuth";
 import BulkLocationUpload, { type LocationRow } from "../../components/BulkLocationUpload";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import {
-  FolderOpen, Smartphone, X, MapPin, Plus, Pencil, Trash2, LogOut, Loader2, Check, CreditCard,
+  FolderOpen, Smartphone, X, MapPin, Plus, Pencil, Trash2, LogOut, Loader2, Check, CreditCard, Phone,
 } from "lucide-react";
+
+const SUPPORT_PHONE = "+91 9370494639";
+const SUPPORT_TEL   = "+919370494639";
 
 interface LocationForm { label: string; address: string; city: string; state: string; }
 const emptyForm = (): LocationForm => ({ label: "", address: "", city: "", state: "" });
@@ -184,6 +187,18 @@ export default function Profile() {
           </div>
         )}
       </div>
+
+      {/* Contact / help */}
+      <a href={`tel:${SUPPORT_TEL}`} className="block bg-surface rounded-2xl shadow-[var(--shadow-sm)] p-4 mb-4 hover:bg-canvas transition-colors">
+        <div className="flex items-center gap-3">
+          <div className="size-11 rounded-xl bg-teal-50 text-primary flex items-center justify-center shrink-0"><Phone className="size-5" /></div>
+          <div className="min-w-0">
+            <div className="font-semibold text-sm">Contact Rohan Energy</div>
+            <div className="text-[13px] text-ink-3">Need help with an order? Call us</div>
+            <div className="text-[13px] font-semibold text-primary font-mono mt-0.5">{SUPPORT_PHONE}</div>
+          </div>
+        </div>
+      </a>
 
       {/* Account actions */}
       <div className="bg-surface rounded-2xl shadow-[var(--shadow-sm)] p-4 space-y-2.5">

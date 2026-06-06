@@ -31,13 +31,19 @@ export default function CustomerHome() {
 
       {/* Primary CTA */}
       <Link to="/catalog" className="block mb-5">
-        <div className="rounded-2xl bg-sidebar text-white p-5 flex items-center justify-between shadow-[var(--shadow-sm)] active:scale-[0.99] transition-transform">
-          <div>
-            <div className="font-bold text-[17px]">Place an order</div>
-            <div className="text-[13px] text-white/55 mt-0.5">Browse DEF products · order in minutes</div>
-          </div>
-          <div className="size-12 rounded-full bg-accent flex items-center justify-center text-sidebar shrink-0">
-            <ShoppingCart className="size-5" />
+        <div className="relative overflow-hidden rounded-3xl bg-sidebar text-white p-6 shadow-[var(--shadow)] active:scale-[0.99] transition-transform">
+          {/* decorative accent glow */}
+          <div className="absolute -right-10 -top-10 size-40 rounded-full bg-accent/15 blur-2xl" />
+          <div className="absolute -right-6 -bottom-12 size-32 rounded-full bg-primary/20 blur-2xl" />
+          <div className="relative">
+            <div className="size-14 rounded-2xl bg-accent flex items-center justify-center text-sidebar mb-4">
+              <ShoppingCart className="size-7" />
+            </div>
+            <div className="font-bold text-2xl">Place an order</div>
+            <div className="text-[14px] text-white/60 mt-1">Browse DEF products and order in minutes</div>
+            <span className="inline-flex items-center gap-1.5 mt-4 h-11 px-5 rounded-full bg-accent text-sidebar text-sm font-bold">
+              Start ordering <ArrowRight className="size-4" />
+            </span>
           </div>
         </div>
       </Link>
